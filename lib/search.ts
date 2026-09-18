@@ -200,6 +200,44 @@ export type SearchSuggestion = {
   coverImageUrl: string | null;
 };
 
+// Anasayfadaki "Çok Satanlar" bölümü — gerçek satış verisine (WebOrderItem)
+// dayanıyor, uydurma bir "popülerlik" skoru değil. Henüz ödenmemiş
+// (ODEME_BEKLIYOR) ve iptal edilmiş (IPTAL_EDILDI) siparişler sayılmıyor —
+// sadece fiilen işlenmiş siparişler "satış" sayılır. Online mağaza yeni
+// açıldığı için bu liste gerçek sipariş birikene kadar boş dönecek; anasayfa
+// bunu zaten göstermeyerek karşılıyor (bkz. proje kısıtı: veri yoksa vitrin
+// bölümü nazikçe gizlenmeli).
+export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
+  const storeId = await getOnlineStoreId();
+  const grouped = await prisma.webOrderItem.groupBy({
+    by: ["productId"],
+    where: { webOrder: { status: { notIn: ["ODEME_BEKLIYOR", "IPTAL_EDILDI"] } } },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+    take: limit,
+  });
+  if (grouped.length === 0) return [];
+
+  const ids = grouped.map((g) => g.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: ids }, storeId, showOnStorefront: true, archivedAt: null },
+    select: BASE_SELECT,
+  });
+  const byId = new Map(products.map((p) => [p.id, p]));
+  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+}
+
+// Anasayfadaki marka şeridi — sadece storefront'ta ürünü olan markalar,
+// uydurma bir liste değil.
+export async function getStorefrontBrands(): Promise<{ id: string; name: string }[]> {
+  const storeId = await getOnlineStoreId();
+  return prisma.brand.findMany({
+    where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+}
+
 export async function getStorefrontProductBySlug(slug: string) {
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({

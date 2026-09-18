@@ -4,13 +4,17 @@ import {
   getStorefrontCategories,
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
+  getBestSellers,
+  getStorefrontBrands,
 } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
 import MembershipBanner from "@/components/MembershipBanner";
-import Hero from "@/components/Hero";
+import HeroSlider from "@/components/HeroSlider";
+import TrustBar from "@/components/TrustBar";
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductRow from "@/components/ProductRow";
+import BrandStrip from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 
 export default async function Home({
@@ -21,20 +25,28 @@ export default async function Home({
   const { kategori } = await searchParams;
   const isHome = !kategori;
 
-  const [products, categories, categoriesWithCounts, newArrivals, memberDiscountPercent] = await Promise.all([
-    listStorefrontProducts({ categoryId: kategori }),
-    getStorefrontCategories(),
-    isHome ? getStorefrontCategoriesWithCounts() : Promise.resolve([]),
-    isHome ? getNewArrivals(10) : Promise.resolve([]),
-    getMemberDiscountPercent(),
-  ]);
+  const [products, categories, categoriesWithCounts, newArrivals, bestSellers, brands, memberDiscountPercent] =
+    await Promise.all([
+      listStorefrontProducts({ categoryId: kategori }),
+      getStorefrontCategories(),
+      isHome ? getStorefrontCategoriesWithCounts() : Promise.resolve([]),
+      isHome ? getNewArrivals(10) : Promise.resolve([]),
+      isHome ? getBestSellers(10) : Promise.resolve([]),
+      isHome ? getStorefrontBrands() : Promise.resolve([]),
+      getMemberDiscountPercent(),
+    ]);
 
   const activeCategoryName = kategori ? categories.find((c) => c.id === kategori)?.name : null;
   const catalogIsEmpty = isHome && products.length === 0 && categories.length === 0;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-4">
-      {isHome && <Hero />}
+      {isHome && (
+        <>
+          <HeroSlider />
+          <TrustBar />
+        </>
+      )}
 
       {memberDiscountPercent === null && (
         <div className="mb-5">
@@ -52,10 +64,16 @@ export default async function Home({
           {isHome && categoriesWithCounts.length > 0 && <CategoryGrid categories={categoriesWithCounts} />}
 
           {isHome && (
+            <ProductRow title="Çok Satanlar" products={bestSellers} memberDiscountPercent={memberDiscountPercent} />
+          )}
+
+          {isHome && (
             <ProductRow title="Yeni Eklenenler" products={newArrivals} memberDiscountPercent={memberDiscountPercent} />
           )}
 
-          <div className="mb-3 flex items-center justify-between">
+          {isHome && <BrandStrip brands={brands} />}
+
+          <div id="tum-urunler" className="mb-3 flex scroll-mt-32 items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">
               {activeCategoryName ?? "Tüm Ürünler"}
             </h2>
