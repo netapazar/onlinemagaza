@@ -237,6 +237,24 @@ export async function getNewArrivals(limit: number): Promise<StorefrontProductSu
   return products.map(toSummary);
 }
 
+// Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
+// mevcut ürün hariç.
+export async function getRelatedProducts(
+  categoryId: string | null,
+  excludeId: string,
+  limit: number
+): Promise<StorefrontProductSummary[]> {
+  if (!categoryId) return [];
+  const storeId = await getOnlineStoreId();
+  const products = await prisma.product.findMany({
+    where: { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } },
+    select: BASE_SELECT,
+    orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
+    take: limit,
+  });
+  return products.map(toSummary);
+}
+
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
 // döndürmüyor. Üye/misafir fiyat farkı bu proje için en kritik kural
 // (bkz. proje kısıtı): fiyat göstermek her yerde resolvePrice+üyelik

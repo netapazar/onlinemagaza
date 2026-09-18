@@ -1,9 +1,22 @@
 import { notFound } from "next/navigation";
+import { Truck, Clock } from "lucide-react";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
+import { getRelatedProducts } from "@/lib/search";
+import { isBeforeShippingCutoff } from "@/lib/shipping";
 import ProductGallery from "@/components/ProductGallery";
 import MembershipBanner from "@/components/MembershipBanner";
 import AddToCartButton from "@/components/AddToCartButton";
+import ProductTabs from "@/components/ProductTabs";
+import ProductRow from "@/components/ProductRow";
+
+const UNIT_LABELS: Record<string, string> = {
+  ADET: "Adet",
+  KOLI: "Koli",
+  DUZINE: "Düzine",
+  KUTU: "Kutu",
+  PAKET: "Paket",
+};
 
 type Product = {
   id: string;
@@ -12,6 +25,9 @@ type Product = {
   salePriceCents: number;
   onlinePriceCents: number | null;
   stock: number;
+  barcode: string;
+  unit: string;
+  categoryId: string | null;
   images: { id: string; url: string; altText: string | null }[];
   brand: { name: string } | null;
   category: { name: string } | null;
@@ -20,8 +36,19 @@ type Product = {
 export default async function ProductDetail({ product }: { product: Product }) {
   if (!product) notFound();
 
-  const memberDiscountPercent = await getMemberDiscountPercent();
+  const [memberDiscountPercent, relatedProducts] = await Promise.all([
+    getMemberDiscountPercent(),
+    getRelatedProducts(product.categoryId, product.id, 8),
+  ]);
   const price = resolvePrice(product, memberDiscountPercent);
+  const sameDayShipping = product.stock > 0 && isBeforeShippingCutoff();
+
+  const specs = [
+    product.brand ? { label: "Marka", value: product.brand.name } : null,
+    product.category ? { label: "Kategori", value: product.category.name } : null,
+    { label: "Satış Birimi", value: UNIT_LABELS[product.unit] ?? product.unit },
+    { label: "Barkod", value: product.barcode },
+  ].filter((s): s is { label: string; value: string } => s !== null);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
@@ -32,7 +59,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
           <h1 className="mb-3 text-xl font-semibold text-neutral-900">{product.name}</h1>
 
-          <div className="mb-4 flex items-baseline gap-3">
+          <div className="mb-1 flex items-baseline gap-3">
             {price.discounted && (
               <span className="text-sm text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
@@ -43,6 +70,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
               </span>
             )}
           </div>
+          <p className="mb-4 text-xs text-neutral-400">KDV Dahil</p>
 
           {product.stock > 0 ? (
             <p className="mb-4 text-sm text-emerald-700">Stokta var</p>
@@ -50,19 +78,34 @@ export default async function ProductDetail({ product }: { product: Product }) {
             <p className="mb-4 text-sm font-medium text-red-600">Stokta yok</p>
           )}
 
-          {product.description && (
-            <p className="mb-6 whitespace-pre-line text-sm text-neutral-600">{product.description}</p>
-          )}
+          <div className="mb-5">
+            <AddToCartButton productId={product.id} stock={product.stock} />
+          </div>
 
-          <AddToCartButton productId={product.id} stock={product.stock} />
-
-          {memberDiscountPercent === null && (
-            <div className="mt-6">
-              <MembershipBanner />
+          <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">
+            <div className="flex items-center gap-2 text-neutral-700">
+              <Truck className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+              Tüm siparişlerde ücretsiz kargo
             </div>
-          )}
+            {sameDayShipping && (
+              <div className="flex items-center gap-2 text-neutral-700">
+                <Clock className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+                Bugün 13:30&apos;a kadar verilen siparişler bugün kargoya çıkar
+              </div>
+            )}
+          </div>
+
+          {memberDiscountPercent === null && <MembershipBanner />}
         </div>
       </div>
+
+      <ProductTabs description={product.description} specs={specs} />
+
+      {relatedProducts.length > 0 && (
+        <div className="mt-4">
+          <ProductRow title="Benzer Ürünler" products={relatedProducts} memberDiscountPercent={memberDiscountPercent} />
+        </div>
+      )}
     </div>
   );
 }
