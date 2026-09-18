@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 
-export default function AddToCartButton({ productId, stock }: { productId: string; stock: number }) {
+export default function AddToCartButton({
+  productId,
+  stock,
+  name,
+}: {
+  productId: string;
+  stock: number;
+  name: string;
+}) {
   const { addItem } = useCart();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
@@ -48,7 +56,7 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
         <button
           type="button"
           onClick={() => {
-            addItem(productId, quantity);
+            addItem(productId, quantity, name);
             setAdded(true);
             setTimeout(() => setAdded(false), 1500);
           }}
@@ -61,7 +69,7 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
       <button
         type="button"
         onClick={() => {
-          addItem(productId, quantity);
+          addItem(productId, quantity, name);
           router.push("/checkout");
         }}
         className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--color-brand-hover)]"

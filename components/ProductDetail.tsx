@@ -79,7 +79,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
           )}
 
           <div className="mb-5">
-            <AddToCartButton productId={product.id} stock={product.stock} />
+            <AddToCartButton productId={product.id} stock={product.stock} name={product.name} />
           </div>
 
           <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">

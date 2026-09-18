@@ -66,7 +66,7 @@ export default function ProductListRow({
         {inStock && (
           <button
             type="button"
-            onClick={() => addItem(product.id, 1)}
+            onClick={() => addItem(product.id, 1, product.name)}
             className="flex items-center gap-1.5 rounded-lg bg-[var(--color-brand)] px-3 py-2 text-xs font-medium text-white hover:bg-[var(--color-brand-hover)]"
           >
             <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />

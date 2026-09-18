@@ -118,7 +118,7 @@ export default function ProductCard({
             <button
               type="button"
               onClick={() => {
-                addItem(product.id, quantity);
+                addItem(product.id, quantity, product.name);
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}

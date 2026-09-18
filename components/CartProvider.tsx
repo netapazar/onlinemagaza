@@ -3,14 +3,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartItem = { productId: string; quantity: number };
+export type CartToast = { id: number; message: string };
 
 type CartContextValue = {
   items: CartItem[];
   itemCount: number;
-  addItem: (productId: string, quantity: number) => void;
+  addItem: (productId: string, quantity: number, productName?: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
   clear: () => void;
+  drawerOpen: boolean;
+  closeDrawer: () => void;
+  toast: CartToast | null;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -19,6 +23,8 @@ const STORAGE_KEY = "magaza_online_cart";
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [toast, setToast] = useState<CartToast | null>(null);
 
   // localStorage per-viewer sepet — sunucu tarafında bilinmesi gerekmiyor,
   // checkout anına kadar sadece bu tarayıcıya özel bir taslak. localStorage
@@ -45,7 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, hydrated]);
 
-  const addItem = useCallback((productId: string, quantity: number) => {
+  const addItem = useCallback((productId: string, quantity: number, productName?: string) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === productId);
       if (existing) {
@@ -55,7 +61,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { productId, quantity }];
     });
+    // Sepete ekleme geri bildirimi: sağdan kayan mini-sepet çekmecesi +
+    // kısa süreli toast — bkz. tasarım kısıtı, çağıran taraflar (ürün kartı,
+    // liste satırı, ürün detay) tek bir addItem() çağrısıyla ikisini de
+    // otomatik tetikliyor.
+    setDrawerOpen(true);
+    setToast({ id: Date.now(), message: productName ? `${productName} sepete eklendi` : "Ürün sepete eklendi" });
   }, []);
+
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     setItems((prev) =>
@@ -74,7 +88,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
 
   return (
-    <CartContext.Provider value={{ items, itemCount, addItem, updateQuantity, removeItem, clear }}>
+    <CartContext.Provider
+      value={{ items, itemCount, addItem, updateQuantity, removeItem, clear, drawerOpen, closeDrawer, toast }}
+    >
       {children}
     </CartContext.Provider>
   );
