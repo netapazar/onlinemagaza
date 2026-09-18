@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { Poppins, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { CartProvider } from "@/components/CartProvider";
 import "./globals.css";
 
-// Logo paketindeki renk-kodlari.txt: "Poppins SemiBold" — logo harfleri
-// zaten vektöre çevrilmiş olduğundan font kurulumu logonun kendisi için
-// şart değil, ama site genelinde tutarlılık için burada da kullanılıyor.
-const poppins = Poppins({
-  variable: "--font-poppins",
+// Logo harfleri zaten vektöre çevrilmiş olduğundan font kurulumu logonun
+// kendisi için şart değil; site genelinde daha modern/kurumsal bir görünüm
+// için Plus Jakarta Sans kullanılıyor. latin-ext alt kümesi Türkçe karakterler
+// (ş, ğ, ı, ö, ü, ç) için gerekli.
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -41,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-white text-[var(--foreground)]">
         <CartProvider>

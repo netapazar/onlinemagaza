@@ -1,30 +1,86 @@
 @import "tailwindcss";
 
 /* Tedarikhane marka renkleri — logo paketiyle birlikte gelen renk-kodlari.txt
-   ile birebir aynı (bkz. proje hafızası). Sistemin karanlık moduna göre
-   otomatik geçiş yapılmıyor — e-ticaret sitesinde marka renginin tutarlı
-   kalması, ziyaretçinin sistem temasına uymaktan daha önemli. */
+   ile birebir aynı taban ton (--color-brand: #0e6b6b). Sistemin karanlık
+   moduna göre otomatik geçiş yapılmıyor — e-ticaret sitesinde marka renginin
+   tutarlı kalması, ziyaretçinin sistem temasına uymaktan daha önemli.
+   Aşağıdaki 50-900 skala, bu taban rengin açık/koyu tonlarından türetildi;
+   eski --color-brand/--color-brand-hover/vb. değişkenler, mevcut kod
+   tabanındaki tüm referansları bozmamak için skaladaki karşılıklarına
+   eşleniyor. */
 :root {
   --background: #ffffff;
   --foreground: #1f2328;
-  --color-brand: #0e6b6b;
-  --color-brand-hover: #0b5555;
-  --color-brand-soft: #e6f2f2;
-  --color-brand-light: #4fbfb6;
-  --color-accent: #f2a33a;
+
+  /* Marka (petrol yeşili) skalası */
+  --color-brand-50: #eefbfa;
+  --color-brand-100: #d4f3f1;
+  --color-brand-200: #a8e6e2;
+  --color-brand-300: #71d1cb;
+  --color-brand-400: #3fb3ac;
+  --color-brand-500: #189089;
+  --color-brand-600: #0e6b6b;
+  --color-brand-700: #0b5555;
+  --color-brand-800: #0a4444;
+  --color-brand-900: #093838;
+
+  /* Vurgu (turuncu/amber — indirim/kampanya rozetleri için) skalası */
+  --color-accent-50: #fff8ec;
+  --color-accent-100: #ffecc7;
+  --color-accent-200: #ffd98a;
+  --color-accent-300: #ffc04d;
+  --color-accent-400: #fbaa2e;
+  --color-accent-500: #f2a33a;
+  --color-accent-600: #db8620;
+  --color-accent-700: #b56818;
+  --color-accent-800: #92511a;
+
+  /* Geriye dönük uyumluluk: mevcut bileşenler bu adları kullanıyor */
+  --color-brand: var(--color-brand-600);
+  --color-brand-hover: var(--color-brand-700);
+  --color-brand-soft: var(--color-brand-50);
+  --color-brand-light: var(--color-brand-400);
+  --color-accent: var(--color-accent-500);
   --color-night: #16181d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-700: var(--color-accent-700);
+  --color-accent-800: var(--color-accent-800);
+
   --color-brand: var(--color-brand);
   --color-brand-hover: var(--color-brand-hover);
   --color-brand-soft: var(--color-brand-soft);
   --color-brand-light: var(--color-brand-light);
   --color-accent: var(--color-accent);
   --color-night: var(--color-night);
-  --font-sans: var(--font-poppins), var(--font-geist-sans);
+
+  /* next/font kendi metrik-eşleşmeli yedek fontunu ("Plus Jakarta Sans
+     Fallback") otomatik ekliyor; burada var olmayan bir --font-geist-sans'a
+     referans vermek (eski koddaki gibi) tüm var() zincirini geçersiz kılıp
+     preflight'ı sistem fontuna düşürüyordu — bkz. proje hafızası. */
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
