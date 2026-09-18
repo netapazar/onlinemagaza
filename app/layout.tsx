@@ -3,7 +3,11 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { CartProvider } from "@/components/CartProvider";
+import { FavoritesProvider } from "@/components/FavoritesProvider";
+import { getWebSession } from "@/lib/webSession";
+import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import "./globals.css";
 
 // Logo harfleri zaten vektöre çevrilmiş olduğundan font kurulumu logonun
@@ -34,11 +38,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [session, categories] = await Promise.all([getWebSession(), getStorefrontCategoriesWithCounts()]);
+
   return (
     <html
       lang="tr"
@@ -46,10 +52,13 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-white text-[var(--foreground)]">
         <CartProvider>
-          <Header />
-          <main className="flex flex-1 flex-col">{children}</main>
-          <Footer />
-          <WhatsAppButton />
+          <FavoritesProvider>
+            <Header />
+            <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
+            <Footer />
+            <WhatsAppButton />
+            <MobileBottomNav loggedIn={Boolean(session)} categories={categories} />
+          </FavoritesProvider>
         </CartProvider>
       </body>
     </html>

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { getOnlineStoreId } from "@/lib/onlineStore";
@@ -16,7 +17,7 @@ export type StorefrontProductSummary = {
   categoryId: string | null;
 };
 
-const BASE_SELECT = {
+export const BASE_SELECT = {
   id: true,
   slug: true,
   name: true,
@@ -29,7 +30,7 @@ const BASE_SELECT = {
   images: { where: { isCover: true }, take: 1, select: { url: true } },
 } as const;
 
-function toSummary(p: {
+export function toSummary(p: {
   id: string;
   slug: string | null;
   name: string;
@@ -154,9 +155,11 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
 
 // Anasayfadaki "Kategoriler" kart bölümü için — kaç ürün olduğunu da
 // göstermek üzere ayrı bir count sorgusu.
-export async function getStorefrontCategoriesWithCounts(): Promise<
+// cache() — Header ve layout'taki mobil alt menü aynı istek içinde ikisi de
+// çağırıyor, tekrar DB'ye gitmesin diye (bkz. getWebSession'daki aynı gerekçe).
+export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
   { id: string; name: string; count: number }[]
-> {
+> => {
   const storeId = await getOnlineStoreId();
   const categories = await prisma.category.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
@@ -168,7 +171,7 @@ export async function getStorefrontCategoriesWithCounts(): Promise<
     },
   });
   return categories.map((c) => ({ id: c.id, name: c.name, count: c._count.products }));
-}
+});
 
 // Anasayfadaki "Yeni Eklenen Ürünler" bölümü — storefrontSortOrder'dan
 // bağımsız, sadece en son storefront'a eklenmiş/güncellenmiş ürünleri
@@ -183,6 +186,19 @@ export async function getNewArrivals(limit: number): Promise<StorefrontProductSu
   });
   return products.map(toSummary);
 }
+
+// Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
+// döndürmüyor. Üye/misafir fiyat farkı bu proje için en kritik kural
+// (bkz. proje kısıtı): fiyat göstermek her yerde resolvePrice+üyelik
+// bilgisinden geçmeli, öneri kutusu gibi ufak/hızlı bir bileşende bu riske
+// hiç girmemek en güvenlisi — görsel + isim + marka yeterli.
+export type SearchSuggestion = {
+  id: string;
+  slug: string | null;
+  name: string;
+  brandName: string | null;
+  coverImageUrl: string | null;
+};
 
 export async function getStorefrontProductBySlug(slug: string) {
   const storeId = await getOnlineStoreId();
