@@ -1,6 +1,7 @@
 import { listStorefrontProducts } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
+import EmptyState from "@/components/EmptyState";
 
 export default async function AraPage({
   searchParams,
@@ -22,7 +23,10 @@ export default async function AraPage({
       </h1>
 
       {products.length === 0 ? (
-        <p className="py-16 text-center text-sm text-neutral-500">Aramanızla eşleşen ürün bulunamadı.</p>
+        <EmptyState
+          title="Aramanızla eşleşen ürün bulunamadı"
+          description="Farklı bir anahtar kelime deneyin ya da kategorilere göz atın."
+        />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {products.map((product) => (
