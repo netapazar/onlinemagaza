@@ -1,14 +1,16 @@
 import { Truck, CreditCard, Receipt, Undo2 } from "lucide-react";
 
-// Dört madde de gerçek, mevcut yeteneklere dayanıyor — uydurulmadı:
+// Dört madde de sitede gerçekten sunulan/mevcut olana dayanıyor — henüz
+// otomatikleşmemiş hiçbir şey vaat edilmiyor (ödeme entegrasyonu ve
+// e-Fatura otomasyonu hâlâ ertelenenler listesinde, bkz. proje hafızası):
 // aynı gün kargo kesim saati lib/shipping.ts'te gerçek, kart/havale
-// checkout'ta gerçek seçenek, kurumsal e-Fatura onaylı üyeler için mevcut
-// Irsaliye→CariHareket hattından gerçekten çıkıyor, 14 gün cayma hakkı
-// Türk tüketici mevzuatının yasal tabanı.
+// checkout'ta seçilebilir birer yöntem (otomatik/online tahsilat iddiası
+// yok), kurumsal üyeler cari hesapla alışveriş yapabiliyor, 14 gün cayma
+// hakkı Türk tüketici mevzuatının yasal tabanı.
 const ITEMS = [
   { icon: Truck, title: "Aynı Gün Kargo", description: "13:30'a kadar verilen siparişler" },
-  { icon: CreditCard, title: "Kart ve Havale ile Ödeme", description: "Güvenli ödeme seçenekleri" },
-  { icon: Receipt, title: "Kurumsal Faturalandırma", description: "Üye firmalara otomatik e-Fatura" },
+  { icon: CreditCard, title: "Kart ve Havale Seçenekleri", description: "Siparişte tercihinizi belirtin" },
+  { icon: Receipt, title: "Kurumsal Alışveriş", description: "Üye firmalara cari hesap imkanı" },
   { icon: Undo2, title: "14 Gün İçinde İade", description: "Cayma hakkınızı kullanabilirsiniz" },
 ];
 

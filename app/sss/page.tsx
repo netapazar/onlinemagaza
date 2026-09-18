@@ -41,7 +41,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Faturam ne zaman kesilir?",
     answer:
-      "Kurumsal (cari hesaplı) siparişlerde faturanız otomatik olarak e-Fatura sistemi üzerinden kesilir. Diğer siparişlerde faturanız ekibimiz tarafından düzenlenip tarafınıza iletilir.",
+      "Siparişiniz onaylandıktan sonra faturanız ekibimiz tarafından düzenlenip tarafınıza iletilir.",
   },
   {
     question: "Sipariş verdiğim ürün stokta görünmüyor, ne zaman gelir?",
