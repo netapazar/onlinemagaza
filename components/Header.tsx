@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Percent } from "lucide-react";
 import { getWebSession } from "@/lib/webSession";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -50,13 +49,6 @@ export default async function Header() {
               </Link>
             ))}
           </div>
-          <Link
-            href="/kampanyalar"
-            className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--color-accent-700)] hover:bg-[var(--color-accent-50)]"
-          >
-            <Percent className="h-4 w-4" aria-hidden="true" />
-            Kampanyalar
-          </Link>
         </div>
       </div>
     </header>

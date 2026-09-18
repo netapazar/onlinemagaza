@@ -44,11 +44,6 @@ export default async function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/kampanyalar" className="hover:text-[var(--color-brand)]">
-                Kampanyalar
-              </Link>
-            </li>
-            <li>
               <Link href="/sss" className="hover:text-[var(--color-brand)]">
                 Sıkça Sorulan Sorular
               </Link>

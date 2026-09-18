@@ -10,7 +10,6 @@ import {
   X,
   Heart,
   Briefcase,
-  Percent,
   TrendingUp,
   Sparkles,
   CircleHelp,
@@ -129,10 +128,6 @@ function MobileDrawer({
           <Link href="/urunler?sirala=yeni" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
             <Sparkles className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Yeni Ürünler</span>
-          </Link>
-          <Link href="/kampanyalar" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
-            <Percent className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
-            <span className="text-sm text-neutral-700">Kampanyalar</span>
           </Link>
           <Link
             href="/hesabim/uyelik-basvurusu"
