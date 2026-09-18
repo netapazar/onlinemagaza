@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
+/* Tedarikhane marka renkleri — logo paketiyle birlikte gelen renk-kodlari.txt
+   ile birebir aynı (bkz. proje hafızası). Sistemin karanlık moduna göre
+   otomatik geçiş yapılmıyor — e-ticaret sitesinde marka renginin tutarlı
+   kalması, ziyaretçinin sistem temasına uymaktan daha önemli. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1f2328;
+  --color-brand: #0e6b6b;
+  --color-brand-hover: #0b5555;
+  --color-brand-soft: #e6f2f2;
+  --color-brand-light: #4fbfb6;
+  --color-accent: #f2a33a;
+  --color-night: #16181d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-brand-light: var(--color-brand-light);
+  --color-accent: var(--color-accent);
+  --color-night: var(--color-night);
+  --font-sans: var(--font-poppins), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

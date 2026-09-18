@@ -50,7 +50,7 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
           setAdded(true);
           setTimeout(() => setAdded(false), 1500);
         }}
-        className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+        className="flex-1 rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
       >
         {added ? "Sepete Eklendi ✓" : "Sepete Ekle"}
       </button>

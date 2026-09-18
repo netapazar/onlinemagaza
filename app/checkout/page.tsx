@@ -72,7 +72,7 @@ export default function CheckoutPage() {
                 name="guestName"
                 type="text"
                 required
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -82,7 +82,7 @@ export default function CheckoutPage() {
                   name="guestEmail"
                   type="email"
                   required
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
                 />
               </div>
               <div>
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
                   name="guestPhone"
                   type="tel"
                   required
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function CheckoutPage() {
               type="text"
               required
               placeholder="Mahalle, cadde, no"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
           </div>
           <div>
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
               name="shippingLine2"
               type="text"
               placeholder="Daire, kat vb."
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
                 name="shippingIl"
                 type="text"
                 required
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
               />
             </div>
             <div>
@@ -141,7 +141,7 @@ export default function CheckoutPage() {
                 name="shippingIlce"
                 type="text"
                 required
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
               />
             </div>
             <div>
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
               <input
                 name="shippingPostaKodu"
                 type="text"
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
               />
             </div>
           </div>
@@ -164,6 +164,7 @@ export default function CheckoutPage() {
               value="KART"
               checked={paymentMethod === "KART"}
               onChange={() => setPaymentMethod("KART")}
+              className="accent-[var(--color-brand)]"
             />
             Kredi/Banka Kartı
           </label>
@@ -174,6 +175,7 @@ export default function CheckoutPage() {
               value="HAVALE"
               checked={paymentMethod === "HAVALE"}
               onChange={() => setPaymentMethod("HAVALE")}
+              className="accent-[var(--color-brand)]"
             />
             Havale/EFT
           </label>
@@ -185,6 +187,7 @@ export default function CheckoutPage() {
                 value="CARI_HESAP"
                 checked={paymentMethod === "CARI_HESAP"}
                 onChange={() => setPaymentMethod("CARI_HESAP")}
+                className="accent-[var(--color-brand)]"
               />
               Cari Hesabıma İşle
             </label>
@@ -211,7 +214,7 @@ export default function CheckoutPage() {
             type="checkbox"
             checked={sozlesmeOnay}
             onChange={(e) => setSozlesmeOnay(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-4 w-4 accent-[var(--color-brand)]"
           />
           <span>
             <Link href="/hukuki/mesafeli-satis-sozlesmesi" target="_blank" className="underline">
@@ -232,7 +235,7 @@ export default function CheckoutPage() {
         <button
           type="submit"
           disabled={pending || !sozlesmeOnay}
-          className="w-full rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-medium text-white hover:bg-[var(--color-brand-hover)] disabled:opacity-50"
         >
           {pending ? "Sipariş oluşturuluyor..." : "Siparişi Onayla"}
         </button>

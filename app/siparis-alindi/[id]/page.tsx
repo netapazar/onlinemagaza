@@ -66,7 +66,7 @@ export default async function SiparisAlindiPage({
         </p>
       )}
 
-      <Link href="/" className="block w-full rounded-lg bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800">
+      <Link href="/" className="block w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-center text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]">
         Alışverişe Devam Et
       </Link>
     </div>

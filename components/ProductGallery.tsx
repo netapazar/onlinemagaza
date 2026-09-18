@@ -34,7 +34,7 @@ export default function ProductGallery({
               type="button"
               onClick={() => setActiveIndex(i)}
               className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${
-                i === activeIndex ? "border-neutral-900" : "border-transparent"
+                i === activeIndex ? "border-[var(--color-brand)]" : "border-transparent"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

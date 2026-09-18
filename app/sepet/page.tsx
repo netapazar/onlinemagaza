@@ -104,7 +104,7 @@ export default function SepetPage() {
 
       <Link
         href="/checkout"
-        className="mt-6 block w-full rounded-lg bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+        className="mt-6 block w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-center text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
       >
         Siparişi Tamamla
       </Link>

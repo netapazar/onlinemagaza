@@ -30,7 +30,7 @@ export default async function Home({
             href="/"
             className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium ${
               !kategori
-                ? "border-neutral-900 bg-neutral-900 text-white"
+                ? "border-[var(--color-brand)] bg-[var(--color-brand)] text-white"
                 : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
             }`}
           >
@@ -42,7 +42,7 @@ export default async function Home({
               href={`/?kategori=${c.id}`}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium ${
                 kategori === c.id
-                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  ? "border-[var(--color-brand)] bg-[var(--color-brand)] text-white"
                   : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
               }`}
             >

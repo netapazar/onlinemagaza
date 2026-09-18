@@ -22,11 +22,11 @@ export default function SearchBox() {
         onChange={(e) => setValue(e.target.value)}
         type="search"
         placeholder="Ürün, marka veya kategori ara..."
-        className="w-full rounded-l-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+        className="w-full rounded-l-lg border border-neutral-300 px-3 py-2 text-sm focus:border-[var(--color-brand)] focus:outline-none"
       />
       <button
         type="submit"
-        className="rounded-r-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+        className="rounded-r-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
       >
         Ara
       </button>

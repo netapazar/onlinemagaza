@@ -27,7 +27,7 @@ export default function KayitPage() {
               name="name"
               type="text"
               required
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
           </div>
 
@@ -41,7 +41,7 @@ export default function KayitPage() {
               type="email"
               required
               autoComplete="username"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
           </div>
 
@@ -53,7 +53,7 @@ export default function KayitPage() {
               id="phone"
               name="phone"
               type="tel"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
           </div>
 
@@ -68,7 +68,7 @@ export default function KayitPage() {
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
             />
             <p className="mt-1 text-xs text-neutral-400">En az 8 karakter</p>
           </div>
@@ -80,7 +80,7 @@ export default function KayitPage() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-neutral-900 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+            className="w-full rounded-lg bg-[var(--color-brand)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-brand-hover)] disabled:opacity-50"
           >
             {pending ? "Kaydediliyor..." : "Üye Ol"}
           </button>

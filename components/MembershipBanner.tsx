@@ -11,7 +11,7 @@ export default function MembershipBanner() {
       </p>
       <Link
         href="/hesabim/uyelik-basvurusu"
-        className="shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+        className="shrink-0 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
       >
         Üyelik Başvurusu Yap
       </Link>
