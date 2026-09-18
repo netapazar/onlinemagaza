@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { CartProvider } from "@/components/CartProvider";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
           <Header />
           <main className="flex flex-1 flex-col">{children}</main>
           <Footer />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>
