@@ -9,7 +9,7 @@ const PHONE_HREF = "tel:+905514872174";
 export default function AnnouncementBar() {
   return (
     <div className="bg-[var(--color-night)] text-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-1.5 text-xs sm:justify-between">
+      <div className="mx-auto flex max-w-content items-center justify-center gap-2 px-4 py-1.5 text-xs sm:justify-between">
         <div className="flex items-center gap-1.5">
           <Truck className="h-3.5 w-3.5 shrink-0 text-[var(--color-brand-light)]" aria-hidden="true" />
           <span>Tüm siparişlerde ücretsiz kargo</span>

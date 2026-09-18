@@ -9,8 +9,12 @@
    tabanındaki tüm referansları bozmamak için skaladaki karşılıklarına
    eşleniyor. */
 :root {
-  --background: #ffffff;
+  /* v2 tasarım: sayfa zemini hafif gri, bölümler bu zemin üzerinde beyaz
+     kart/blok olarak duruyor (Avansas esintili, daha "dolu" bir görünüm
+     için) — bkz. proje hafızası. */
+  --background: #f4f6f8;
   --foreground: #1f2328;
+  --container-content: 1440px;
 
   /* Marka (petrol yeşili) skalası */
   --color-brand-50: #eefbfa;
@@ -47,6 +51,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --container-content: var(--container-content);
 
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);

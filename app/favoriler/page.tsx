@@ -25,8 +25,8 @@ export default function FavorilerPage() {
   }, [ids]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold text-neutral-900">Favorilerim</h1>
+    <div className="mx-auto w-full max-w-content px-4 py-6">
+      <h1 className="mb-4 text-2xl font-bold text-neutral-900">Favorilerim</h1>
 
       {products === null ? (
         <div className="py-10 text-sm text-neutral-500">Yükleniyor...</div>
@@ -36,7 +36,7 @@ export default function FavorilerPage() {
           description="Beğendiğiniz ürünlerin üzerindeki kalp ikonuna dokunarak favorilerinize ekleyebilirsiniz."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} memberDiscountPercent={memberDiscountPercent} />
           ))}

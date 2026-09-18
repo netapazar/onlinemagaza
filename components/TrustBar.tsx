@@ -16,7 +16,7 @@ const ITEMS = [
 
 export default function TrustBar() {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {ITEMS.map(({ icon: Icon, title, description }) => (
         <div key={title} className="flex items-center gap-2.5 rounded-xl border border-neutral-200 p-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">

@@ -99,7 +99,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6">
+    <div className="mx-auto w-full max-w-content px-4 py-6">
       <nav className="mb-3 text-xs text-neutral-500" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-[var(--color-brand)]">
           Ana Sayfa
@@ -110,7 +110,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-neutral-900">{heading}</h1>
+          <h1 className="text-2xl font-bold text-neutral-900">{heading}</h1>
           <p className="text-sm text-neutral-500">{total} ürün</p>
         </div>
         <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
         </div>
       </div>
 
-      <details className="mb-4 rounded-xl border border-neutral-200 p-4 lg:hidden">
+      <details className="mb-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm lg:hidden">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-neutral-900">
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           Filtrele
@@ -129,8 +129,8 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
         </div>
       </details>
 
-      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <aside className="hidden lg:block">
+      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <aside className="hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm lg:block lg:h-fit">
           <ProductFilters {...filterPanelProps} />
         </aside>
 
@@ -151,7 +151,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} memberDiscountPercent={memberDiscountPercent} />
               ))}

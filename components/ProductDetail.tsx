@@ -52,12 +52,13 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+        <div className="grid gap-8 sm:grid-cols-2">
         <ProductGallery images={product.images} name={product.name} />
 
         <div>
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
-          <h1 className="mb-3 text-xl font-semibold text-neutral-900">{product.name}</h1>
+          <h1 className="mb-3 text-2xl font-bold text-neutral-900">{product.name}</h1>
 
           <div className="mb-1 flex items-baseline gap-3">
             {price.discounted && (
@@ -97,12 +98,13 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
           {memberDiscountPercent === null && <MembershipBanner />}
         </div>
+        </div>
+
+        <ProductTabs description={product.description} specs={specs} />
       </div>
 
-      <ProductTabs description={product.description} specs={specs} />
-
       {relatedProducts.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
           <ProductRow title="Benzer Ürünler" products={relatedProducts} memberDiscountPercent={memberDiscountPercent} />
         </div>
       )}

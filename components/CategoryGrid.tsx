@@ -1,28 +1,31 @@
 import Link from "next/link";
 import { getCategoryIcon } from "@/lib/categoryIcons";
 
-export default function CategoryGrid({
-  categories,
-}: {
-  categories: { id: string; name: string; count: number }[];
-}) {
+type Category = { id: string; name: string; count: number; imageUrl: string | null };
+
+export default function CategoryGrid({ categories }: { categories: Category[] }) {
   return (
-    <div className="mb-6">
-      <h2 className="mb-2.5 text-lg font-semibold text-neutral-900">Kategoriler</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+    <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="mb-4 text-xl font-bold text-neutral-900">Kategoriler</h2>
+      <div className="flex gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible md:grid-cols-6">
         {categories.map((c) => {
           const Icon = getCategoryIcon(c.name);
           return (
             <Link
               key={c.id}
               href={`/urunler?kategori=${c.id}`}
-              className="group rounded-xl border border-neutral-200 p-3.5 transition-colors hover:border-[var(--color-brand)] hover:shadow-sm"
+              className="group flex w-20 shrink-0 flex-col items-center gap-2 text-center sm:w-auto"
             >
-              <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
-                <Icon className="h-5 w-5" aria-hidden="true" />
+              <span className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-neutral-100 bg-[var(--color-brand-soft)] transition-colors group-hover:border-[var(--color-brand)]">
+                {c.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.imageUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Icon className="h-8 w-8 text-[var(--color-brand)]" aria-hidden="true" />
+                )}
               </span>
-              <p className="text-sm font-medium text-neutral-900 group-hover:text-[var(--color-brand)]">{c.name}</p>
-              <p className="text-xs text-neutral-400">{c.count} ürün</p>
+              <span className="text-xs font-semibold text-neutral-800 group-hover:text-[var(--color-brand)]">{c.name}</span>
+              <span className="text-[11px] text-neutral-400">{c.count} ürün</span>
             </Link>
           );
         })}

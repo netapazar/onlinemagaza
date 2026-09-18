@@ -42,7 +42,7 @@ export default function SepetPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <h1 className="mb-6 text-xl font-semibold">Sepetim</h1>
 
-      <div className="mb-6 divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+      <div className="mb-6 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white shadow-sm">
         {lines.map((line) => (
           <div key={line.productId} className="flex items-center gap-3 p-4">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">

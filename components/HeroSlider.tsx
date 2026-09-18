@@ -2,30 +2,39 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Briefcase, Truck, Boxes, type LucideIcon } from "lucide-react";
 
 type Slide = {
+  icon: LucideIcon;
   title: string;
   description: string;
   ctaText: string;
   ctaHref: string;
 };
 
-// Şu an kampanya görseli/vitrin verisi yok — gerçek, uydurulmamış iki mesaj
-// (genel değer önerisi + kurumsal üyelik çağrısı) sabit olarak tanımlı.
-// İleride kampanya görselleri eklenince bu dizi genişletilebilir, bileşenin
-// kendisi zaten çoklu slayda göre tasarlandı.
+// Üç gerçek, uydurulmamış mesaj — kampanya görseli/vitrin verisi olmadığı
+// için düz renk yerine katmanlı-daire-arkalı büyük ikonlarla desteklendi.
 const SLIDES: Slide[] = [
   {
-    title: "İşletmenizin Tüm Tedarik İhtiyacı Tek Adreste",
-    description: "Kaliteli ürünler, hızlı teslimat ve üyelere özel fiyatlarla Tedarikhane yanınızda.",
-    ctaText: "Alışverişe Başla",
-    ctaHref: "/urunler",
-  },
-  {
+    icon: Briefcase,
     title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",
     description: "Kurumsal üyelik başvurusu yaparak size özel indirimli fiyatlardan yararlanın.",
     ctaText: "Üyelik Başvurusu Yap",
     ctaHref: "/hesabim/uyelik-basvurusu",
+  },
+  {
+    icon: Truck,
+    title: "Aynı Gün Kargo İmkanı",
+    description: "13:30'a kadar verdiğiniz siparişler aynı gün kargoya teslim edilir.",
+    ctaText: "Alışverişe Başla",
+    ctaHref: "/urunler",
+  },
+  {
+    icon: Boxes,
+    title: "Toplu Alımda Avantajlı Tedarik",
+    description: "İşletmenizin ofis/kırtasiye ihtiyacını tek seferde, tek adresten karşılayın.",
+    ctaText: "Ürünleri İncele",
+    ctaHref: "/urunler",
   },
 ];
 
@@ -33,40 +42,45 @@ const ROTATE_MS = 5500;
 
 export default function HeroSlider() {
   const [active, setActive] = useState(0);
-  const multiple = SLIDES.length > 1;
 
   useEffect(() => {
-    if (!multiple) return;
     const timer = setInterval(() => setActive((i) => (i + 1) % SLIDES.length), ROTATE_MS);
     return () => clearInterval(timer);
-  }, [multiple]);
+  }, []);
 
   const slide = SLIDES[active];
+  const Icon = slide.icon;
 
   return (
-    <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-5 py-8 text-white sm:px-8 sm:py-10">
-      <h1 className="mb-2 max-w-lg text-xl font-semibold sm:text-2xl">{slide.title}</h1>
-      <p className="mb-5 max-w-md text-sm text-white/85">{slide.description}</p>
-      <Link
-        href={slide.ctaHref}
-        className="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[var(--color-brand)] hover:bg-white/90"
-      >
-        {slide.ctaText}
-      </Link>
-
-      {multiple && (
-        <div className="mt-6 flex gap-1.5">
-          {SLIDES.map((s, i) => (
-            <button
-              key={s.title}
-              type="button"
-              aria-label={`${i + 1}. slayt`}
-              onClick={() => setActive(i)}
-              className={`h-1.5 rounded-full transition-all ${i === active ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
-            />
-          ))}
+    <div className="relative flex h-full min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-6 py-7 text-white sm:px-9 sm:py-9">
+      <div className="pointer-events-none absolute -top-10 -right-10 flex h-64 w-64 items-center justify-center rounded-full bg-white/[0.06]">
+        <div className="flex h-44 w-44 items-center justify-center rounded-full bg-white/[0.08]">
+          <Icon className="h-20 w-20 text-white/90" aria-hidden="true" />
         </div>
-      )}
+      </div>
+
+      <div className="relative z-10 max-w-md">
+        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl">{slide.title}</h1>
+        <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
+        <Link
+          href={slide.ctaHref}
+          className="inline-flex items-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] hover:bg-white/90"
+        >
+          {slide.ctaText}
+        </Link>
+      </div>
+
+      <div className="relative z-10 flex gap-1.5">
+        {SLIDES.map((s, i) => (
+          <button
+            key={s.title}
+            type="button"
+            aria-label={`${i + 1}. slayt`}
+            onClick={() => setActive(i)}
+            className={`h-1.5 rounded-full transition-all ${i === active ? "w-7 bg-white" : "w-1.5 bg-white/40"}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

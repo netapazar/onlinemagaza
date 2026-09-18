@@ -29,7 +29,7 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 transition-shadow hover:shadow-md">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-lg">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -77,13 +77,13 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="p-3 pb-0">
+        <div className="p-2.5 pb-0">
           {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
           <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 p-3 pt-1.5">
+      <div className="flex flex-1 flex-col gap-1.5 p-2.5 pt-1.5">
         <div className="mt-auto">
           <div className="flex items-baseline gap-2">
             {price.discounted && (

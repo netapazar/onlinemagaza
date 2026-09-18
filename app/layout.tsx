@@ -52,7 +52,7 @@ export default async function RootLayout({
       lang="tr"
       className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-white text-[var(--foreground)]">
+      <body className="flex min-h-full flex-col bg-[var(--background)] text-[var(--foreground)]">
         <CartProvider>
           <FavoritesProvider>
             <Header />

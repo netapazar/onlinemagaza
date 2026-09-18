@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Home, LayoutGrid, ShoppingCart, User, X, Heart, Briefcase, Percent } from "lucide-react";
+import {
+  Home,
+  LayoutGrid,
+  ShoppingCart,
+  User,
+  X,
+  Heart,
+  Briefcase,
+  Percent,
+  TrendingUp,
+  Sparkles,
+  CircleHelp,
+} from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 import { getCategoryIcon } from "@/lib/categoryIcons";
@@ -110,6 +122,14 @@ function MobileDrawer({
               Favorilerim{favoriteCount > 0 ? ` (${favoriteCount})` : ""}
             </span>
           </Link>
+          <Link href="/cok-satanlar" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
+            <TrendingUp className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <span className="text-sm text-neutral-700">Çok Satanlar</span>
+          </Link>
+          <Link href="/urunler?sirala=yeni" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
+            <Sparkles className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <span className="text-sm text-neutral-700">Yeni Ürünler</span>
+          </Link>
           <Link href="/kampanyalar" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
             <Percent className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Kampanyalar</span>
@@ -121,6 +141,10 @@ function MobileDrawer({
           >
             <Briefcase className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Kurumsal Üyelik</span>
+          </Link>
+          <Link href="/sss" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
+            <CircleHelp className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <span className="text-sm text-neutral-700">Sıkça Sorulan Sorular</span>
           </Link>
         </div>
       </div>

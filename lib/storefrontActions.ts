@@ -15,6 +15,7 @@ import {
   type StorefrontProductSummary,
   type SearchSuggestion,
 } from "@/lib/search";
+import { isDemoMode, demoProductsByIds } from "@/lib/demoData";
 
 const SUGGESTION_LIMIT = 6;
 
@@ -40,6 +41,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
 // bu server action ile client'tan çekiliyor.
 export async function getStorefrontProductsByIds(ids: string[]): Promise<StorefrontProductSummary[]> {
   if (ids.length === 0) return [];
+  if (isDemoMode()) return demoProductsByIds(ids);
   const storeId = await getOnlineStoreId();
   const products = await prisma.product.findMany({
     where: { id: { in: ids }, storeId, showOnStorefront: true, archivedAt: null },

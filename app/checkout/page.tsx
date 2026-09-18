@@ -64,7 +64,7 @@ export default function CheckoutPage() {
         <input type="hidden" name="items" value={JSON.stringify(items)} />
 
         {!eligibility.loggedIn && (
-          <div className="space-y-4 rounded-xl border border-neutral-200 p-5">
+          <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-neutral-900">İletişim Bilgileri</h2>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-neutral-700">Ad Soyad</label>
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <div className="space-y-4 rounded-xl border border-neutral-200 p-5">
+        <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-neutral-900">Teslimat Adresi</h2>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-neutral-700">Adres</label>
@@ -155,7 +155,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-xl border border-neutral-200 p-5">
+        <div className="space-y-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-neutral-900">Ödeme Yöntemi</h2>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -194,7 +194,7 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        <div className="rounded-xl border border-neutral-200 p-5">
+        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
           <div className="flex justify-between text-sm text-neutral-500">
             <span>Ara Toplam</span>
             <span>{centsToTl(totals.subtotalCents)} ₺</span>

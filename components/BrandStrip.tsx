@@ -7,8 +7,8 @@ export default function BrandStrip({ brands }: { brands: { id: string; name: str
   if (brands.length < MIN_BRANDS) return null;
 
   return (
-    <div className="mb-6">
-      <h2 className="mb-2.5 text-lg font-semibold text-neutral-900">Markalar</h2>
+    <div>
+      <h2 className="mb-3 text-xl font-bold text-neutral-900">Markalar</h2>
       <div className="flex flex-wrap gap-2">
         {brands.map((b) => (
           <span

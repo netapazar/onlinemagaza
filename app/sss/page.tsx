@@ -53,7 +53,7 @@ const FAQ_ITEMS: FaqItem[] = [
 export default function SssPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-xl font-semibold text-neutral-900">Sıkça Sorulan Sorular</h1>
+      <h1 className="mb-1 text-2xl font-bold text-neutral-900">Sıkça Sorulan Sorular</h1>
       <p className="mb-6 text-sm text-neutral-500">
         Aradığınız cevabı bulamazsanız bizimle iletişime geçebilirsiniz.
       </p>

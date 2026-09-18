@@ -14,8 +14,8 @@ export default async function KampanyalarPage() {
   const discounted = allProducts.filter((p) => resolvePrice(p, memberDiscountPercent).discounted);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold text-neutral-900">Kampanyalı Ürünler</h1>
+    <div className="mx-auto w-full max-w-content px-4 py-6">
+      <h1 className="mb-4 text-2xl font-bold text-neutral-900">Kampanyalı Ürünler</h1>
 
       {discounted.length === 0 ? (
         <EmptyState
@@ -31,7 +31,7 @@ export default async function KampanyalarPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
           {discounted.map((product) => (
             <ProductCard key={product.id} product={product} memberDiscountPercent={memberDiscountPercent} />
           ))}

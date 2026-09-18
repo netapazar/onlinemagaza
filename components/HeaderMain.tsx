@@ -23,7 +23,7 @@ export default function HeaderMain({ loggedIn }: { loggedIn: boolean }) {
 
   return (
     <div
-      className={`mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 transition-[padding] duration-150 sm:flex-nowrap sm:gap-5 ${shrunk ? "py-2" : "py-3.5"}`}
+      className={`mx-auto flex max-w-content flex-wrap items-center gap-3 px-4 transition-[padding] duration-150 sm:flex-nowrap sm:gap-5 ${shrunk ? "py-2" : "py-3.5"}`}
     >
       <Link href="/" className="shrink-0">
         <Image

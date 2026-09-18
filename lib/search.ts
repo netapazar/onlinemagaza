@@ -3,6 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { getOnlineStoreId } from "@/lib/onlineStore";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
+import {
+  isDemoMode,
+  demoListStorefrontProducts,
+  demoCategoriesWithCounts,
+  demoBestSellers,
+  demoNewArrivals,
+  demoRelatedProducts,
+  demoProductBySlugOrId,
+  DEMO_CATEGORIES,
+  DEMO_BRANDS,
+} from "@/lib/demoData";
 
 export type StorefrontProductSummary = {
   id: string;
@@ -143,6 +154,8 @@ export async function listStorefrontProducts(options: {
   maxPriceCents?: number;
   sort?: StorefrontSort;
 } = {}): Promise<StorefrontProductSummary[]> {
+  if (isDemoMode()) return demoListStorefrontProducts(options);
+
   const storeId = await getOnlineStoreId();
 
   let summaries: StorefrontProductSummary[];
@@ -194,6 +207,7 @@ export async function listStorefrontProducts(options: {
 }
 
 export async function getStorefrontCategories(): Promise<{ id: string; name: string }[]> {
+  if (isDemoMode()) return DEMO_CATEGORIES;
   const storeId = await getOnlineStoreId();
   const categories = await prisma.category.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
@@ -208,8 +222,9 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
 // cache() — Header ve layout'taki mobil alt menü aynı istek içinde ikisi de
 // çağırıyor, tekrar DB'ye gitmesin diye (bkz. getWebSession'daki aynı gerekçe).
 export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
-  { id: string; name: string; count: number }[]
+  { id: string; name: string; count: number; imageUrl: string | null }[]
 > => {
+  if (isDemoMode()) return demoCategoriesWithCounts();
   const storeId = await getOnlineStoreId();
   const categories = await prisma.category.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
@@ -218,15 +233,29 @@ export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
       id: true,
       name: true,
       _count: { select: { products: { where: { storeId, showOnStorefront: true, archivedAt: null } } } },
+      // Anasayfadaki kategori kartında görsel için — kategorinin herhangi bir
+      // kapak görselli ürününden temsili bir görsel (uydurma değil).
+      products: {
+        where: { storeId, showOnStorefront: true, archivedAt: null, images: { some: { isCover: true } } },
+        take: 1,
+        orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
+        select: { images: { where: { isCover: true }, take: 1, select: { url: true } } },
+      },
     },
   });
-  return categories.map((c) => ({ id: c.id, name: c.name, count: c._count.products }));
+  return categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    count: c._count.products,
+    imageUrl: c.products[0]?.images[0]?.url ?? null,
+  }));
 });
 
 // Anasayfadaki "Yeni Eklenen Ürünler" bölümü — storefrontSortOrder'dan
 // bağımsız, sadece en son storefront'a eklenmiş/güncellenmiş ürünleri
 // vitrine taşımak için (küçük bir kataloğa "hareket" hissi katıyor).
 export async function getNewArrivals(limit: number): Promise<StorefrontProductSummary[]> {
+  if (isDemoMode()) return demoNewArrivals(limit);
   const storeId = await getOnlineStoreId();
   const products = await prisma.product.findMany({
     where: { storeId, archivedAt: null, showOnStorefront: true },
@@ -245,6 +274,7 @@ export async function getRelatedProducts(
   limit: number
 ): Promise<StorefrontProductSummary[]> {
   if (!categoryId) return [];
+  if (isDemoMode()) return demoRelatedProducts(categoryId, excludeId, limit);
   const storeId = await getOnlineStoreId();
   const products = await prisma.product.findMany({
     where: { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } },
@@ -276,6 +306,7 @@ export type SearchSuggestion = {
 // bunu zaten göstermeyerek karşılıyor (bkz. proje kısıtı: veri yoksa vitrin
 // bölümü nazikçe gizlenmeli).
 export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
+  if (isDemoMode()) return demoBestSellers(limit);
   const storeId = await getOnlineStoreId();
   const grouped = await prisma.webOrderItem.groupBy({
     by: ["productId"],
@@ -298,6 +329,7 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
 // Anasayfadaki marka şeridi — sadece storefront'ta ürünü olan markalar,
 // uydurma bir liste değil.
 export async function getStorefrontBrands(): Promise<{ id: string; name: string }[]> {
+  if (isDemoMode()) return DEMO_BRANDS;
   const storeId = await getOnlineStoreId();
   return prisma.brand.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
@@ -307,6 +339,7 @@ export async function getStorefrontBrands(): Promise<{ id: string; name: string 
 }
 
 export async function getStorefrontProductBySlug(slug: string) {
+  if (isDemoMode()) return demoProductBySlugOrId(slug);
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({
     where: { storeId, slug, showOnStorefront: true, archivedAt: null },
@@ -318,6 +351,7 @@ export async function getStorefrontProductBySlug(slug: string) {
 // ProductCard links here (/urun/id/[id]) instead of /urun/[slug] whenever
 // product.slug is null, so nothing ever 404s just because a slug is missing.
 export async function getStorefrontProductById(id: string) {
+  if (isDemoMode()) return demoProductBySlugOrId(id);
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({
     where: { id, storeId, showOnStorefront: true, archivedAt: null },

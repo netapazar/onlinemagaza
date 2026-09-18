@@ -13,7 +13,7 @@ export default async function Footer() {
 
   return (
     <footer className="border-t border-neutral-200 bg-neutral-50">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mx-auto grid max-w-content gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <Image src="/logo-yatay.svg" alt="Tedarikhane" width={148} height={29} className="mb-3 h-7 w-auto" />
           <p className="mb-3 text-sm text-neutral-500">
@@ -31,6 +31,16 @@ export default async function Footer() {
             <li>
               <Link href="/hesabim/uyelik-basvurusu" className="hover:text-[var(--color-brand)]">
                 Kurumsal Üyelik
+              </Link>
+            </li>
+            <li>
+              <Link href="/cok-satanlar" className="hover:text-[var(--color-brand)]">
+                Çok Satanlar
+              </Link>
+            </li>
+            <li>
+              <Link href="/urunler?sirala=yeni" className="hover:text-[var(--color-brand)]">
+                Yeni Ürünler
               </Link>
             </li>
             <li>
@@ -89,7 +99,7 @@ export default async function Footer() {
       </div>
 
       <div className="border-t border-neutral-200">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-4 text-xs text-neutral-400 sm:flex-row sm:justify-between">
+        <div className="mx-auto flex max-w-content flex-col items-center gap-3 px-4 py-4 text-xs text-neutral-400 sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} Tedarikhane. Tüm hakları saklıdır.</p>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2 py-1">
