@@ -49,7 +49,7 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
   function submit(query: string) {
     const trimmed = query.trim();
     setOpen(false);
-    router.push(trimmed ? `/ara?q=${encodeURIComponent(trimmed)}` : "/");
+    router.push(trimmed ? `/urunler?q=${encodeURIComponent(trimmed)}` : "/");
   }
 
   const showPanel = open && value.trim().length >= MIN_QUERY_LENGTH;

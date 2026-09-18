@@ -48,7 +48,7 @@ export default function MegaMenu({ categories }: { categories: CategoryWithCount
               return (
                 <Link
                   key={c.id}
-                  href={`/?kategori=${c.id}`}
+                  href={`/urunler?kategori=${c.id}`}
                   onClick={() => setOpen(false)}
                   className="group flex items-center gap-3 rounded-lg p-2.5 hover:bg-[var(--color-brand-soft)]"
                 >

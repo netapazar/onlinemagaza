@@ -87,7 +87,7 @@ function MobileDrawer({
             return (
               <Link
                 key={c.id}
-                href={`/?kategori=${c.id}`}
+                href={`/urunler?kategori=${c.id}`}
                 onClick={onClose}
                 className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50"
               >

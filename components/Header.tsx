@@ -24,7 +24,7 @@ export default async function Header() {
               {categories.slice(0, QUICK_LINK_LIMIT).map((c) => (
                 <Link
                   key={c.id}
-                  href={`/?kategori=${c.id}`}
+                  href={`/urunler?kategori=${c.id}`}
                   className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
                 >
                   {c.name}

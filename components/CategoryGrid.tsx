@@ -15,7 +15,7 @@ export default function CategoryGrid({
           return (
             <Link
               key={c.id}
-              href={`/?kategori=${c.id}`}
+              href={`/urunler?kategori=${c.id}`}
               className="group rounded-xl border border-neutral-200 p-3.5 transition-colors hover:border-[var(--color-brand)] hover:shadow-sm"
             >
               <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">

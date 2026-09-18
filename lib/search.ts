@@ -13,6 +13,7 @@ export type StorefrontProductSummary = {
   stock: number;
   storefrontSortOrder: number | null;
   coverImageUrl: string | null;
+  brandId: string | null;
   brandName: string | null;
   categoryId: string | null;
 };
@@ -26,7 +27,7 @@ export const BASE_SELECT = {
   stock: true,
   storefrontSortOrder: true,
   categoryId: true,
-  brand: { select: { name: true } },
+  brand: { select: { id: true, name: true } },
   images: { where: { isCover: true }, take: 1, select: { url: true } },
 } as const;
 
@@ -39,7 +40,7 @@ export function toSummary(p: {
   stock: number;
   storefrontSortOrder: number | null;
   categoryId: string | null;
-  brand: { name: string } | null;
+  brand: { id: string; name: string } | null;
   images: { url: string }[];
 }): StorefrontProductSummary {
   return {
@@ -51,9 +52,33 @@ export function toSummary(p: {
     stock: p.stock,
     storefrontSortOrder: p.storefrontSortOrder,
     coverImageUrl: p.images[0]?.url ?? null,
+    brandId: p.brand?.id ?? null,
     brandName: p.brand?.name ?? null,
     categoryId: p.categoryId,
   };
+}
+
+// Etiket (liste) fiyatı — üyelik durumundan bağımsız, herkes için aynı.
+// Fiyat aralığı/sıralama filtreleri bilerek bunun üzerinden çalışıyor,
+// resolvePrice'ın üyeye özel indirimli fiyatı ASLA paylaşılan bir
+// sorguda/filtrede hesaplanmıyor (bkz. proje kısıtı).
+function effectiveListCents(p: { salePriceCents: number; onlinePriceCents: number | null }): number {
+  return p.onlinePriceCents ?? p.salePriceCents;
+}
+
+export type StorefrontSort = "onerilen" | "fiyat-artan" | "fiyat-azalan" | "isim-az" | "yeni";
+
+function sortSummaries(products: StorefrontProductSummary[], sort?: StorefrontSort): StorefrontProductSummary[] {
+  switch (sort) {
+    case "fiyat-artan":
+      return [...products].sort((a, b) => effectiveListCents(a) - effectiveListCents(b));
+    case "fiyat-azalan":
+      return [...products].sort((a, b) => effectiveListCents(b) - effectiveListCents(a));
+    case "isim-az":
+      return [...products].sort((a, b) => a.name.localeCompare(b.name, "tr"));
+    default:
+      return products;
+  }
 }
 
 // pg_trgm bu veritabanında zaten kurulu (magaza-crm'in Product trigram
@@ -113,8 +138,14 @@ async function fuzzyMatchProductIds(
 export async function listStorefrontProducts(options: {
   query?: string;
   categoryId?: string;
+  brandIds?: string[];
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  sort?: StorefrontSort;
 } = {}): Promise<StorefrontProductSummary[]> {
   const storeId = await getOnlineStoreId();
+
+  let summaries: StorefrontProductSummary[];
 
   if (options.query) {
     const orderedIds = await fuzzyMatchProductIds(storeId, options.query, options.categoryId);
@@ -126,21 +157,40 @@ export async function listStorefrontProducts(options: {
     const byId = new Map(products.map((p) => [p.id, p]));
     // $queryRaw'ın döndürdüğü sıralama (en iyi eşleşme önce) korunuyor —
     // Prisma'nın `id: { in: [...] }` sorgusu bu sırayı garanti etmiyor.
-    return orderedIds.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+    summaries = orderedIds.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+  } else {
+    const products = await prisma.product.findMany({
+      where: {
+        storeId,
+        archivedAt: null,
+        showOnStorefront: true,
+        ...(options.categoryId ? { categoryId: options.categoryId } : {}),
+      },
+      select: BASE_SELECT,
+      orderBy: options.sort === "yeni" ? { updatedAt: "desc" } : [{ storefrontSortOrder: "asc" }, { name: "asc" }],
+    });
+    summaries = products.map(toSummary);
   }
 
-  const products = await prisma.product.findMany({
-    where: {
-      storeId,
-      archivedAt: null,
-      showOnStorefront: true,
-      ...(options.categoryId ? { categoryId: options.categoryId } : {}),
-    },
-    select: BASE_SELECT,
-    orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
-  });
+  // Marka/fiyat aralığı filtreleri — küçük katalog boyutunda DB'den sonra
+  // JS'te filtrelemek raw SQL'e gerek bırakmıyor, ölçek büyürse burası
+  // doğrudan sorguya taşınabilir.
+  if (options.brandIds && options.brandIds.length > 0) {
+    const brandSet = new Set(options.brandIds);
+    summaries = summaries.filter((p) => p.brandId && brandSet.has(p.brandId));
+  }
+  if (options.minPriceCents !== undefined) {
+    summaries = summaries.filter((p) => effectiveListCents(p) >= options.minPriceCents!);
+  }
+  if (options.maxPriceCents !== undefined) {
+    summaries = summaries.filter((p) => effectiveListCents(p) <= options.maxPriceCents!);
+  }
 
-  return products.map(toSummary);
+  if (options.sort && options.sort !== "yeni") {
+    summaries = sortSummaries(summaries, options.sort);
+  }
+
+  return summaries;
 }
 
 export async function getStorefrontCategories(): Promise<{ id: string; name: string }[]> {

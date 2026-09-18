@@ -19,7 +19,7 @@ const SLIDES: Slide[] = [
     title: "İşletmenizin Tüm Tedarik İhtiyacı Tek Adreste",
     description: "Kaliteli ürünler, hızlı teslimat ve üyelere özel fiyatlarla Tedarikhane yanınızda.",
     ctaText: "Alışverişe Başla",
-    ctaHref: "#tum-urunler",
+    ctaHref: "/urunler",
   },
   {
     title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",

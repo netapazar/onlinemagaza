@@ -78,7 +78,7 @@ export default async function Footer() {
             <ul className="space-y-2 text-sm text-neutral-500">
               {categories.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/?kategori=${c.id}`} className="hover:text-[var(--color-brand)]">
+                  <Link href={`/urunler?kategori=${c.id}`} className="hover:text-[var(--color-brand)]">
                     {c.name}
                   </Link>
                 </li>
