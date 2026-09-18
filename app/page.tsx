@@ -1,8 +1,16 @@
 import Link from "next/link";
-import { listStorefrontProducts, getStorefrontCategories } from "@/lib/search";
+import {
+  listStorefrontProducts,
+  getStorefrontCategories,
+  getStorefrontCategoriesWithCounts,
+  getNewArrivals,
+} from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
 import MembershipBanner from "@/components/MembershipBanner";
+import Hero from "@/components/Hero";
+import CategoryGrid from "@/components/CategoryGrid";
+import ProductRow from "@/components/ProductRow";
 
 export default async function Home({
   searchParams,
@@ -10,19 +18,44 @@ export default async function Home({
   searchParams: Promise<{ kategori?: string }>;
 }) {
   const { kategori } = await searchParams;
-  const [products, categories, memberDiscountPercent] = await Promise.all([
+  const isHome = !kategori;
+
+  const [products, categories, categoriesWithCounts, newArrivals, memberDiscountPercent] = await Promise.all([
     listStorefrontProducts({ categoryId: kategori }),
     getStorefrontCategories(),
+    isHome ? getStorefrontCategoriesWithCounts() : Promise.resolve([]),
+    isHome ? getNewArrivals(10) : Promise.resolve([]),
     getMemberDiscountPercent(),
   ]);
 
+  const activeCategoryName = kategori ? categories.find((c) => c.id === kategori)?.name : null;
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
+      {isHome && <Hero />}
+
       {memberDiscountPercent === null && (
-        <div className="mb-6">
+        <div className="mb-8">
           <MembershipBanner />
         </div>
       )}
+
+      {isHome && categoriesWithCounts.length > 0 && <CategoryGrid categories={categoriesWithCounts} />}
+
+      {isHome && (
+        <ProductRow title="Yeni Eklenenler" products={newArrivals} memberDiscountPercent={memberDiscountPercent} />
+      )}
+
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-neutral-900">
+          {activeCategoryName ?? "Tüm Ürünler"}
+        </h2>
+        {kategori && (
+          <Link href="/" className="text-sm text-neutral-500 hover:text-[var(--color-brand)]">
+            ← Tüm kategoriler
+          </Link>
+        )}
+      </div>
 
       {categories.length > 0 && (
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">

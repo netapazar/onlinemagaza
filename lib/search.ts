@@ -152,6 +152,38 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
   return categories;
 }
 
+// Anasayfadaki "Kategoriler" kart bölümü için — kaç ürün olduğunu da
+// göstermek üzere ayrı bir count sorgusu.
+export async function getStorefrontCategoriesWithCounts(): Promise<
+  { id: string; name: string; count: number }[]
+> {
+  const storeId = await getOnlineStoreId();
+  const categories = await prisma.category.findMany({
+    where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      _count: { select: { products: { where: { storeId, showOnStorefront: true, archivedAt: null } } } },
+    },
+  });
+  return categories.map((c) => ({ id: c.id, name: c.name, count: c._count.products }));
+}
+
+// Anasayfadaki "Yeni Eklenen Ürünler" bölümü — storefrontSortOrder'dan
+// bağımsız, sadece en son storefront'a eklenmiş/güncellenmiş ürünleri
+// vitrine taşımak için (küçük bir kataloğa "hareket" hissi katıyor).
+export async function getNewArrivals(limit: number): Promise<StorefrontProductSummary[]> {
+  const storeId = await getOnlineStoreId();
+  const products = await prisma.product.findMany({
+    where: { storeId, archivedAt: null, showOnStorefront: true },
+    select: BASE_SELECT,
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+  return products.map(toSummary);
+}
+
 export async function getStorefrontProductBySlug(slug: string) {
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({
