@@ -12,6 +12,11 @@ export type AuthState = {
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
+// Üyelik modeli Madde 2 — kayıt formu artık aynı zamanda kurumsal üyelik
+// başvurusu: WebCustomer + MembershipApplication tek transaction'da birlikte
+// oluşturuluyor, ayrı bir "sonra başvur" adımına gerek kalmıyor. Eski ayrı
+// /hesabim/uyelik-basvurusu sayfası SİLİNMEDİ — kayıt sırasında bu adımı
+// atlamış eski hesaplar için hâlâ orada (bkz. Madde 3, hatırlatma banner'ı).
 export async function register(
   _prevState: AuthState,
   formData: FormData
@@ -20,12 +25,30 @@ export async function register(
   const password = String(formData.get("password") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const unvan = String(formData.get("unvan") ?? "").trim();
+  const vkn = String(formData.get("vkn") ?? "").trim();
+  const vergiDairesi = String(formData.get("vergiDairesi") ?? "").trim();
+  const adres = String(formData.get("adres") ?? "").trim();
+  const kvkkOnay = formData.get("kvkkOnay") === "on";
 
   if (!email || !password || !name) {
     return { error: "Ad, e-posta ve şifre gerekli." };
   }
   if (password.length < 8) {
     return { error: "Şifre en az 8 karakter olmalı." };
+  }
+  if (!unvan) {
+    return { error: "Firma/işletme adı gerekli." };
+  }
+  // VKN (10 hane) veya TCKN (11 hane) — sadece rakam, başka format kabul edilmiyor.
+  if (!/^\d{10}$|^\d{11}$/.test(vkn)) {
+    return { error: "VKN 10 haneli veya TCKN 11 haneli, sadece rakamlardan oluşmalı." };
+  }
+  if (!vergiDairesi) {
+    return { error: "Vergi dairesi gerekli." };
+  }
+  if (!kvkkOnay) {
+    return { error: "Devam etmek için KVKK Aydınlatma Metni'ni onaylamalısınız." };
   }
 
   const existing = await prisma.webCustomer.findUnique({ where: { email } });
@@ -34,8 +57,21 @@ export async function register(
   }
 
   const passwordHash = await hash(password, 10);
-  const customer = await prisma.webCustomer.create({
-    data: { email, passwordHash, name, phone: phone || null },
+  const customer = await prisma.$transaction(async (tx) => {
+    const created = await tx.webCustomer.create({
+      data: { email, passwordHash, name, phone: phone || null },
+    });
+    await tx.membershipApplication.create({
+      data: {
+        webCustomerId: created.id,
+        unvan,
+        vkn,
+        vergiDairesi,
+        telefon: phone || null,
+        adres: adres || null,
+      },
+    });
+    return created;
   });
 
   await createWebSession({ webCustomerId: customer.id, name: customer.name, email: customer.email });

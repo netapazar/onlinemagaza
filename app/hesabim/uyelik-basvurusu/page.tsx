@@ -1,94 +1,48 @@
-"use client";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getMembershipStatus } from "@/lib/membershipStatus";
+import UyelikBasvuruForm from "./UyelikBasvuruForm";
 
-import { useActionState } from "react";
-import { submitMembershipApplication, type ApplicationState } from "../actions";
-
-const initialState: ApplicationState = { error: null };
-
-export default function UyelikBasvurusuPage() {
-  const [state, formAction, pending] = useActionState(submitMembershipApplication, initialState);
+// Üyelik modeli Madde 3 — bu sayfa artık her zaman formu göstermiyor,
+// durum-farkında: onaylı/bekleyen üye form yerine kendi durum mesajını
+// görüyor. Yeni kayıtlar zaten register() ile otomatik başvuru oluşturduğu
+// için form fiilen sadece "no_application" (Madde 2 öncesinden kalma eski
+// hesap) ve "rejected" (yeniden başvuru) durumlarında görünür.
+export default async function UyelikBasvurusuPage() {
+  const status = await getMembershipStatus();
+  if (status.kind === "guest") redirect("/uyelik/giris");
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <h1 className="mb-1 text-xl font-semibold">Üyelik Başvurusu</h1>
-      <p className="mb-6 text-sm text-neutral-500">
-        Firma/işletme bilgilerinizi girin, başvurunuz incelendikten sonra size özel fiyatlarla alışveriş yapabilirsiniz.
-      </p>
+      <h1 className="mb-1 text-xl font-semibold">Kurumsal Üyelik</h1>
 
-      <form action={formAction} className="space-y-4">
-        <div>
-          <label htmlFor="unvan" className="mb-1.5 block text-sm font-medium text-neutral-700">
-            Firma / İşletme Adı
-          </label>
-          <input
-            id="unvan"
-            name="unvan"
-            type="text"
-            required
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-          />
+      {status.kind === "approved" ? (
+        <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-6">
+          <p className="text-sm font-medium text-green-800">
+            Kurumsal üyesiniz{status.firmaUnvan ? ` — ${status.firmaUnvan}` : ""}, size özel indirimli
+            fiyatlarla alışveriş yapıyorsunuz{status.discountPercent ? ` (%${status.discountPercent} indirim)` : ""}.
+          </p>
         </div>
-
-        <div>
-          <label htmlFor="vkn" className="mb-1.5 block text-sm font-medium text-neutral-700">
-            Vergi Kimlik No (opsiyonel)
-          </label>
-          <input
-            id="vkn"
-            name="vkn"
-            type="text"
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-          />
+      ) : status.kind === "pending" ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <p className="text-sm font-medium text-amber-800">
+            Başvurunuz inceleniyor. Onaylandığında size özel fiyatlarla alışveriş yapabileceksiniz — onay
+            beklerken de liste fiyatından alışverişe devam edebilirsiniz.
+          </p>
+          <Link href="/hesabim" className="mt-3 inline-block text-sm font-medium text-amber-800 underline">
+            Hesabım&apos;a dön
+          </Link>
         </div>
-
-        <div>
-          <label htmlFor="telefon" className="mb-1.5 block text-sm font-medium text-neutral-700">
-            Telefon
-          </label>
-          <input
-            id="telefon"
-            name="telefon"
-            type="tel"
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="adres" className="mb-1.5 block text-sm font-medium text-neutral-700">
-            Adres
-          </label>
-          <textarea
-            id="adres"
-            name="adres"
-            rows={2}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="aciklama" className="mb-1.5 block text-sm font-medium text-neutral-700">
-            Ek Not (opsiyonel)
-          </label>
-          <textarea
-            id="aciklama"
-            name="aciklama"
-            rows={2}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-          />
-        </div>
-
-        {state.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-lg bg-[var(--color-brand)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-brand-hover)] disabled:opacity-50"
-        >
-          {pending ? "Gönderiliyor..." : "Başvuruyu Gönder"}
-        </button>
-      </form>
+      ) : (
+        <>
+          <p className="mb-6 text-sm text-neutral-500">
+            {status.kind === "rejected"
+              ? "Önceki başvurunuz onaylanmadı. Bilgilerinizi kontrol edip tekrar başvurabilirsiniz."
+              : "Firma/işletme bilgilerinizi girin, başvurunuz incelendikten sonra size özel fiyatlarla alışveriş yapabilirsiniz."}
+          </p>
+          <UyelikBasvuruForm />
+        </>
+      )}
     </div>
   );
 }

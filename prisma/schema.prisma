@@ -76,13 +76,13 @@ enum ProductUnit {
 }
 
 model Store {
-  id                   String   @id @default(cuid())
-  name                 String   @unique
-  address              String?
+  id                           String   @id @default(cuid())
+  name                         String   @unique
+  address                      String?
   // true for the central warehouse ("Ana Depo") — excluded from sales,
   // cash register, visits, and revenue-based reports (it never sells
   // directly), but still a normal Store for products/transfers/stock count.
-  isWarehouse          Boolean  @default(false)
+  isWarehouse                  Boolean  @default(false)
   // true for the single virtual "Pazarlama Portalı" store backing the B2B
   // sales channel — the opposite of isWarehouse: it DOES sell (own Product
   // rows/stock/prices, reusing all existing store infra), but is excluded
@@ -91,14 +91,14 @@ model Store {
   // never see it. It still shows up in /stores management and /transfers
   // (a real store's stock can be transferred into it) since both already
   // list every Store unfiltered.
-  isMarketingChannel   Boolean  @default(false)
+  isMarketingChannel           Boolean  @default(false)
   // true for the single virtual "Online Mağaza" store backing the public
   // storefront — same shape as isMarketingChannel: has its own real Product
   // rows/stock (moved in via the existing /transfers screen), stays hidden
   // from the retail store-panel screens, but is what the separate storefront
   // app's product listing/checkout reads and decrements against. A physical
   // store's shelf stock is never touched by an online sale.
-  isOnlineStore        Boolean  @default(false)
+  isOnlineStore                Boolean  @default(false)
   // CRM Entegrasyonu Adım 3 — hangi FİZİKSEL mağazanın online siparişleri
   // paketleyeceğini bir ayar olarak tutar (koda gömülü olmasın diye, bkz.
   // docs/proje-kararlari.md). En fazla bir Store'da true olması beklenir
@@ -106,8 +106,16 @@ model Store {
   // kontrol etmeli) — isWarehouse/isMarketingChannel/isOnlineStore gibi bu
   // da normalde isWarehouse=isMarketingChannel=isOnlineStore=false olan
   // gerçek bir perakende mağazasında işaretlenmesi beklenen bir bayrak.
-  isFulfillmentDefault Boolean  @default(false)
-  createdAt            DateTime @default(now())
+  isFulfillmentDefault         Boolean  @default(false)
+  // Online üyelik onay ekranındaki İskonto % alanının varsayılan/ön-dolu
+  // değeri (sadece isOnlineStore=true olan store'da anlamlı, ama diğer
+  // store'larda da zararsız/kullanılmıyor — ayrı bir Settings tablosu yerine
+  // mevcut tekil "Online Mağaza" satırına eklendi, en basit yol). Kodda
+  // sabit bir varsayılan YOK — pazarlama bu oranı /stores/[id]/edit'ten
+  // değiştirebilir. Onay ekranı bu oranı zorunlu alana ön-doldurur, pazarlama
+  // her başvuruda isterse değiştirir.
+  varsayilanOnlineIskontoOrani Int      @default(0)
+  createdAt                    DateTime @default(now())
 
   users    User[]
   products Product[]
@@ -514,11 +522,16 @@ model MembershipApplication {
   webCustomerId String
   webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id])
 
-  unvan    String
-  vkn      String?
-  telefon  String?
-  adres    String?
-  aciklama String?
+  unvan        String
+  vkn          String?
+  // Üyelik modeli Madde 2 — kayıt formunda VKN(10) veya TCKN(11) tek bir
+  // alanda toplanıyor, ayrı bir tcNo alanı yok (Firma modelinin kendisi de
+  // vkn alanını hem VKN hem TCKN için kullanıyor, bkz. EDM VKN/TCKN scheme
+  // notu — proje hafızası).
+  vergiDairesi String?
+  telefon      String?
+  adres        String?
+  aciklama     String?
 
   status MembershipApplicationStatus @default(BEKLIYOR)
 
