@@ -76,13 +76,13 @@ enum ProductUnit {
 }
 
 model Store {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  address   String?
+  id                   String   @id @default(cuid())
+  name                 String   @unique
+  address              String?
   // true for the central warehouse ("Ana Depo") — excluded from sales,
   // cash register, visits, and revenue-based reports (it never sells
   // directly), but still a normal Store for products/transfers/stock count.
-  isWarehouse Boolean @default(false)
+  isWarehouse          Boolean  @default(false)
   // true for the single virtual "Pazarlama Portalı" store backing the B2B
   // sales channel — the opposite of isWarehouse: it DOES sell (own Product
   // rows/stock/prices, reusing all existing store infra), but is excluded
@@ -91,14 +91,14 @@ model Store {
   // never see it. It still shows up in /stores management and /transfers
   // (a real store's stock can be transferred into it) since both already
   // list every Store unfiltered.
-  isMarketingChannel Boolean @default(false)
+  isMarketingChannel   Boolean  @default(false)
   // true for the single virtual "Online Mağaza" store backing the public
   // storefront — same shape as isMarketingChannel: has its own real Product
   // rows/stock (moved in via the existing /transfers screen), stays hidden
   // from the retail store-panel screens, but is what the separate storefront
   // app's product listing/checkout reads and decrements against. A physical
   // store's shelf stock is never touched by an online sale.
-  isOnlineStore Boolean @default(false)
+  isOnlineStore        Boolean  @default(false)
   // CRM Entegrasyonu Adım 3 — hangi FİZİKSEL mağazanın online siparişleri
   // paketleyeceğini bir ayar olarak tutar (koda gömülü olmasın diye, bkz.
   // docs/proje-kararlari.md). En fazla bir Store'da true olması beklenir
@@ -106,8 +106,8 @@ model Store {
   // kontrol etmeli) — isWarehouse/isMarketingChannel/isOnlineStore gibi bu
   // da normalde isWarehouse=isMarketingChannel=isOnlineStore=false olan
   // gerçek bir perakende mağazasında işaretlenmesi beklenen bir bayrak.
-  isFulfillmentDefault Boolean @default(false)
-  createdAt DateTime @default(now())
+  isFulfillmentDefault Boolean  @default(false)
+  createdAt            DateTime @default(now())
 
   users    User[]
   products Product[]
@@ -116,13 +116,13 @@ model Store {
   transfersOut StockTransfer[] @relation("TransferFrom")
   transfersIn  StockTransfer[] @relation("TransferTo")
 
-  expenses              Expense[]
-  cashRegisterClosings  CashRegisterClosing[]
-  purchaseOrders        PurchaseOrder[]
-  stockCountSessions    StockCountSession[]
-  quotes                Quote[]
-  kasaHesaplari         KasaHesap[]
-  kasaHareketleri       KasaHareket[]
+  expenses                Expense[]
+  cashRegisterClosings    CashRegisterClosing[]
+  purchaseOrders          PurchaseOrder[]
+  stockCountSessions      StockCountSession[]
+  quotes                  Quote[]
+  kasaHesaplari           KasaHesap[]
+  kasaHareketleri         KasaHareket[]
   priceHistoryLabelPrints PriceHistoryLabelPrint[]
 }
 
@@ -153,36 +153,36 @@ model Product {
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
 
-  barcode       String
+  barcode             String
   // true when `barcode` was generated internally (see src/lib/barcodeGen.ts)
   // rather than typed from a manufacturer barcode — shown as a small badge
   // in the UI so staff know it won't scan against an external catalog.
-  barcodeIsGenerated Boolean @default(false)
-  productCode   String?
-  name          String
-  brandId       String?
-  brand         Brand?    @relation(fields: [brandId], references: [id])
-  categoryId    String?
-  category      Category? @relation(fields: [categoryId], references: [id])
-  originCountry String?
+  barcodeIsGenerated  Boolean     @default(false)
+  productCode         String?
+  name                String
+  brandId             String?
+  brand               Brand?      @relation(fields: [brandId], references: [id])
+  categoryId          String?
+  category            Category?   @relation(fields: [categoryId], references: [id])
+  originCountry       String?
   // set explicitly by the user (Evet/Hayır) — not inferred from originCountry text
-  isDomestic    Boolean @default(false)
+  isDomestic          Boolean     @default(false)
   // money stored as integer kuruş (1/100 TL) to avoid floating-point rounding errors
-  costPriceCents Int
-  salePriceCents Int
+  costPriceCents      Int
+  salePriceCents      Int
   // Optional override shown only on the product edit/detail screen (never on
   // the sales register). Null means "not set" — the UI falls back to 20%
   // below salePriceCents rather than persisting that computed value here.
   marketingPriceCents Int?
   // whole percent — Turkey's standard rates are 1, 10, 20. salePriceCents is
   // KDV-dahil (VAT-inclusive), matching mandatory Turkish consumer pricing.
-  vatRate        Int @default(20)
+  vatRate             Int         @default(20)
   // Adet/Koli/Düzine — shown read-only on the stock-count scan popup.
-  unit           ProductUnit @default(ADET)
-  stock          Int @default(0)
+  unit                ProductUnit @default(ADET)
+  stock               Int         @default(0)
   // Below this, the product shows up on the low-stock list/widget. Null
   // means no threshold configured — the product is never flagged.
-  reorderPoint   Int?
+  reorderPoint        Int?
 
   // Online storefront fields — all independent of the retail catalog fields
   // above, only ever meaningful on the isOnlineStore Product row for a given
@@ -190,29 +190,36 @@ model Product {
   description         String?
   // Null falls back to salePriceCents in the storefront's own price-resolve
   // helper — same nullable-override convention as marketingPriceCents.
-  onlinePriceCents     Int?
-  showOnStorefront     Boolean @default(false)
-  slug                 String? @unique
-  storefrontSortOrder  Int?
+  onlinePriceCents    Int?
+  showOnStorefront    Boolean @default(false)
+  slug                String? @unique
+  storefrontSortOrder Int?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   // set instead of a hard delete when the product has sale history (FK-safe);
   // archived products are hidden from lists/sales lookup but keep their history
   archivedAt DateTime?
 
-  saleItems         SaleItem[]
-  priceHistory      PriceHistory[]
-  stockAdjustments  StockAdjustment[]
-  purchaseOrderItems PurchaseOrderItem[]
-  stockCountEntries StockCountEntry[]
-  barcodeVariants   ProductBarcodeVariant[]
-  quoteItems        QuoteItem[]
+  saleItems             SaleItem[]
+  priceHistory          PriceHistory[]
+  stockAdjustments      StockAdjustment[]
+  purchaseOrderItems    PurchaseOrderItem[]
+  stockCountEntries     StockCountEntry[]
+  barcodeVariants       ProductBarcodeVariant[]
+  quoteItems            QuoteItem[]
   pazarlamaSiparisItems PazarlamaSiparisItem[]
   faturaKalemleri       FaturaKalemi[]
   irsaliyeKalemleri     IrsaliyeKalemi[]
-  images            ProductImage[]
-  webOrderItems     WebOrderItem[]
+  images                ProductImage[]
+  webOrderItems         WebOrderItem[]
+  // name/productCode/barcode ayrıca pg_trgm GIN index'leriyle kaplı (bkz.
+  // migration 20260804140000_add_product_search_trgm_indexes) — Prisma'nın
+  // @@index DSL'i trigram operator class'ını temsil edemediği için burada
+  // elle SQL migration olarak eklendi, şemada görünmüyor. Ürün arama
+  // kutularının (mağaza + pazarlama) ILIKE '%kelime%' sorguları bu index'e
+  // dayanıyor — 100k+ satırlık tabloda index olmadan tam tablo taraması
+  // (~2.5sn) yaşanıyordu, index sonrası tek haneli ms'e düştü.
 
   @@unique([storeId, barcode])
   // brandId'nin kendi index'i yoktu — arama kodu marka adını `brand: { name:
@@ -229,13 +236,6 @@ model Product {
   // parametresiyle /products'ta kategori adına göre arama yapıldığında aynı
   // BitmapOr-engelleme sorunu oluşuyordu — bkz. brandId'nin üstündeki not.
   @@index([categoryId])
-  // name/productCode/barcode ayrıca pg_trgm GIN index'leriyle kaplı (bkz.
-  // migration 20260804140000_add_product_search_trgm_indexes) — Prisma'nın
-  // @@index DSL'i trigram operator class'ını temsil edemediği için burada
-  // elle SQL migration olarak eklendi, şemada görünmüyor. Ürün arama
-  // kutularının (mağaza + pazarlama) ILIKE '%kelime%' sorguları bu index'e
-  // dayanıyor — 100k+ satırlık tabloda index olmadan tam tablo taraması
-  // (~2.5sn) yaşanıyordu, index sonrası tek haneli ms'e düştü.
 }
 
 // Storefront product photo — order + a cover flag drive the gallery UI
@@ -272,7 +272,7 @@ model StockAdjustment {
   source   String
 
   changedById String
-  changedBy   User   @relation(fields: [changedById], references: [id])
+  changedBy   User     @relation(fields: [changedById], references: [id])
   createdAt   DateTime @default(now())
 }
 
@@ -287,7 +287,7 @@ model AuditLog {
   summary    String
 
   performedById String
-  performedBy   User   @relation(fields: [performedById], references: [id])
+  performedBy   User     @relation(fields: [performedById], references: [id])
   createdAt     DateTime @default(now())
 }
 
@@ -339,18 +339,18 @@ model PriceHistoryLabelPrint {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         Role
+  id                  String    @id @default(cuid())
+  name                String
+  email               String    @unique
+  passwordHash        String
+  role                Role
   // null for ADMIN (sees all stores); required for CASHIER (scoped to one store)
-  storeId      String?
-  store        Store?   @relation(fields: [storeId], references: [id])
-  createdAt    DateTime @default(now())
+  storeId             String?
+  store               Store?    @relation(fields: [storeId], references: [id])
+  createdAt           DateTime  @default(now())
   // deactivated instead of deleted once they have activity history (FK-safe);
   // blocks login, hidden from active-user lists
-  active       Boolean  @default(true)
+  active              Boolean   @default(true)
   // Brute-force lockout state — kept in the DB (not in-memory) because the
   // app runs as serverless functions in production, where in-memory counters
   // wouldn't be shared across invocations.
@@ -360,37 +360,37 @@ model User {
   // bell (fiyat/yeni ürün bildirimleri) — null means nothing's been seen yet.
   notificationsSeenAt DateTime?
 
-  sales                Sale[]
-  refunds              Refund[]
-  stockTransfers       StockTransfer[]
-  expenses             Expense[]
-  cashRegisterClosings CashRegisterClosing[]
-  priceHistoryChanges  PriceHistory[]
-  priceHistoryLabelPrints PriceHistoryLabelPrint[]
-  saleEditLogs         SaleEditLog[]
-  changeNotifications  ChangeNotification[]
-  stockAdjustments     StockAdjustment[]
-  auditLogsPerformed   AuditLog[]
-  purchaseOrdersCreated PurchaseOrder[]
-  stockCountSessionsCreated StockCountSession[]
-  stockCountEntries         StockCountEntry[]
-  quotesCreated             Quote[]
-  firmalarAssigned         Firma[]       @relation("FirmaAssignedSalesRep")
-  cariHareketlerCreated    CariHareket[] @relation("CariHareketCreatedBy")
-  pazarlamaSiparisleriCreated PazarlamaSiparis[] @relation("PazarlamaSiparisCreatedBy")
-  faturalarCreated            Fatura[]           @relation("FaturaCreatedBy")
-  membershipApplicationsReviewed MembershipApplication[] @relation("MembershipApplicationReviewedBy")
-  kasaHareketleriCreated      KasaHareket[]      @relation("KasaHareketCreatedBy")
-  irsaliyelerCreated          Irsaliye[]         @relation("IrsaliyeCreatedBy")
+  sales                              Sale[]
+  refunds                            Refund[]
+  stockTransfers                     StockTransfer[]
+  expenses                           Expense[]
+  cashRegisterClosings               CashRegisterClosing[]
+  priceHistoryChanges                PriceHistory[]
+  priceHistoryLabelPrints            PriceHistoryLabelPrint[]
+  saleEditLogs                       SaleEditLog[]
+  changeNotifications                ChangeNotification[]
+  stockAdjustments                   StockAdjustment[]
+  auditLogsPerformed                 AuditLog[]
+  purchaseOrdersCreated              PurchaseOrder[]
+  stockCountSessionsCreated          StockCountSession[]
+  stockCountEntries                  StockCountEntry[]
+  quotesCreated                      Quote[]
+  firmalarAssigned                   Firma[]                  @relation("FirmaAssignedSalesRep")
+  cariHareketlerCreated              CariHareket[]            @relation("CariHareketCreatedBy")
+  pazarlamaSiparisleriCreated        PazarlamaSiparis[]       @relation("PazarlamaSiparisCreatedBy")
+  faturalarCreated                   Fatura[]                 @relation("FaturaCreatedBy")
+  membershipApplicationsReviewed     MembershipApplication[]  @relation("MembershipApplicationReviewedBy")
+  kasaHareketleriCreated             KasaHareket[]            @relation("KasaHareketCreatedBy")
+  irsaliyelerCreated                 Irsaliye[]               @relation("IrsaliyeCreatedBy")
   tedarikciFaturaTaslaklariOnaylanan TedarikciFaturaTaslagi[]
 }
 
 model Sale {
-  id       String @id @default(cuid())
-  storeId  String
-  store    Store  @relation(fields: [storeId], references: [id])
+  id        String @id @default(cuid())
+  storeId   String
+  store     Store  @relation(fields: [storeId], references: [id])
   cashierId String
-  cashier   User  @relation(fields: [cashierId], references: [id])
+  cashier   User   @relation(fields: [cashierId], references: [id])
 
   items SaleItem[]
 
@@ -415,13 +415,13 @@ model Sale {
   // Set only for kurumsal/cari (corporate account) sales — filled in via a
   // popup on the sales screen and printed as a second "Cari Satış Bilgi
   // Fişi" alongside the normal receipt. Null/false for regular sales.
-  isCorporate      Boolean   @default(false)
-  customerName     String?
-  customerVkn      String?
-  customerAddress  String?
-  customerPhone    String?
-  deliveryDate     DateTime?
-  receivedByName   String?
+  isCorporate     Boolean   @default(false)
+  customerName    String?
+  customerVkn     String?
+  customerAddress String?
+  customerPhone   String?
+  deliveryDate    DateTime?
+  receivedByName  String?
 
   // Optional link to a registered Customer for purchase-history lookups —
   // independent of isCorporate: a registered customer can make a normal
@@ -429,7 +429,7 @@ model Sale {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
 
-  refunds Refund[]
+  refunds  Refund[]
   editLogs SaleEditLog[]
   payments SalePayment[]
   webOrder WebOrder?
@@ -442,9 +442,9 @@ model Sale {
 // single-method sales; those keep reading Sale.paymentType + Sale.totalCents
 // directly, exactly as before this model existed.
 model SalePayment {
-  id          String @id @default(cuid())
-  saleId      String
-  sale        Sale   @relation(fields: [saleId], references: [id])
+  id     String @id @default(cuid())
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id])
 
   // Always CASH/CARD/TRANSFER in practice — never CEK/SENET/MIXED, same
   // retail-only convention as Sale.paymentType itself.
@@ -459,7 +459,7 @@ model SalePayment {
 // fields, which stay as free-text for a walk-in corporate sale that doesn't
 // need a saved record.
 model Customer {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   name    String
   vkn     String?
   phone   String?
@@ -493,8 +493,8 @@ model WebCustomer {
 
   createdAt DateTime @default(now())
 
-  orders                  WebOrder[]
-  membershipApplications  MembershipApplication[]
+  orders                 WebOrder[]
+  membershipApplications MembershipApplication[]
 
   @@index([firmaId])
 }
@@ -514,10 +514,10 @@ model MembershipApplication {
   webCustomerId String
   webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id])
 
-  unvan   String
-  vkn     String?
-  telefon String?
-  adres   String?
+  unvan    String
+  vkn      String?
+  telefon  String?
+  adres    String?
   aciklama String?
 
   status MembershipApplicationStatus @default(BEKLIYOR)
@@ -600,10 +600,17 @@ model WebOrder {
   // "should ship today" flag.
   sameDayShipping Boolean @default(false)
 
-  saleId     String? @unique
-  sale       Sale?   @relation(fields: [saleId], references: [id])
-  irsaliyeId String? @unique
+  saleId     String?   @unique
+  sale       Sale?     @relation(fields: [saleId], references: [id])
+  irsaliyeId String?   @unique
   irsaliye   Irsaliye? @relation(fields: [irsaliyeId], references: [id])
+
+  // CRM entegrasyonu Adım 4 — üye firma KART/HAVALE siparişinde irsaliyeId
+  // yanında oluşan net-sıfır TAHSILAT (kaynak=ONLINE_SIPARIS) satırına
+  // işaret eder. CARI_HESAP/misafir siparişlerde her zaman null. İptal
+  // ekranının iki bacağı birlikte bulup ters çevirebilmesi için var.
+  tahsilatHareketId String?      @unique
+  tahsilatHareket   CariHareket? @relation(fields: [tahsilatHareketId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -625,7 +632,7 @@ model WebOrderItem {
   name           String
   unitPriceCents Int
   unitCostCents  Int
-  vatRate        Int @default(20)
+  vatRate        Int    @default(20)
   quantity       Int
   lineTotalCents Int
 
@@ -641,15 +648,15 @@ model SaleItem {
   product   Product @relation(fields: [productId], references: [id])
 
   // snapshots at time of sale so later product edits don't rewrite history
-  barcode        String
-  name           String
-  unitPriceCents Int
-  unitCostCents  Int
+  barcode                 String
+  name                    String
+  unitPriceCents          Int
+  unitCostCents           Int
   // whole percent, KDV-dahil (see Product.vatRate) — snapshotted so a later
   // rate change on the product doesn't rewrite past receipts/reports
-  vatRate        Int @default(20)
-  quantity       Int
-  lineTotalCents Int
+  vatRate                 Int    @default(20)
+  quantity                Int
+  lineTotalCents          Int
   // Pre-coupon (BTS %20 İndirim Çeki) unit price — set only when the çeki
   // actually discounted this line at checkout (see SalesScreen.tsx's
   // COUPON_EXCLUDED_BARCODES); null otherwise, so the receipt only shows a
@@ -674,7 +681,7 @@ model Refund {
   refundedById String
   refundedBy   User   @relation(fields: [refundedById], references: [id])
 
-  reason          String?
+  reason           String?
   totalRefundCents Int
   createdAt        DateTime @default(now())
 
@@ -691,8 +698,8 @@ model RefundItem {
   saleItemId String
   saleItem   SaleItem @relation(fields: [saleItemId], references: [id])
 
-  quantity        Int
-  refundCents     Int
+  quantity    Int
+  refundCents Int
 }
 
 // Audit trail for direct sale corrections (admin-only, see
@@ -714,13 +721,13 @@ model SaleEditLog {
 // matches by barcode: it debits the source store's Product and credits the
 // destination store's Product with the same barcode, creating it there if needed.
 model StockTransfer {
-  id            String @id @default(cuid())
+  id            String   @id @default(cuid())
   fromStoreId   String
-  fromStore     Store  @relation("TransferFrom", fields: [fromStoreId], references: [id])
+  fromStore     Store    @relation("TransferFrom", fields: [fromStoreId], references: [id])
   toStoreId     String
-  toStore       Store  @relation("TransferTo", fields: [toStoreId], references: [id])
+  toStore       Store    @relation("TransferTo", fields: [toStoreId], references: [id])
   initiatedById String
-  initiatedBy   User   @relation(fields: [initiatedById], references: [id])
+  initiatedBy   User     @relation(fields: [initiatedById], references: [id])
   createdAt     DateTime @default(now())
 
   items StockTransferItem[]
@@ -746,7 +753,7 @@ model Expense {
   description String
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
 
   @@index([storeId, createdAt])
@@ -796,12 +803,12 @@ model ChangeNotification {
   message String
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
 }
 
 model Supplier {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   contactName String?
   phone       String?
@@ -836,7 +843,7 @@ model PurchaseOrder {
   receivedAt DateTime?
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
 
   items PurchaseOrderItem[]
@@ -869,8 +876,8 @@ model StockCountSession {
   isActive Boolean @default(true)
 
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
   closedAt    DateTime?
 
   entries StockCountEntry[]
@@ -902,11 +909,11 @@ model StockCountEntry {
   countedQuantity Int
   // Per-entry-only, not persisted onto Product — deliberately a note
   // attached to this specific count rather than a permanent product field.
-  shelfLocation String?
-  note          String?
+  shelfLocation   String?
+  note            String?
 
   countedById String
-  countedBy   User   @relation(fields: [countedById], references: [id])
+  countedBy   User     @relation(fields: [countedById], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -958,33 +965,33 @@ enum FaturaTuru {
 // billing, delivery) since a firm's shipping and billing address often
 // differ from its main address.
 model Firma {
-  id            String  @id @default(cuid())
-  unvan         String
-  yetkiliAdi    String?
-  telefon       String?
-  email         String?
-  vkn           String?
-  vergiDairesi  String?
-  il            String?
-  ilce          String?
-  adres         String?
-  faturaAdresi  String?
-  sevkAdresi    String?
-  faturaTuru    FaturaTuru @default(E_ARSIV)
+  id               String     @id @default(cuid())
+  unvan            String
+  yetkiliAdi       String?
+  telefon          String?
+  email            String?
+  vkn              String?
+  vergiDairesi     String?
+  il               String?
+  ilce             String?
+  adres            String?
+  faturaAdresi     String?
+  sevkAdresi       String?
+  faturaTuru       FaturaTuru @default(E_ARSIV)
   // free-text notes, checked/reviewed on future interactions with this firma
-  notlar        String?
-  cariGrubu     CariGrubu @default(PAZARLAMA)
+  notlar           String?
+  cariGrubu        CariGrubu  @default(PAZARLAMA)
   // netapazar.xyz'den aktarımda eski sistemin gerçek cari ID'si — hem
   // izlenebilirlik hem de import'un idempotent tekrar çalıştırılabilmesi için.
-  eskiSistemId  Int?      @unique
+  eskiSistemId     Int?       @unique
   // Eski sistemin "Alt Sınıf" alanı (bölge/OSB bilgisi) — yeni sistemde
   // karşılığı yoktu, pazarlama tarafında bölge bazlı raporlama için eklendi.
-  bolge         String?
+  bolge            String?
   // whole kuruş, like every other money field in this schema
-  krediLimitiCents Int @default(0)
+  krediLimitiCents Int        @default(0)
   // deactivated instead of deleted once it has CariHareket history (FK-safe,
   // same pattern as User.active/Product.archivedAt)
-  active     Boolean   @default(true)
+  active           Boolean    @default(true)
 
   // Only SALES_REP users are meant to be assignable here (enforced in the
   // app layer, not the DB) — a rep only ever sees their own assigned firms;
@@ -1003,17 +1010,17 @@ model Firma {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  hareketler CariHareket[]
-  siparisler PazarlamaSiparis[]
-  faturalar  Fatura[]
-  kasaHareketleri KasaHareket[]
-  irsaliyeler     Irsaliye[]
+  hareketler                CariHareket[]
+  siparisler                PazarlamaSiparis[]
+  faturalar                 Fatura[]
+  kasaHareketleri           KasaHareket[]
+  irsaliyeler               Irsaliye[]
   tedarikciFaturaTaslaklari TedarikciFaturaTaslagi[]
-  webCustomers    WebCustomer[]
+  webCustomers              WebCustomer[]
 }
 
 enum CariHareketTipi {
-  SIPARIS  // borç — firma borçlanır (satış)
+  SIPARIS // borç — firma borçlanır (satış)
   TAHSILAT // alacak — ödeme alındı
   // Alım/gider faturası — firma'dan mal/hizmet aldığımızda, aynı yönde bir
   // "alacak" gibi bakiyeyi azaltır (TAHSILAT ile aynı matematiksel etki,
@@ -1035,11 +1042,18 @@ enum CariHareketTipi {
 // aktarılmış 617 tarihsel SIPARIS satırını fatura sekmelerinin dışında
 // tutmak için ayrı tutuluyor (aksi halde hepsi "faturasız" görünürdü).
 enum CariHareketKaynagi {
-  AKTARIM     // eski sistemden toplu aktarım
-  IRSALIYE    // mal çıkışı (bkz. Irsaliye modeli)
-  FATURA      // irsaliyesiz doğrudan fatura (hizmet, ALIS vb.)
-  KASA        // tahsilat / tediye (KasaHareket ile bağlı)
-  MANUEL      // elle düzeltme kaydı (Cari Ekstre'nin "Yeni Hareket Ekle" formu)
+  AKTARIM // eski sistemden toplu aktarım
+  IRSALIYE // mal çıkışı (bkz. Irsaliye modeli)
+  FATURA // irsaliyesiz doğrudan fatura (hizmet, ALIS vb.)
+  KASA // tahsilat / tediye (KasaHareket ile bağlı)
+  MANUEL // elle düzeltme kaydı (Cari Ekstre'nin "Yeni Hareket Ekle" formu)
+  // CRM entegrasyonu Adım 4 — üye firmanın KART/HAVALE ile peşin ödediği
+  // online siparişte, SIPARIS bacağını (kaynak=IRSALIYE, değişmedi) net
+  // sıfırlayan otomatik TAHSILAT satırı için. MANUEL değil çünkü elle
+  // düzeltme değil, sistematik/otomatik üretiliyor; KASA değil çünkü henüz
+  // gerçek bir KasaHareket'e (ECOM_GECIS) bağlanmıyor — bkz.
+  // docs/proje-kararlari.md "Adım 4 Değerlendirmesi".
+  ONLINE_SIPARIS
 }
 
 // A single ledger line for a Firma's cari (running account) — every SIPARIS
@@ -1083,6 +1097,12 @@ model CariHareket {
   // modeli — cariHareketId orada zorunlu/unique).
   irsaliye Irsaliye?
 
+  // CRM entegrasyonu Adım 4 — bu satır bir online siparişin (üye firma,
+  // KART/HAVALE) net-sıfır TAHSILAT bacağıysa, o WebOrder buraya geri
+  // işaret eder (WebOrder.tahsilatHareketId). İptal ekranının SIPARIS
+  // bacağının yanında bu satırı da bulup ters çevirebilmesi içindir.
+  webOrderTahsilat WebOrder?
+
   // Bir fatura BİRDEN ÇOK hareketi kapsayabilir (ay sonu toplu fatura,
   // birden fazla irsaliyeyi tek faturada birleştirme) — bu yüzden yön
   // Fatura'dan değil buradan: her hareket en fazla bir faturaya aittir,
@@ -1102,9 +1122,9 @@ model CariHareket {
 }
 
 enum KasaTipi {
-  NAKIT      // mağaza kasası, merkez kasası
-  BANKA      // vadesiz banka hesabı
-  POS        // POS geçiş hesabı (para henüz bankaya inmedi) — Faz 2
+  NAKIT // mağaza kasası, merkez kasası
+  BANKA // vadesiz banka hesabı
+  POS // POS geçiş hesabı (para henüz bankaya inmedi) — Faz 2
   ECOM_GECIS // e-ticaret / pazaryeri geçiş hesabı — Faz 2
   CEK_PORTFOY // elde tutulan çekler (henüz nakit değil) — vadeli çalışma başlarsa
 }
@@ -1115,12 +1135,12 @@ enum KasaHareketYonu {
 }
 
 enum KarsiTarafTipi {
-  CARI      // firmaId dolu — CariHareket ile eşleşir (Tahsilat/Tediye)
-  MASRAF    // masrafKalemiId dolu, carisi yok (kira, elektrik, vb.)
-  VIRMAN    // hedefKasaId + virmanGrupId dolu, kasadan kasaya
-  ACILIS    // açılış bakiyesi
+  CARI // firmaId dolu — CariHareket ile eşleşir (Tahsilat/Tediye)
+  MASRAF // masrafKalemiId dolu, carisi yok (kira, elektrik, vb.)
+  VIRMAN // hedefKasaId + virmanGrupId dolu, kasadan kasaya
+  ACILIS // açılış bakiyesi
   PERAKENDE // mağaza satışından gelen nakit — Faz 2'de kullanılacak
-  DIGER     // serbest açıklama (personel avansı vb.)
+  DIGER // serbest açıklama (personel avansı vb.)
 }
 
 // Para fiilen nerede sorusunun cevabı — CariHareket'ten (kime borçluyum)
@@ -1192,10 +1212,10 @@ model KasaHareket {
 
   // Silme yok — iptal edilen satır durur, ters yönde yeni bir satır
   // (iptalEden) üretilir ve buraya bağlanır. Kasa sayımı hep tutarlı kalır.
-  iptal       Boolean       @default(false)
-  iptalEdenId String?       @unique
-  iptalEden   KasaHareket?  @relation("iptal", fields: [iptalEdenId], references: [id])
-  iptalEdilen KasaHareket?  @relation("iptal")
+  iptal       Boolean      @default(false)
+  iptalEdenId String?      @unique
+  iptalEden   KasaHareket? @relation("iptal", fields: [iptalEdenId], references: [id])
+  iptalEdilen KasaHareket? @relation("iptal")
 
   cariHareket CariHareket? @relation("cariKasaHareket")
 
@@ -1221,10 +1241,10 @@ model KasaHareket {
 // aldı. Tek istisna IPTAL_EDILDI: o hesaplanmıyor, ayrı bir aksiyon.
 enum SiparisDurumu {
   PROFORMA
-  IRSALIYELESMIS  // LEGACY — artık üretilmiyor, bkz. SEVK_EDILDI
-  KISMI_SEVK      // bazı kalemler kısmen/tamamen sevk edildi
-  SEVK_EDILDI     // tüm kalemler tam sevk edildi, henüz faturalanmadı
-  FATURALASMIS    // tüm irsaliyeleri faturalandı
+  IRSALIYELESMIS // LEGACY — artık üretilmiyor, bkz. SEVK_EDILDI
+  KISMI_SEVK // bazı kalemler kısmen/tamamen sevk edildi
+  SEVK_EDILDI // tüm kalemler tam sevk edildi, henüz faturalanmadı
+  FATURALASMIS // tüm irsaliyeleri faturalandı
   IPTAL_EDILDI
 }
 
@@ -1242,7 +1262,7 @@ model PazarlamaSiparis {
   cariGrubu CariGrubu @default(PAZARLAMA)
   aciklama  String?
 
-  durum       SiparisDurumu @default(PROFORMA)
+  durum SiparisDurumu @default(PROFORMA)
 
   subtotalCents Int // sum of line tutarCents (gross, pre-line-discount)
   vatCents      Int // sum of line kdvTutarCents (informational)
@@ -1342,7 +1362,7 @@ model Irsaliye {
   // kararı: matbu irsaliye kullanılmıyor, sistem kendi Belge No'sunu id'den
   // türetir, aynı PazarlamaSiparis.belgeNo() deseni — bkz. irsaliyeBelgeNo()
   // src/lib/irsaliye.ts).
-  irsaliyeNo String? @unique
+  irsaliyeNo String?  @unique
   tarih      DateTime // fiili sevk tarihi
 
   subtotalCents Int
@@ -1402,7 +1422,7 @@ model IrsaliyeKalemi {
   // kopyalanır — irsaliye kesildikten sonra sipariş satırı değişse/silinse
   // bile basılı belgede görünmeye devam etsin diye, diğer alanlar gibi
   // snapshot.
-  aciklama String?
+  aciklama    String?
 
   unitPriceCents   Int
   iskontoOrani     Int @default(0)
@@ -1497,7 +1517,7 @@ model Fatura {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  items FaturaKalemi[]
+  items                  FaturaKalemi[]
   tedarikciFaturaTaslagi TedarikciFaturaTaslagi?
 
   @@index([firmaId, tarih])
@@ -1517,8 +1537,8 @@ enum TedarikciFaturaTaslagiStatus {
 // aralığını tekrar çekmesini idempotent yapıyor (zaten var olan bir taslağı
 // yeniden oluşturmaz).
 model TedarikciFaturaTaslagi {
-  id            String  @id @default(cuid())
-  ettnNumarasi  String  @unique
+  id            String @id @default(cuid())
+  ettnNumarasi  String @unique
   belgeNumarasi String
   senderVkn     String
   senderUnvan   String
@@ -1608,8 +1628,8 @@ model Quote {
   // Optional convenience link to a registered Customer used to prefill the
   // institution fields — independent of them, same as Sale.customerId vs.
   // its own free-text customerName/Vkn/Address/Phone.
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customerId         String?
+  customer           Customer? @relation(fields: [customerId], references: [id])
 
   validUntil DateTime?
   notes      String?
@@ -1635,10 +1655,10 @@ model QuoteItem {
   name    String
   barcode String
 
-  quantity Int @default(1)
+  quantity        Int @default(1)
   // "Etiket Fiyatı" — product.salePriceCents at the moment this line was
   // added, display-only reference, never edited.
-  listPriceCents Int
+  listPriceCents  Int
   // "Teklif Fiyatı" — what's actually being offered for this line.
   offerPriceCents Int
   vatRate         Int
