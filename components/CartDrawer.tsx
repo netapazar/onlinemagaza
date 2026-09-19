@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
+import { QuantityStepper } from "@/components/QuantityStepper";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -79,26 +80,17 @@ export default function CartDrawer() {
                     ) : (
                       <p className="text-xs text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
                     )}
-                    <div className="mt-1 flex items-center rounded-lg border border-neutral-300 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(line.productId, line.quantity - 1)}
-                        disabled={!line.available}
-                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
-                        aria-label="Azalt"
-                      >
-                        −
-                      </button>
-                      <span className="w-6 text-center">{line.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(line.productId, line.quantity + 1)}
-                        disabled={!line.available}
-                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
-                        aria-label="Artır"
-                      >
-                        +
-                      </button>
+                    <div className="mt-1">
+                      {line.available ? (
+                        <QuantityStepper
+                          value={line.quantity}
+                          max={line.stock}
+                          onChange={(next) => updateQuantity(line.productId, next)}
+                          size="sm"
+                        />
+                      ) : (
+                        <span className="text-xs text-neutral-400">{line.quantity} adet</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">

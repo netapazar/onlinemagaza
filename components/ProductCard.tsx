@@ -7,6 +7,7 @@ import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
+import { QuantityStepper } from "@/components/QuantityStepper";
 
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
@@ -96,25 +97,7 @@ export default function ProductCard({
 
         {inStock && (
           <div className="flex items-stretch gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
-            <div className="flex items-center rounded-lg border border-neutral-300">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="px-2 text-sm text-neutral-600 hover:text-neutral-900"
-                aria-label="Azalt"
-              >
-                −
-              </button>
-              <span className="w-6 text-center text-xs">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                className="px-2 text-sm text-neutral-600 hover:text-neutral-900"
-                aria-label="Artır"
-              >
-                +
-              </button>
-            </div>
+            <QuantityStepper value={quantity} max={product.stock} onChange={setQuantity} size="sm" />
             <button
               type="button"
               onClick={() => {

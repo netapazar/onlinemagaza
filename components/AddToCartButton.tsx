@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
+import { QuantityStepper } from "@/components/QuantityStepper";
 
 export default function AddToCartButton({
   productId,
@@ -34,25 +35,7 @@ export default function AddToCartButton({
   return (
     <div className="space-y-2">
       <div className="flex items-stretch gap-2">
-        <div className="flex items-center rounded-lg border border-neutral-300">
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="px-3 py-3 text-sm text-neutral-600 hover:text-neutral-900"
-            aria-label="Azalt"
-          >
-            −
-          </button>
-          <span className="w-10 text-center text-sm">{quantity}</span>
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
-            className="px-3 py-3 text-sm text-neutral-600 hover:text-neutral-900"
-            aria-label="Artır"
-          >
-            +
-          </button>
-        </div>
+        <QuantityStepper value={quantity} max={stock} onChange={setQuantity} size="lg" />
         <button
           type="button"
           onClick={() => {
