@@ -74,11 +74,16 @@ async function fetchCrmSchema() {
   }
 
   const url = `https://api.github.com/repos/${CRM_REPO}/contents/${CRM_SCHEMA_PATH}?ref=${CRM_REF}`;
+  // Standart (base64) JSON yanıtı kullanılıyor — "raw" Accept media type'ının
+  // (application/vnd.github.raw+json) bazı ortamlarda/GitHub API sürümlerinde
+  // beklenmedik şekilde reddedilmesi riskine karşı en garantili yol bu; içerik
+  // manuel base64 çözülüyor.
   const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github.raw+json",
+      Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "magaza-online-schema-sync-check",
     },
   });
 
@@ -86,11 +91,19 @@ async function fetchCrmSchema() {
     const body = await res.text().catch(() => "");
     throw new Error(
       `GitHub'dan ${CRM_REPO}/${CRM_SCHEMA_PATH} çekilemedi (HTTP ${res.status}). ` +
-        `Token'ın netapazar/crm'e "Contents: Read" erişimi olduğundan emin olun. Yanıt: ${body.slice(0, 300)}`
+        `Token'ın netapazar/crm'e "Contents: Read" erişimi olduğundan emin olun. Yanıt: ${body.slice(0, 500)}`
     );
   }
 
-  return res.text();
+  const json = await res.json();
+  if (typeof json.content !== "string" || json.encoding !== "base64") {
+    throw new Error(
+      `GitHub Contents API beklenmedik bir yanıt döndürdü (content/encoding alanları yok). ` +
+        `Ham yanıt: ${JSON.stringify(json).slice(0, 500)}`
+    );
+  }
+  // GitHub base64 içeriği 60 karakterde bir satır sonu ekliyor.
+  return Buffer.from(json.content.replace(/\n/g, ""), "base64").toString("utf8");
 }
 
 async function main() {
