@@ -44,7 +44,7 @@ export default function SepetPage() {
 
       <div className="mb-6 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white shadow-sm">
         {lines.map((line) => (
-          <div key={line.productId} className="flex items-center gap-3 p-4">
+          <div key={line.productId} className={`flex items-center gap-3 p-4 ${!line.available ? "opacity-60" : ""}`}>
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
               {line.coverImageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -54,15 +54,22 @@ export default function SepetPage() {
             <div className="flex-1">
               <p className="text-sm font-medium text-neutral-900">{line.name}</p>
               <p className="text-sm text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
-              {line.quantity > line.stock && (
-                <p className="text-xs font-medium text-red-600">Stokta sadece {line.stock} adet var</p>
+              {!line.available ? (
+                <p className="text-xs font-medium text-red-600">
+                  Bu ürün şu an stokta yok — siparişe dahil edilmeyecek
+                </p>
+              ) : (
+                line.quantity > line.stock && (
+                  <p className="text-xs font-medium text-red-600">Stokta sadece {line.stock} adet var</p>
+                )
               )}
             </div>
             <div className="flex items-center rounded-lg border border-neutral-300">
               <button
                 type="button"
                 onClick={() => updateQuantity(line.productId, line.quantity - 1)}
-                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900"
+                disabled={!line.available}
+                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
               >
                 −
               </button>
@@ -70,12 +77,15 @@ export default function SepetPage() {
               <button
                 type="button"
                 onClick={() => updateQuantity(line.productId, line.quantity + 1)}
-                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900"
+                disabled={!line.available}
+                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
               >
                 +
               </button>
             </div>
-            <p className="w-20 shrink-0 text-right text-sm font-semibold">{centsToTl(line.lineTotalCents)} ₺</p>
+            <p className="w-20 shrink-0 text-right text-sm font-semibold">
+              {line.available ? `${centsToTl(line.lineTotalCents)} ₺` : "—"}
+            </p>
             <button
               type="button"
               onClick={() => removeItem(line.productId)}

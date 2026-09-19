@@ -60,7 +60,7 @@ export default function CartDrawer() {
           ) : (
             <div className="space-y-4">
               {lines.map((line) => (
-                <div key={line.productId} className="flex items-center gap-3">
+                <div key={line.productId} className={`flex items-center gap-3 ${!line.available ? "opacity-60" : ""}`}>
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                     {line.coverImageUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -69,12 +69,17 @@ export default function CartDrawer() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-neutral-900">{line.name}</p>
-                    <p className="text-xs text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
+                    {!line.available ? (
+                      <p className="text-xs font-medium text-red-600">Şu an stokta yok</p>
+                    ) : (
+                      <p className="text-xs text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
+                    )}
                     <div className="mt-1 flex items-center rounded-lg border border-neutral-300 text-xs">
                       <button
                         type="button"
                         onClick={() => updateQuantity(line.productId, line.quantity - 1)}
-                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900"
+                        disabled={!line.available}
+                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
                         aria-label="Azalt"
                       >
                         −
@@ -83,7 +88,8 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => updateQuantity(line.productId, line.quantity + 1)}
-                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900"
+                        disabled={!line.available}
+                        className="px-2 py-1 text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
                         aria-label="Artır"
                       >
                         +
@@ -91,7 +97,9 @@ export default function CartDrawer() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-neutral-900">{centsToTl(line.lineTotalCents)} ₺</p>
+                    <p className="text-sm font-semibold text-neutral-900">
+                      {line.available ? `${centsToTl(line.lineTotalCents)} ₺` : "—"}
+                    </p>
                     <button
                       type="button"
                       onClick={() => removeItem(line.productId)}

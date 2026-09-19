@@ -18,6 +18,16 @@ export type CartLine = {
   stock: number;
   unitPriceCents: number;
   lineTotalCents: number;
+  // false — ürün bu store'da bulunuyor ama şu an satın alınamaz (stok yok,
+  // yayından kaldırılmış veya arşivlenmiş). Satır sepetten SESSİZCE
+  // silinmiyor artık — kullanıcı "Bu ürün şu an stokta yok" uyarısıyla
+  // görsün, siparişe dahil edilmesin. Gerçek kök neden (2026-09-19'da
+  // canlıda doğrulandı): önceki sorgu showOnStorefront/archivedAt'e göre
+  // filtrelediği için böyle bir ürün satırı hiç dönmüyordu — sepette
+  // eklenmiş duruyordu (header rozeti doğru sayıyı gösteriyordu, çünkü o
+  // saf localStorage'dan geliyor) ama /sepet ve mini-sepet boşmuş gibi
+  // görünüyordu, rozet ile sayfa arasında tutarsızlık yaratıyordu.
+  available: boolean;
 };
 
 export async function getCartDetails(items: CartItemInput[]) {
@@ -33,18 +43,24 @@ export async function getCartDetails(items: CartItemInput[]) {
     getMemberDiscountPercent(),
   ]);
 
+  // Kasıtlı olarak showOnStorefront/archivedAt'e göre FİLTRELENMİYOR — bir
+  // ürün sepete eklendikten SONRA yayından kaldırılmış/arşivlenmiş/stoksuz
+  // kalmış olabilir, bu durumda da satırı (uyarıyla) göstermemiz gerekiyor.
+  // "Satın alınabilir mi" kararı aşağıda `available` alanıyla ayrıca veriliyor.
   const products = await prisma.product.findMany({
-    where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
+    where: { id: { in: items.map((i) => i.productId) }, storeId },
     include: { images: { where: { isCover: true }, take: 1 } },
   });
 
   const lines: CartLine[] = [];
   for (const item of items) {
     const product = products.find((p) => p.id === item.productId);
-    // Sepetteki bir ürün sonradan yayından kaldırılmış/arşivlenmiş olabilir —
-    // sessizce atlanır, checkout'ta ayrıca fark edilir.
+    // Ürün bu store'da HİÇ bulunmuyor (gerçekten silinmiş) — gösterecek
+    // hiçbir bilgi (isim/görsel) yok, bu tek durumda satır atlanıyor.
+    // Nadir bir uç durum: proje genelinde ürünler silinmez, arşivlenir.
     if (!product) continue;
     const price = resolvePrice(product, memberDiscountPercent);
+    const available = product.showOnStorefront && !product.archivedAt && product.stock > 0;
     lines.push({
       productId: product.id,
       name: product.name,
@@ -53,11 +69,14 @@ export async function getCartDetails(items: CartItemInput[]) {
       stock: product.stock,
       unitPriceCents: price.displayCents,
       lineTotalCents: price.displayCents * item.quantity,
+      available,
     });
   }
 
-  const subtotalCents = lines.reduce((sum, l) => sum + l.lineTotalCents, 0);
-  const shippingCents = lines.length > 0 ? SHIPPING_COST_CENTS : 0;
+  // Sadece satın alınabilir satırlar toplama giriyor — satın alınamayan bir
+  // satırın fiyatı bilgi amaçlı gösteriliyor ama Ara Toplam'a eklenmiyor.
+  const subtotalCents = lines.filter((l) => l.available).reduce((sum, l) => sum + l.lineTotalCents, 0);
+  const shippingCents = lines.some((l) => l.available) ? SHIPPING_COST_CENTS : 0;
   return { lines, subtotalCents, shippingCents, totalCents: subtotalCents + shippingCents };
 }
 
