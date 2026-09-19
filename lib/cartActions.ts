@@ -25,8 +25,13 @@ export async function getCartDetails(items: CartItemInput[]) {
     return { lines: [] as CartLine[], subtotalCents: 0, shippingCents: 0, totalCents: 0 };
   }
 
-  const storeId = await getOnlineStoreId();
-  const memberDiscountPercent = await getMemberDiscountPercent();
+  // Birbirinden bağımsız iki sorgu ayrı ayrı await ediliyordu (sıralı, toplam
+  // gecikme ikisinin toplamıydı) — paralel çalıştırılınca sepet sayfasının/
+  // çekmecesinin "Yükleniyor..." süresi gözle görülür şekilde kısalıyor.
+  const [storeId, memberDiscountPercent] = await Promise.all([
+    getOnlineStoreId(),
+    getMemberDiscountPercent(),
+  ]);
 
   const products = await prisma.product.findMany({
     where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
@@ -90,6 +95,13 @@ export async function createOrder(
     return { error: "Sepetiniz boş." };
   }
 
+  // getOnlineStoreId() session/webCustomer'dan bağımsız — aşağıdaki sıralı
+  // await'lerle yarışacak şekilde en baştan başlatılıyor, gerçek kullanımı
+  // (storeId) sadece aşağıda gerektiğinde await ediliyor. Sıralıydı, toplam
+  // gecikme sıralı iki DB round-trip'in toplamıydı — bkz. getCartDetails'teki
+  // aynı gerekçe.
+  const storeIdPromise = getOnlineStoreId();
+
   const paymentMethodRaw = String(formData.get("paymentMethod") ?? "KART");
   const paymentMethod =
     paymentMethodRaw === "HAVALE" ? "HAVALE" : paymentMethodRaw === "CARI_HESAP" ? "CARI_HESAP" : "KART";
@@ -126,7 +138,7 @@ export async function createOrder(
     ? webCustomer.firma.onlineIskontoOrani ?? null
     : null;
 
-  const storeId = await getOnlineStoreId();
+  const storeId = await storeIdPromise;
   const products = await prisma.product.findMany({
     where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
   });
