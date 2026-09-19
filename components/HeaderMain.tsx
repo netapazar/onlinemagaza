@@ -8,7 +8,20 @@ import SearchAutocomplete from "@/components/SearchAutocomplete";
 import CartButton from "@/components/CartButton";
 import { useFavorites } from "@/components/FavoritesProvider";
 
-export default function HeaderMain({ loggedIn }: { loggedIn: boolean }) {
+type MembershipStatusKind = "guest" | "approved" | "pending" | "rejected" | "no_application";
+
+const STATUS_LABELS: Partial<Record<MembershipStatusKind, string>> = {
+  approved: "Onaylı Üye",
+  pending: "Başvuru İnceleniyor",
+};
+
+export default function HeaderMain({
+  loggedIn,
+  membershipStatus,
+}: {
+  loggedIn: boolean;
+  membershipStatus: MembershipStatusKind;
+}) {
   const [shrunk, setShrunk] = useState(false);
   const { count: favoriteCount } = useFavorites();
 
@@ -43,10 +56,21 @@ export default function HeaderMain({ loggedIn }: { loggedIn: boolean }) {
       <div className="ml-auto flex shrink-0 items-center gap-4 text-sm sm:gap-5">
         <Link
           href="/hesabim"
-          className="hidden items-center gap-1.5 font-medium text-neutral-700 hover:text-[var(--color-brand)] sm:flex"
+          className="hidden flex-col items-start sm:flex"
         >
-          <User className="h-[18px] w-[18px]" aria-hidden="true" />
-          {loggedIn ? "Hesabım" : "Giriş Yap"}
+          <span className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-[var(--color-brand)]">
+            <User className="h-[18px] w-[18px]" aria-hidden="true" />
+            {loggedIn ? "Hesabım" : "Giriş Yap"}
+          </span>
+          {STATUS_LABELS[membershipStatus] && (
+            <span
+              className={`text-[10px] font-medium ${
+                membershipStatus === "approved" ? "text-green-700" : "text-amber-700"
+              }`}
+            >
+              {STATUS_LABELS[membershipStatus]}
+            </span>
+          )}
         </Link>
         <Link
           href="/favoriler"

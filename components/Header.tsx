@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { getWebSession } from "@/lib/webSession";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
+import { getMembershipStatus } from "@/lib/membershipStatus";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import MembershipReminderBanner from "@/components/MembershipReminderBanner";
 import HeaderMain from "@/components/HeaderMain";
 import MegaMenu from "@/components/MegaMenu";
 
@@ -18,12 +19,13 @@ const STATIC_LINKS = [
 ];
 
 export default async function Header() {
-  const [session, categories] = await Promise.all([getWebSession(), getStorefrontCategoriesWithCounts()]);
+  const [status, categories] = await Promise.all([getMembershipStatus(), getStorefrontCategoriesWithCounts()]);
 
   return (
     <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white">
       <AnnouncementBar />
-      <HeaderMain loggedIn={Boolean(session)} />
+      {status.kind === "no_application" && <MembershipReminderBanner />}
+      <HeaderMain loggedIn={status.kind !== "guest"} membershipStatus={status.kind} />
 
       <div className="hidden border-t border-neutral-100 bg-neutral-50 sm:block">
         <div className="mx-auto flex max-w-content items-center gap-1 px-4 py-2">
