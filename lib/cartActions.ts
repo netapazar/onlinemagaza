@@ -10,6 +10,13 @@ import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 
 export type CartItemInput = { productId: string; quantity: number };
 
+// null — satın alınabilir. "STOCK" — stok bitmiş ama ürün hâlâ yayında
+// (geçici, tekrar stok girilebilir). "NOT_FOR_SALE" — yayından kaldırılmış
+// veya arşivlenmiş (kalıcı bir kaldırma, stok durumundan bağımsız). İkisi
+// birden geçerliyse NOT_FOR_SALE önceliklidir — "yayından kaldırıldı" daha
+// kesin/kalıcı bir durumu ifade eder.
+export type CartUnavailableReason = "STOCK" | "NOT_FOR_SALE" | null;
+
 export type CartLine = {
   productId: string;
   name: string;
@@ -18,16 +25,16 @@ export type CartLine = {
   stock: number;
   unitPriceCents: number;
   lineTotalCents: number;
-  // false — ürün bu store'da bulunuyor ama şu an satın alınamaz (stok yok,
-  // yayından kaldırılmış veya arşivlenmiş). Satır sepetten SESSİZCE
-  // silinmiyor artık — kullanıcı "Bu ürün şu an stokta yok" uyarısıyla
-  // görsün, siparişe dahil edilmesin. Gerçek kök neden (2026-09-19'da
-  // canlıda doğrulandı): önceki sorgu showOnStorefront/archivedAt'e göre
-  // filtrelediği için böyle bir ürün satırı hiç dönmüyordu — sepette
-  // eklenmiş duruyordu (header rozeti doğru sayıyı gösteriyordu, çünkü o
-  // saf localStorage'dan geliyor) ama /sepet ve mini-sepet boşmuş gibi
-  // görünüyordu, rozet ile sayfa arasında tutarsızlık yaratıyordu.
+  // false — ürün bu store'da bulunuyor ama şu an satın alınamaz. Satır
+  // sepetten SESSİZCE silinmiyor artık — kullanıcı nedene özel bir uyarıyla
+  // (bkz. unavailableReason) görsün, siparişe dahil edilmesin. Gerçek kök
+  // neden (2026-09-19'da canlıda doğrulandı): önceki sorgu showOnStorefront/
+  // archivedAt'e göre filtrelediği için böyle bir ürün satırı hiç dönmüyordu
+  // — sepette eklenmiş duruyordu (header rozeti doğru sayıyı gösteriyordu,
+  // çünkü o saf localStorage'dan geliyor) ama /sepet ve mini-sepet boşmuş
+  // gibi görünüyordu, rozet ile sayfa arasında tutarsızlık yaratıyordu.
   available: boolean;
+  unavailableReason: CartUnavailableReason;
 };
 
 export async function getCartDetails(items: CartItemInput[]) {
@@ -60,7 +67,9 @@ export async function getCartDetails(items: CartItemInput[]) {
     // Nadir bir uç durum: proje genelinde ürünler silinmez, arşivlenir.
     if (!product) continue;
     const price = resolvePrice(product, memberDiscountPercent);
-    const available = product.showOnStorefront && !product.archivedAt && product.stock > 0;
+    const notForSale = !product.showOnStorefront || Boolean(product.archivedAt);
+    const outOfStock = product.stock <= 0;
+    const unavailableReason: CartUnavailableReason = notForSale ? "NOT_FOR_SALE" : outOfStock ? "STOCK" : null;
     lines.push({
       productId: product.id,
       name: product.name,
@@ -69,7 +78,8 @@ export async function getCartDetails(items: CartItemInput[]) {
       stock: product.stock,
       unitPriceCents: price.displayCents,
       lineTotalCents: price.displayCents * item.quantity,
-      available,
+      available: unavailableReason === null,
+      unavailableReason,
     });
   }
 

@@ -7,6 +7,11 @@ import { useCart } from "@/components/CartProvider";
 import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
 
+const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
+  STOCK: "Stokta yok",
+  NOT_FOR_SALE: "Artık satışta değil",
+};
+
 // Sepete ürün eklendiğinde CartProvider.addItem otomatik olarak
 // drawerOpen=true yapıyor — bu bileşen o sinyali dinleyip sağdan kayan
 // mini-sepet panelini açıyor. Fiyat/stok hesabı yine mevcut
@@ -69,8 +74,8 @@ export default function CartDrawer() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-neutral-900">{line.name}</p>
-                    {!line.available ? (
-                      <p className="text-xs font-medium text-red-600">Şu an stokta yok</p>
+                    {line.unavailableReason ? (
+                      <p className="text-xs font-medium text-red-600">{UNAVAILABLE_MESSAGES[line.unavailableReason]}</p>
                     ) : (
                       <p className="text-xs text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
                     )}
@@ -103,9 +108,9 @@ export default function CartDrawer() {
                     <button
                       type="button"
                       onClick={() => removeItem(line.productId)}
-                      className="mt-1 text-xs text-red-500 hover:underline"
+                      className={`mt-1 text-xs text-red-500 hover:underline ${!line.available ? "font-medium" : ""}`}
                     >
-                      Kaldır
+                      {line.available ? "Kaldır" : "Sepetten kaldır"}
                     </button>
                   </div>
                 </div>
@@ -127,13 +132,26 @@ export default function CartDrawer() {
             >
               Sepete Git
             </Link>
-            <Link
-              href="/checkout"
-              onClick={closeDrawer}
-              className="block w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
-            >
-              Ödemeye Geç
-            </Link>
+            {lines.some((l) => l.available) ? (
+              <Link
+                href="/checkout"
+                onClick={closeDrawer}
+                className="block w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
+              >
+                Ödemeye Geç
+              </Link>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className="block w-full cursor-not-allowed rounded-lg bg-neutral-200 px-4 py-2.5 text-center text-sm font-medium text-neutral-400"
+                >
+                  Ödemeye Geç
+                </button>
+                <p className="mt-1.5 text-center text-xs text-red-600">Satın alınabilir ürün yok.</p>
+              </>
+            )}
           </div>
         )}
       </div>
