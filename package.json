@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/check-schema-sync.mjs && prisma generate && next build",
+    "check:schema-sync": "node scripts/check-schema-sync.mjs",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
