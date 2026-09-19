@@ -99,6 +99,14 @@ model Store {
   // app's product listing/checkout reads and decrements against. A physical
   // store's shelf stock is never touched by an online sale.
   isOnlineStore Boolean @default(false)
+  // CRM Entegrasyonu Adım 3 — hangi FİZİKSEL mağazanın online siparişleri
+  // paketleyeceğini bir ayar olarak tutar (koda gömülü olmasın diye, bkz.
+  // docs/proje-kararlari.md). En fazla bir Store'da true olması beklenir
+  // ama bunu DB seviyesinde zorlayan bir kısıt yok (uygulama katmanı
+  // kontrol etmeli) — isWarehouse/isMarketingChannel/isOnlineStore gibi bu
+  // da normalde isWarehouse=isMarketingChannel=isOnlineStore=false olan
+  // gerçek bir perakende mağazasında işaretlenmesi beklenen bir bayrak.
+  isFulfillmentDefault Boolean @default(false)
   createdAt DateTime @default(now())
 
   users    User[]
