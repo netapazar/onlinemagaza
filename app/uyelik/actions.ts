@@ -4,6 +4,7 @@ import { compare, hash } from "bcryptjs";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createWebSession, destroyWebSession } from "@/lib/webSession";
+import { notifyNewMembershipApplication, runAfterResponse } from "@/lib/email/notifications";
 
 export type AuthState = {
   error: string | null;
@@ -57,11 +58,11 @@ export async function register(
   }
 
   const passwordHash = await hash(password, 10);
-  const customer = await prisma.$transaction(async (tx) => {
+  const { customer, applicationId } = await prisma.$transaction(async (tx) => {
     const created = await tx.webCustomer.create({
       data: { email, passwordHash, name, phone: phone || null },
     });
-    await tx.membershipApplication.create({
+    const application = await tx.membershipApplication.create({
       data: {
         webCustomerId: created.id,
         unvan,
@@ -71,8 +72,10 @@ export async function register(
         adres: adres || null,
       },
     });
-    return created;
+    return { customer: created, applicationId: application.id };
   });
+
+  runAfterResponse("ADMIN_NEW_APPLICATION", () => notifyNewMembershipApplication(applicationId));
 
   await createWebSession({ webCustomerId: customer.id, name: customer.name, email: customer.email });
   redirect("/hesabim");
