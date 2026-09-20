@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import { Truck, Clock } from "lucide-react";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
+import { getMembershipStatus } from "@/lib/membershipStatus";
 import { getRelatedProducts } from "@/lib/search";
 import { isBeforeShippingCutoff } from "@/lib/shipping";
 import ProductGallery from "@/components/ProductGallery";
 import MembershipBanner from "@/components/MembershipBanner";
+import CariHesapNote from "@/components/CariHesapNote";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductTabs from "@/components/ProductTabs";
 import ProductRow from "@/components/ProductRow";
@@ -36,8 +38,9 @@ type Product = {
 export default async function ProductDetail({ product }: { product: Product }) {
   if (!product) notFound();
 
-  const [memberDiscountPercent, relatedProducts] = await Promise.all([
+  const [memberDiscountPercent, membershipStatus, relatedProducts] = await Promise.all([
     getMemberDiscountPercent(),
+    getMembershipStatus(),
     getRelatedProducts(product.categoryId, product.id, 8),
   ]);
   const price = resolvePrice(product, memberDiscountPercent);
@@ -81,6 +84,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
           <div className="mb-5">
             <AddToCartButton productId={product.id} stock={product.stock} name={product.name} />
+            <CariHesapNote status={membershipStatus} />
           </div>
 
           <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">

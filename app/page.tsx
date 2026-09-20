@@ -38,7 +38,7 @@ export default async function Home() {
 
   return (
     <div className="mx-auto w-full max-w-content px-4 py-4">
-      <HeroSection />
+      <HeroSection status={membershipStatus} />
 
       {catalogIsEmpty ? (
         <EmptyState

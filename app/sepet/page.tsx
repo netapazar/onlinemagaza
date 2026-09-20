@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartProvider";
-import { getCartDetails, type CartLine } from "@/lib/cartActions";
+import { getCartDetails, type CartLine, type MembershipKind } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
+import CartCariHesapBox from "@/components/CartCariHesapBox";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -16,6 +17,7 @@ export default function SepetPage() {
   const { items, updateQuantity, removeItem } = useCart();
   const [lines, setLines] = useState<CartLine[] | null>(null);
   const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0 });
+  const [membershipKind, setMembershipKind] = useState<MembershipKind | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,6 +25,7 @@ export default function SepetPage() {
       if (cancelled) return;
       setLines(result.lines);
       setTotals(result);
+      setMembershipKind(result.membershipKind);
     });
     return () => {
       cancelled = true;
@@ -107,6 +110,8 @@ export default function SepetPage() {
           <span>{centsToTl(totals.totalCents)} ₺</span>
         </div>
       </div>
+
+      {membershipKind && <CartCariHesapBox kind={membershipKind} />}
 
       {lines.some((l) => l.available) ? (
         <Link

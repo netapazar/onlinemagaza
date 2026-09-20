@@ -4,12 +4,15 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getOnlineStoreId } from "@/lib/onlineStore";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
+import { getMembershipStatus } from "@/lib/membershipStatus";
 import { getWebSession } from "@/lib/webSession";
 import { resolvePrice } from "@/lib/pricing";
 import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 
 export type CartItemInput = { productId: string; quantity: number };
+
+export type MembershipKind = "guest" | "approved" | "pending" | "rejected" | "no_application";
 
 // null — satın alınabilir. "STOCK" — stok bitmiş ama ürün hâlâ yayında
 // (geçici, tekrar stok girilebilir). "NOT_FOR_SALE" — yayından kaldırılmış
@@ -40,15 +43,22 @@ export type CartLine = {
 
 export async function getCartDetails(items: CartItemInput[]) {
   if (items.length === 0) {
-    return { lines: [] as CartLine[], subtotalCents: 0, shippingCents: 0, totalCents: 0 };
+    return {
+      lines: [] as CartLine[],
+      subtotalCents: 0,
+      shippingCents: 0,
+      totalCents: 0,
+      membershipKind: null as MembershipKind | null,
+    };
   }
 
   // Birbirinden bağımsız iki sorgu ayrı ayrı await ediliyordu (sıralı, toplam
   // gecikme ikisinin toplamıydı) — paralel çalıştırılınca sepet sayfasının/
   // çekmecesinin "Yükleniyor..." süresi gözle görülür şekilde kısalıyor.
-  const [storeId, memberDiscountPercent] = await Promise.all([
+  const [storeId, memberDiscountPercent, membershipStatus] = await Promise.all([
     getOnlineStoreId(),
     getMemberDiscountPercent(),
+    getMembershipStatus(),
   ]);
 
   // Kasıtlı olarak showOnStorefront/archivedAt'e göre FİLTRELENMİYOR — bir
@@ -88,7 +98,15 @@ export async function getCartDetails(items: CartItemInput[]) {
   // satırın fiyatı bilgi amaçlı gösteriliyor ama Ara Toplam'a eklenmiyor.
   const subtotalCents = lines.filter((l) => l.available).reduce((sum, l) => sum + l.lineTotalCents, 0);
   const shippingCents = lines.some((l) => l.available) ? SHIPPING_COST_CENTS : 0;
-  return { lines, subtotalCents, shippingCents, totalCents: subtotalCents + shippingCents };
+  // membershipKind: sepet sayfasındaki cari hesap tanıtım kutusu için (Grup 4) — yalnız durum türü,
+  // firma bilgisi istemciye gitmez.
+  return {
+    lines,
+    subtotalCents,
+    shippingCents,
+    totalCents: subtotalCents + shippingCents,
+    membershipKind: membershipStatus.kind as MembershipKind | null,
+  };
 }
 
 export async function getCheckoutEligibility() {

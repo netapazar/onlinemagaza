@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Briefcase, Truck, Boxes, type LucideIcon } from "lucide-react";
+import { Briefcase, Truck, Boxes, Landmark, type LucideIcon } from "lucide-react";
 
 type Slide = {
   icon: LucideIcon;
   title: string;
   description: string;
-  ctaText: string;
-  ctaHref: string;
+  // ctaText/ctaHref yoksa (ör. başvurusu inceleniyor) düğme gösterilmez.
+  ctaText?: string;
+  ctaHref?: string;
 };
 
 // Üç gerçek, uydurulmamış mesaj — kampanya görseli/vitrin verisi olmadığı
@@ -40,15 +41,41 @@ const SLIDES: Slide[] = [
 
 const ROTATE_MS = 5500;
 
-export default function HeroSlider() {
+// "Şimdi alın, cari hesabınızla ödeyin" slaydı (Grup 4). Cari hesap YALNIZCA yetki tanımlanan
+// firmalara açık — metin bunu söylüyor. Onaylı üyelere (yetkisi açık ya da kapalı) gösterilmez;
+// başvurusu bekleyene düğme yerine "inceleniyor" bilgisi çıkar.
+export type CariHesapSlideMode = "apply-guest" | "apply-account" | "pending" | "hidden";
+
+function buildSlides(mode: CariHesapSlideMode): Slide[] {
+  if (mode === "hidden") return SLIDES;
+  const cariSlide: Slide =
+    mode === "pending"
+      ? {
+          icon: Landmark,
+          title: "Şimdi alın, cari hesabınızla ödeyin",
+          description: "Başvurunuz inceleniyor. Cari hesap yalnızca yetki tanımlanan kurumsal üyelerimize açıktır.",
+        }
+      : {
+          icon: Landmark,
+          title: "Şimdi alın, cari hesabınızla ödeyin",
+          description:
+            "Yetki tanımlanan kurumsal üyelerimiz siparişlerini cari hesabına işletebilir. Başvurunuz incelenip onaylanır.",
+          ctaText: "Kurumsal Üyelik Başvurusu",
+          ctaHref: mode === "apply-guest" ? "/uyelik/kayit" : "/hesabim/uyelik-basvurusu",
+        };
+  return [SLIDES[0], cariSlide, ...SLIDES.slice(1)];
+}
+
+export default function HeroSlider({ cariHesapSlide = "hidden" }: { cariHesapSlide?: CariHesapSlideMode }) {
   const [active, setActive] = useState(0);
+  const slides = buildSlides(cariHesapSlide);
 
   useEffect(() => {
-    const timer = setInterval(() => setActive((i) => (i + 1) % SLIDES.length), ROTATE_MS);
+    const timer = setInterval(() => setActive((i) => (i + 1) % slides.length), ROTATE_MS);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
-  const slide = SLIDES[active];
+  const slide = slides[active % slides.length];
   const Icon = slide.icon;
 
   return (
@@ -62,16 +89,18 @@ export default function HeroSlider() {
       <div className="relative z-10 max-w-md">
         <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl">{slide.title}</h1>
         <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
-        <Link
-          href={slide.ctaHref}
-          className="inline-flex items-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] hover:bg-white/90"
-        >
-          {slide.ctaText}
-        </Link>
+        {slide.ctaHref && slide.ctaText && (
+          <Link
+            href={slide.ctaHref}
+            className="inline-flex items-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] hover:bg-white/90"
+          >
+            {slide.ctaText}
+          </Link>
+        )}
       </div>
 
       <div className="relative z-10 flex gap-1.5">
-        {SLIDES.map((s, i) => (
+        {slides.map((s, i) => (
           <button
             key={s.title}
             type="button"
