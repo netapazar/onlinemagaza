@@ -443,6 +443,9 @@ model Sale {
   webOrder WebOrder?
 
   @@index([storeId, createdAt])
+  // Kasa hızlandırma: storeId'siz tarih aralığı sorguları (dashboard/raporlar)
+  // (storeId, createdAt) index'ini verimsiz kullanıyordu.
+  @@index([createdAt])
 }
 
 // Breakdown rows for a retail Sale.paymentType == MIXED (split payment) —
