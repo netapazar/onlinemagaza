@@ -98,14 +98,16 @@ export async function getCheckoutEligibility() {
   }
   const customer = await prisma.webCustomer.findUnique({
     where: { id: session.webCustomerId },
-    include: { firma: { select: { onlineErisimAktif: true } } },
+    include: { firma: { select: { onlineErisimAktif: true, onlineCariHesapAktif: true } } },
   });
   return {
     loggedIn: true,
     name: customer?.name ?? "",
     email: customer?.email ?? "",
     phone: customer?.phone ?? "",
-    canUseCariHesap: Boolean(customer?.firma?.onlineErisimAktif),
+    // Grup 3: cari hesapla ödeme artık ayrı bir yetki (onlineCariHesapAktif) —
+    // üyelik erişimi (iskonto) açık olsa bile bu kapalı olabilir.
+    canUseCariHesap: Boolean(customer?.firma?.onlineErisimAktif && customer.firma.onlineCariHesapAktif),
   };
 }
 
@@ -160,7 +162,10 @@ export async function createOrder(
 
   // Sunucu tarafında zorunlu kontrol — client'ın "CARI_HESAP" göndermesi
   // yetmez, gerçekten onaylı üye mi diye burada tekrar bakılıyor.
-  if (paymentMethod === "CARI_HESAP" && !webCustomer?.firma?.onlineErisimAktif) {
+  if (
+    paymentMethod === "CARI_HESAP" &&
+    !(webCustomer?.firma?.onlineErisimAktif && webCustomer.firma.onlineCariHesapAktif)
+  ) {
     return { error: "Cari hesapla ödeme sadece onaylı üyelere açıktır." };
   }
 
