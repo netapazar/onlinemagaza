@@ -7,13 +7,14 @@ import {
   getStorefrontBrands,
 } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
+import { getMembershipStatus } from "@/lib/membershipStatus";
 import HeroSection from "@/components/HeroSection";
 import TrustBar from "@/components/TrustBar";
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductRow from "@/components/ProductRow";
 import AudienceSection from "@/components/AudienceSection";
 import WhyUsBand from "@/components/WhyUsBand";
-import MembershipCTA from "@/components/MembershipCTA";
+import CorporateBenefits from "@/components/CorporateBenefits";
 import BrandStrip from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 
@@ -24,19 +25,20 @@ const ROW_LIMIT = 12;
 // v2 tasarım: gri zemin üzerinde beyaz kart/blok bölümler + tam genişlik
 // renkli bantlar (Avansas esintili, daha "dolu" bir görünüm için).
 export default async function Home() {
-  const [categories, newArrivals, bestSellers, brands, memberDiscountPercent] = await Promise.all([
+  const [categories, newArrivals, bestSellers, brands, memberDiscountPercent, membershipStatus] = await Promise.all([
     getStorefrontCategoriesWithCounts(),
     getNewArrivals(ROW_LIMIT),
     getBestSellers(ROW_LIMIT),
     getStorefrontBrands(),
     getMemberDiscountPercent(),
+    getMembershipStatus(),
   ]);
 
   const catalogIsEmpty = categories.length === 0 && newArrivals.length === 0;
 
   return (
     <div className="mx-auto w-full max-w-content px-4 py-4">
-      <HeroSection />
+      <HeroSection status={membershipStatus} />
 
       {catalogIsEmpty ? (
         <EmptyState
@@ -48,6 +50,10 @@ export default async function Home() {
           <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
             <TrustBar />
           </div>
+
+          {/* Kurumsal üyelik avantajları: onaylı üyede kısa "avantajlarınız aktif" şeridi, diğerlerinde
+              görselli avantaj bölümü + "Hemen Başvur" (bkz. components/CorporateBenefits.tsx) */}
+          <CorporateBenefits status={membershipStatus} />
 
           {categories.length > 0 && <CategoryGrid categories={categories} />}
 
@@ -75,8 +81,6 @@ export default async function Home() {
 
           <AudienceSection />
           <WhyUsBand />
-
-          {memberDiscountPercent === null && <MembershipCTA />}
 
           {brands.length > 1 && (
             <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
