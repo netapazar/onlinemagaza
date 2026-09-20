@@ -620,7 +620,9 @@ model WebOrder {
   saleId     String?   @unique
   sale       Sale?     @relation(fields: [saleId], references: [id])
   irsaliyeId String?   @unique
-  irsaliye   Irsaliye? @relation(fields: [irsaliyeId], references: [id])
+  // onDelete: Restrict — online siparişe bağlı bir irsaliye silinemez (eskiden SET NULL: silme bağlantıyı
+  // sessizce boşaltıyor, tahsilat kaydı ve stok düşümü geride kalıyordu). Bkz. irsaliyeSil.
+  irsaliye   Irsaliye? @relation(fields: [irsaliyeId], references: [id], onDelete: Restrict)
 
   // CRM entegrasyonu Adım 4 — üye firma KART/HAVALE siparişinde irsaliyeId
   // yanında oluşan net-sıfır TAHSILAT (kaynak=ONLINE_SIPARIS) satırına
