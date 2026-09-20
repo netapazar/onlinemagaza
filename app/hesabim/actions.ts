@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireWebSession } from "@/lib/webSession";
+import { notifyNewMembershipApplication, runAfterResponse } from "@/lib/email/notifications";
 
 export type ApplicationState = {
   error: string | null;
@@ -33,7 +34,7 @@ export async function submitMembershipApplication(
     redirect("/hesabim");
   }
 
-  await prisma.membershipApplication.create({
+  const application = await prisma.membershipApplication.create({
     data: {
       webCustomerId: session.webCustomerId,
       unvan,
@@ -43,6 +44,8 @@ export async function submitMembershipApplication(
       aciklama: aciklama || null,
     },
   });
+
+  runAfterResponse("ADMIN_NEW_APPLICATION", () => notifyNewMembershipApplication(application.id));
 
   redirect("/hesabim");
 }

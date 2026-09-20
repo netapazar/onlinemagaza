@@ -7,6 +7,7 @@ import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getWebSession } from "@/lib/webSession";
 import { resolvePrice } from "@/lib/pricing";
 import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
+import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 
 export type CartItemInput = { productId: string; quantity: number };
 
@@ -240,6 +241,10 @@ export async function createOrder(
       items: { create: orderItemsData },
     },
   });
+
+  // E-posta (müşteriye "sipariş alındı" + yöneticiye "yeni sipariş") DB yazımı
+  // bittikten sonra, yanıttan bağımsız çalışır — başarısız olsa bile sipariş etkilenmez.
+  runAfterResponse("ORDER_PLACED", () => notifyOrderPlaced(order.id));
 
   redirect(`/siparis-alindi/${order.id}`);
 }

@@ -1676,3 +1676,35 @@ model QuoteItem {
   offerPriceCents Int
   vatRate         Int
 }
+
+// Grup 5 — e-posta altyapısı. Her giden (veya atlanan/başarısız) e-posta için
+// bir satır. Kasıtlı olarak HİÇBİR FK yok: log satırı sipariş/başvuru silinse
+// bile kalmalı ve loglama ana işlemi asla bozmamalı. `type` bilerek enum değil
+// (ORDER_PLACED, PAYMENT_CONFIRMED, ... serbest string) — yeni bir e-posta
+// türü eklemek şema değişikliği gerektirmesin.
+enum EmailLogStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model EmailLog {
+  id String @id @default(cuid())
+
+  type    String
+  toEmail String
+  subject String
+
+  status     EmailLogStatus
+  error      String?
+  providerId String?
+
+  relatedOrderId       String?
+  relatedApplicationId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([relatedOrderId])
+  @@index([status])
+}
