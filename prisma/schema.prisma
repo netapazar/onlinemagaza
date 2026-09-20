@@ -388,6 +388,7 @@ model User {
   pazarlamaSiparisleriCreated        PazarlamaSiparis[]       @relation("PazarlamaSiparisCreatedBy")
   faturalarCreated                   Fatura[]                 @relation("FaturaCreatedBy")
   membershipApplicationsReviewed     MembershipApplication[]  @relation("MembershipApplicationReviewedBy")
+  firmaDegisiklikleri                FirmaDegisiklik[]        @relation("FirmaDegisiklikChangedBy")
   kasaHareketleriCreated             KasaHareket[]            @relation("KasaHareketCreatedBy")
   irsaliyelerCreated                 Irsaliye[]               @relation("IrsaliyeCreatedBy")
   tedarikciFaturaTaslaklariOnaylanan TedarikciFaturaTaslagi[]
@@ -1018,10 +1019,15 @@ model Firma {
   // Online mağaza üyeliği onaylandığında açılır (bkz. MembershipApplication)
   // — false/null iken bu firmaya bağlı bir WebCustomer olsa bile storefront
   // checkout'ta "cari hesapla öde" seçeneği görünmez, liste fiyatı uygulanır.
-  onlineErisimAktif  Boolean @default(false)
+  onlineErisimAktif    Boolean @default(false)
   // Yüzde, storefront'un online liste fiyatı üzerinden düşülür — null demek
   // "özel iskonto yok", onaylı üye bile olsa liste fiyatını görür.
-  onlineIskontoOrani Int?
+  onlineIskontoOrani   Int?
+  // Cari hesapla ödeme yetkisi — onlineErisimAktif'ten AYRI (Grup 3): erişim
+  // aktifken bile firma cari hesapla ödeyemeyebilir. Migration mevcut
+  // firmalarda onlineErisimAktif değerini kopyaladı, davranış değişmedi.
+  // Storefront checkout'u ve processCariHesapOrder her ikisini de arıyor.
+  onlineCariHesapAktif Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1033,6 +1039,7 @@ model Firma {
   irsaliyeler               Irsaliye[]
   tedarikciFaturaTaslaklari TedarikciFaturaTaslagi[]
   webCustomers              WebCustomer[]
+  degisiklikler             FirmaDegisiklik[]
 }
 
 enum CariHareketTipi {
@@ -1710,4 +1717,32 @@ model EmailLog {
   @@index([createdAt])
   @@index([relatedOrderId])
   @@index([status])
+}
+
+// Grup 3 — cari kartı değişiklik geçmişi. Cari kartı mağaza/pazarlama/online
+// ekranlarıyla ORTAK olduğu için her düzenleme yolu (online cari düzenleme,
+// pazarlama updateFirma, üyelik onayı) aynı yardımcıdan (src/lib/
+// firmaDegisiklik.ts) buraya yazar: değiştirilen HER alan için bir satır
+// (kim, ne zaman, eski değer, yeni değer). Aynı kaydetmenin satırları
+// grupId ile birbirine bağlı. Değerler okunabilir string olarak saklanır
+// (null = boş); log satırı firma silinemediği sürece kalır (FK: firma, user).
+model FirmaDegisiklik {
+  id      String @id @default(cuid())
+  firmaId String
+  firma   Firma  @relation(fields: [firmaId], references: [id])
+
+  grupId    String
+  // Firma alanının kod adı (ör. "onlineIskontoOrani") — etiketi ekranda çözülür.
+  alan      String
+  eskiDeger String?
+  yeniDeger String?
+  // ONLINE_CARI_DUZENLE | PAZARLAMA_CARI_DUZENLE | UYELIK_ONAYI (serbest string, enum değil)
+  kaynak    String
+
+  changedById String
+  changedBy   User     @relation("FirmaDegisiklikChangedBy", fields: [changedById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([firmaId, createdAt])
+  @@index([grupId])
 }
