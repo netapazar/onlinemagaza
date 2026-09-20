@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
+import { QuantityStepper } from "@/components/QuantityStepper";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -69,25 +70,15 @@ export default function SepetPage() {
                 )
               )}
             </div>
-            <div className="flex items-center rounded-lg border border-neutral-300">
-              <button
-                type="button"
-                onClick={() => updateQuantity(line.productId, line.quantity - 1)}
-                disabled={!line.available}
-                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
-              >
-                −
-              </button>
-              <span className="w-6 text-center text-sm">{line.quantity}</span>
-              <button
-                type="button"
-                onClick={() => updateQuantity(line.productId, line.quantity + 1)}
-                disabled={!line.available}
-                className="px-2.5 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-40"
-              >
-                +
-              </button>
-            </div>
+            {line.available ? (
+              <QuantityStepper
+                value={line.quantity}
+                max={line.stock}
+                onChange={(next) => updateQuantity(line.productId, next)}
+              />
+            ) : (
+              <span className="px-2 text-sm text-neutral-400">{line.quantity} adet</span>
+            )}
             <p className="w-20 shrink-0 text-right text-sm font-semibold">
               {line.available ? `${centsToTl(line.lineTotalCents)} ₺` : "—"}
             </p>

@@ -189,7 +189,7 @@ export default function CheckoutPage() {
                 onChange={() => setPaymentMethod("CARI_HESAP")}
                 className="accent-[var(--color-brand)]"
               />
-              Cari Hesabıma İşle
+              Cari Hesabımla Öde
             </label>
           )}
         </div>
