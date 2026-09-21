@@ -10,6 +10,7 @@ import { useFavorites } from "@/components/FavoritesProvider";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import CorporatePriceHint from "@/components/MemberHint";
 import { unitLabel } from "@/lib/units";
+import StoreImage from "@/components/StoreImage";
 
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
@@ -18,9 +19,12 @@ import { unitLabel } from "@/lib/units";
 export default function ProductCard({
   product,
   memberDiscountPercent,
+  eager = false,
 }: {
   product: StorefrontProductSummary;
   memberDiscountPercent: number | null;
+  /** İlk ekranda görünen kart: görseli tembel yükleme (lazy) LCP'yi geciktirir, bu yüzden hemen yüklenir. */
+  eager?: boolean;
 }) {
   const price = resolvePrice(product, memberDiscountPercent);
   const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
@@ -51,12 +55,12 @@ export default function ProductCard({
       <Link href={href} className="block">
         <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
           {product.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <StoreImage
               src={product.coverImageUrl}
               alt={product.name}
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 45vw, 210px"
+              eager={eager}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">

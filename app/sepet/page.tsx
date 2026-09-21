@@ -8,6 +8,7 @@ import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import CartCariHesapBox from "@/components/CartCariHesapBox";
 import Skeleton from "@/components/Skeleton";
+import StoreImage from "@/components/StoreImage";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -55,10 +56,9 @@ export default function SepetPage() {
       <div className="mb-6 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white shadow-sm">
         {lines.map((line) => (
           <div key={line.productId} className={`flex items-center gap-3 p-4 ${!line.available ? "opacity-60" : ""}`}>
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
               {line.coverImageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={line.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                <StoreImage src={line.coverImageUrl} alt="" sizes="64px" eager className="object-cover" />
               )}
             </div>
             <div className="flex-1">

@@ -27,3 +27,13 @@ kolajı > ikon**. Dosya yoksa mevcut ürün fotoğraflarından kompozisyon kulla
 - Önizleme (preview) dağıtımı varsayılan olarak DEMO katalog gösterir; `DEMO_DATA=false` verilirse gerçek katalog.
 - Animasyonlar CSS-only; `prefers-reduced-motion` altında kapalı. Route düzeyinde `loading.tsx` bilerek YOK: ölçümde mobil
   DCL'yi ~330 ms geciktirdi.
+
+## Görseller (next/image)
+
+- Ürün görselleri `components/StoreImage.tsx` ile (next/image sarmalayıcısı) gösterilir: ekrandaki boyuta uygun WebP + `srcset`, varsayılan tembel (lazy) yükleme.
+  İlk ekrandaki görseller (`/urunler` ilk 4 kart, detay ana görseli) hemen yüklenir (LCP); tembel yükleme onları geciktirir.
+- YALNIZ kendi Supabase deposundaki (`urun-gorselleri`) görseller optimize edilir. Demo `data:` görselleri ve yöneticinin "Görsel URL" ile eklediği harici adresler
+  `unoptimized` gösterilir (tanımsız sunucu adresi next/image'de sayfayı kırardı).
+- `next.config.ts`: `remotePatterns` (yalnız o bucket), az sayıda boyut (`deviceSizes` 640/828/1200, `imageSizes` 96/192/256/384) ve 1 yıllık `minimumCacheTTL` —
+  dönüşüm sayısı (Vercel Image Optimization kotası) düşük kalsın; dosya adları değişmez UUID olduğundan önbellek güvenli.
+- Kaynak dosyaların kendisi CRM'de yüklenirken 1200 px WebP'ye küçültülür (CRM `docs/proje-kararlari.md` → "Ürün görseli optimizasyonu").

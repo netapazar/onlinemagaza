@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Search, Loader2 } from "lucide-react";
 import { getSearchSuggestions } from "@/lib/storefrontActions";
 import type { SearchSuggestion } from "@/lib/search";
+import StoreImage from "@/components/StoreImage";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -106,10 +107,9 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
                       onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-neutral-50"
                     >
-                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-neutral-100">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-neutral-100">
                         {s.coverImageUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={s.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                          <StoreImage src={s.coverImageUrl} alt="" sizes="40px" eager className="object-cover" />
                         )}
                       </div>
                       <div className="min-w-0">
