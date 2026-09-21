@@ -18,6 +18,7 @@ import {
   resetTokenExpiry,
 } from "@/lib/passwordReset";
 import { MIN_PASSWORD_LENGTH, VERIFY_TOKEN_TTL_HOURS } from "@/lib/passwordPolicy";
+import { emailVerificationEnabled } from "@/lib/featureFlags";
 import { consumeIpRateLimit, consumeRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
 
 export type AuthState = {
@@ -78,18 +79,22 @@ export async function register(
 
   const passwordHash = await hash(password, 10);
   // Yumuşak e-posta doğrulaması: token kayıtla AYNI transaction'da yazılır; e-posta yanıttan sonra gider.
+  // Özellik KAPALIYSA (varsayılan) doğrulama token'ı yazılmaz ve e-posta gönderilmez.
+  const verifyOn = emailVerificationEnabled();
   const verification = generateResetToken();
   const { customer, applicationId } = await prisma.$transaction(async (tx) => {
     const created = await tx.webCustomer.create({
       data: { email, passwordHash, name, phone: phone || null },
     });
-    await tx.emailVerificationToken.create({
-      data: {
-        webCustomerId: created.id,
-        tokenHash: verification.tokenHash,
-        expiresAt: verificationExpiry(),
-      },
-    });
+    if (verifyOn) {
+      await tx.emailVerificationToken.create({
+        data: {
+          webCustomerId: created.id,
+          tokenHash: verification.tokenHash,
+          expiresAt: verificationExpiry(),
+        },
+      });
+    }
     const application = await tx.membershipApplication.create({
       data: {
         webCustomerId: created.id,
@@ -104,7 +109,9 @@ export async function register(
   });
 
   runAfterResponse("ADMIN_NEW_APPLICATION", () => notifyNewMembershipApplication(applicationId));
-  runAfterResponse("EMAIL_VERIFICATION", () => notifyEmailVerification(customer.id, verification.token));
+  if (verifyOn) {
+    runAfterResponse("EMAIL_VERIFICATION", () => notifyEmailVerification(customer.id, verification.token));
+  }
 
   await createWebSession({ webCustomerId: customer.id, name: customer.name, email: customer.email });
   redirect("/hesabim");
@@ -272,12 +279,15 @@ function verificationExpiry(now: Date = new Date()): Date {
 
 export type VerifyEmailState = { error: string | null; done: boolean };
 
+const VERIFY_DISABLED = "E-posta doğrulama şu anda kullanılmıyor.";
+
 const VERIFY_LINK_INVALID =
   "Bu doğrulama bağlantısının süresi dolmuş ya da daha önce kullanılmış. Giriş yapıp Hesabım sayfasından yeni bir doğrulama bağlantısı isteyebilirsiniz.";
 
 // Doğrulama bağlantısındaki düğmeyle çağrılır (bağlantıya SADECE tıklamak tüketmez — e-posta güvenlik tarayıcıları
 // bağlantıları önceden açabildiği için tüketme, kullanıcının bastığı düğmeyle yapılır).
 export async function verifyEmail(_prevState: VerifyEmailState, formData: FormData): Promise<VerifyEmailState> {
+  if (!emailVerificationEnabled()) return { error: VERIFY_DISABLED, done: false };
   const token = String(formData.get("token") ?? "");
   if (!token) return { error: VERIFY_LINK_INVALID, done: false };
   if (!(await consumeIpRateLimit(RULES.VERIFY_CONFIRM_IP))) return { error: RATE_LIMIT_MESSAGE, done: false };
@@ -315,6 +325,7 @@ export async function resendEmailVerification(
   _formData: FormData
 ): Promise<ResendVerificationState> {
   void _formData;
+  if (!emailVerificationEnabled()) return { error: VERIFY_DISABLED, message: null };
   const session = await getWebSession();
   if (!session) return { error: "Giriş yapmanız gerekiyor.", message: null };
 

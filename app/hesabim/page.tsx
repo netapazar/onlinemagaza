@@ -5,6 +5,7 @@ import { getWebSession } from "@/lib/webSession";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { logout } from "@/app/uyelik/actions";
 import ResendVerification from "./ResendVerification";
+import { emailVerificationEnabled } from "@/lib/featureFlags";
 
 export default async function HesabimPage() {
   const session = await getWebSession();
@@ -21,7 +22,7 @@ export default async function HesabimPage() {
       <h1 className="mb-1 text-xl font-semibold">Hesabım</h1>
       <p className="mb-8 text-sm text-neutral-500">{customer.name} · {customer.email}</p>
 
-      {!customer.emailVerifiedAt && (
+      {emailVerificationEnabled() && !customer.emailVerifiedAt && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <h2 className="mb-1 text-sm font-medium text-amber-900">E-posta adresiniz doğrulanmadı</h2>
           <p className="mb-3 text-sm text-amber-800">
