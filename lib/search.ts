@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { getOnlineStoreId } from "@/lib/onlineStore";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
+import { trTitle } from "@/lib/text";
 import {
   isDemoMode,
   demoListStorefrontProducts,
@@ -22,6 +23,7 @@ export type StorefrontProductSummary = {
   salePriceCents: number;
   onlinePriceCents: number | null;
   stock: number;
+  unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
   storefrontSortOrder: number | null;
   coverImageUrl: string | null;
   brandId: string | null;
@@ -36,6 +38,7 @@ export const BASE_SELECT = {
   salePriceCents: true,
   onlinePriceCents: true,
   stock: true,
+  unit: true,
   storefrontSortOrder: true,
   categoryId: true,
   brand: { select: { id: true, name: true } },
@@ -49,6 +52,7 @@ export function toSummary(p: {
   salePriceCents: number;
   onlinePriceCents: number | null;
   stock: number;
+  unit: string;
   storefrontSortOrder: number | null;
   categoryId: string | null;
   brand: { id: string; name: string } | null;
@@ -61,6 +65,7 @@ export function toSummary(p: {
     salePriceCents: p.salePriceCents,
     onlinePriceCents: p.onlinePriceCents,
     stock: p.stock,
+    unit: p.unit,
     storefrontSortOrder: p.storefrontSortOrder,
     coverImageUrl: p.images[0]?.url ?? null,
     brandId: p.brand?.id ?? null,
@@ -207,14 +212,15 @@ export async function listStorefrontProducts(options: {
 }
 
 export async function getStorefrontCategories(): Promise<{ id: string; name: string }[]> {
-  if (isDemoMode()) return DEMO_CATEGORIES;
+  // Kategori adları YALNIZ gösterimde düzgün Türkçe büyük/küçük harfe çevrilir (trTitle) — veritabanına dokunulmaz.
+  if (isDemoMode()) return DEMO_CATEGORIES.map((c) => ({ ...c, name: trTitle(c.name) }));
   const storeId = await getOnlineStoreId();
   const categories = await prisma.category.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
-  return categories;
+  return categories.map((c) => ({ ...c, name: trTitle(c.name) }));
 }
 
 // Anasayfadaki "Kategoriler" kart bölümü için — kaç ürün olduğunu da
@@ -224,7 +230,7 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
 export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
   { id: string; name: string; count: number; imageUrl: string | null }[]
 > => {
-  if (isDemoMode()) return demoCategoriesWithCounts();
+  if (isDemoMode()) return demoCategoriesWithCounts().map((c) => ({ ...c, name: trTitle(c.name) }));
   const storeId = await getOnlineStoreId();
   const categories = await prisma.category.findMany({
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
@@ -245,7 +251,7 @@ export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
   });
   return categories.map((c) => ({
     id: c.id,
-    name: c.name,
+    name: trTitle(c.name),
     count: c._count.products,
     imageUrl: c.products[0]?.images[0]?.url ?? null,
   }));

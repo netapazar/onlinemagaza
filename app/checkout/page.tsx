@@ -12,6 +12,7 @@ import {
   type CreateOrderState,
 } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
+import Skeleton from "@/components/Skeleton";
 
 const initialState: CreateOrderState = { error: null };
 
@@ -42,7 +43,7 @@ export default function CheckoutPage() {
   }, []);
 
   if (lines === null || eligibility === null) {
-    return <div className="mx-auto w-full max-w-2xl px-4 py-10 text-sm text-neutral-500">Yükleniyor...</div>;
+    return <div className="mx-auto w-full max-w-2xl space-y-3 px-4 py-10" role="status" aria-label="Yükleniyor"><Skeleton className="h-6 w-40" /><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></div>;
   }
 
   if (lines.length === 0) {

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { Check, Heart, ShoppingCart } from "lucide-react";
+import CorporatePriceHint from "@/components/MemberHint";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -20,11 +22,12 @@ export default function ProductListRow({
   const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
   const { addItem } = useCart();
   const { isFavorite, toggle } = useFavorites();
+  const [added, setAdded] = useState(false);
   const inStock = product.stock > 0;
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-neutral-200 p-3 transition-shadow hover:shadow-md">
+    <div className="flex items-center gap-4 rounded-xl border border-neutral-200 p-3 transition-all duration-200 hover:shadow-md">
       <Link href={href} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
         {product.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -48,6 +51,7 @@ export default function ProductListRow({
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
         <p className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</p>
         <p className="text-[10px] text-neutral-400">KDV Dahil</p>
+        <CorporatePriceHint className="mt-0.5 justify-end" />
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
@@ -66,11 +70,21 @@ export default function ProductListRow({
         {inStock && (
           <button
             type="button"
-            onClick={() => addItem(product.id, 1, product.name)}
-            className="flex items-center gap-1.5 rounded-lg bg-[var(--color-brand)] px-3 py-2 text-xs font-medium text-white hover:bg-[var(--color-brand-hover)]"
+            onClick={() => {
+              addItem(product.id, 1, product.name);
+              setAdded(true);
+              setTimeout(() => setAdded(false), 1200);
+            }}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-white transition-all duration-200 active:scale-95 ${
+              added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
+            }`}
           >
-            <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
-            Sepete Ekle
+            {added ? (
+              <Check className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+            {added ? "✓ Eklendi" : "Sepete Ekle"}
           </button>
         )}
       </div>

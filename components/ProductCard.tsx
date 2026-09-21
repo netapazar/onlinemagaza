@@ -8,6 +8,8 @@ import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 import { QuantityStepper } from "@/components/QuantityStepper";
+import CorporatePriceHint from "@/components/MemberHint";
+import { unitLabel } from "@/lib/units";
 
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
@@ -30,7 +32,7 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-lg">
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -53,7 +55,8 @@ export default function ProductCard({
             <img
               src={product.coverImageUrl}
               alt={product.name}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
@@ -81,6 +84,11 @@ export default function ProductCard({
         <div className="p-2.5 pb-0">
           {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
           <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
+          {product.unit !== "ADET" && (
+            <span className="mt-1 inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-600">
+              {unitLabel(product.unit)} satış
+            </span>
+          )}
         </div>
       </Link>
 
@@ -93,6 +101,7 @@ export default function ProductCard({
             <span className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</span>
           </div>
           <span className="text-[10px] text-neutral-400">KDV Dahil</span>
+          <CorporatePriceHint className="mt-0.5" />
         </div>
 
         {inStock && (
@@ -105,14 +114,16 @@ export default function ProductCard({
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-brand)] px-2 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-brand-hover)]"
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-white transition-all duration-200 active:scale-95 ${
+                added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
+              }`}
             >
               {added ? (
-                <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                <Check className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
               ) : (
                 <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
               )}
-              {added ? "Eklendi" : "Sepete Ekle"}
+              {added ? "✓ Eklendi" : "Sepete Ekle"}
             </button>
           </div>
         )}

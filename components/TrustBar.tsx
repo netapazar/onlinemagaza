@@ -1,16 +1,14 @@
-import { Truck, CreditCard, Receipt, Undo2 } from "lucide-react";
+import { Truck, CreditCard, Package, Undo2 } from "lucide-react";
 
-// Dört madde de sitede gerçekten sunulan/mevcut olana dayanıyor — henüz
-// otomatikleşmemiş hiçbir şey vaat edilmiyor (ödeme entegrasyonu ve
-// e-Fatura otomasyonu hâlâ ertelenenler listesinde, bkz. proje hafızası):
-// aynı gün kargo kesim saati lib/shipping.ts'te gerçek, kart/havale
-// checkout'ta seçilebilir birer yöntem (otomatik/online tahsilat iddiası
-// yok), kurumsal üyeler cari hesapla alışveriş yapabiliyor, 14 gün cayma
-// hakkı Türk tüketici mevzuatının yasal tabanı.
+// Dört madde de sitede gerçekten sunulan/mevcut olana dayanıyor — henüz otomatikleşmemiş hiçbir şey vaat edilmiyor
+// (ödeme entegrasyonu ve e-Fatura otomasyonu hâlâ ertelenenler listesinde): aynı gün kargo kesim saati lib/shipping.ts'te
+// gerçek, kart/havale checkout'ta seçilebilir birer yöntem (otomatik/online tahsilat iddiası yok), 14 gün cayma hakkı
+// Türk tüketici mevzuatının yasal tabanı. "Kurumsal Alışveriş" kutusu kaldırıldı: aynı mesaj hemen altındaki
+// "Kurumsal Üyelik Avantajları" bölümünde zaten var (tekrar) — yerine sitede gerçekten olan "Tek Adresten Tedarik" geldi.
 const ITEMS = [
   { icon: Truck, title: "Aynı Gün Kargo", description: "13:30'a kadar verilen siparişler" },
   { icon: CreditCard, title: "Kart ve Havale Seçenekleri", description: "Siparişte tercihinizi belirtin" },
-  { icon: Receipt, title: "Kurumsal Alışveriş", description: "Üye firmalara cari hesap imkanı" },
+  { icon: Package, title: "Tek Adresten Tedarik", description: "Tüm ofis ihtiyacı bir arada" },
   { icon: Undo2, title: "14 Gün İçinde İade", description: "Cayma hakkınızı kullanabilirsiniz" },
 ];
 

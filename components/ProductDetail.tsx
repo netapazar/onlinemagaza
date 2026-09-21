@@ -5,20 +5,14 @@ import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { getRelatedProducts } from "@/lib/search";
 import { isBeforeShippingCutoff } from "@/lib/shipping";
+import { trTitle } from "@/lib/text";
+import { unitLabel } from "@/lib/units";
 import ProductGallery from "@/components/ProductGallery";
-import MembershipBanner from "@/components/MembershipBanner";
-import CariHesapNote from "@/components/CariHesapNote";
+import ProductMembershipBox from "@/components/ProductMembershipBox";
+import CorporatePriceHint from "@/components/MemberHint";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductTabs from "@/components/ProductTabs";
 import ProductRow from "@/components/ProductRow";
-
-const UNIT_LABELS: Record<string, string> = {
-  ADET: "Adet",
-  KOLI: "Koli",
-  DUZINE: "Düzine",
-  KUTU: "Kutu",
-  PAKET: "Paket",
-};
 
 type Product = {
   id: string;
@@ -28,6 +22,8 @@ type Product = {
   onlinePriceCents: number | null;
   stock: number;
   barcode: string;
+  barcodeIsGenerated?: boolean;
+  productCode?: string | null;
   unit: string;
   categoryId: string | null;
   images: { id: string; url: string; altText: string | null }[];
@@ -46,10 +42,19 @@ export default async function ProductDetail({ product }: { product: Product }) {
   const price = resolvePrice(product, memberDiscountPercent);
   const sameDayShipping = product.stock > 0 && isBeforeShippingCutoff();
 
+  // Kurumsal alıcının hızlı bakacağı künye satırı. İç üretim (barcodeIsGenerated) barkodlar üreticiye ait olmadığı ve
+  // müşteriye anlam taşımadığı için bu satırda gösterilmez (aşağıdaki "Özellikler" sekmesinde yine listelenir).
+  const meta = [
+    product.productCode ? { label: "Ürün kodu", value: product.productCode } : null,
+    product.barcode && !product.barcodeIsGenerated ? { label: "Barkod", value: product.barcode } : null,
+    { label: "Satış birimi", value: unitLabel(product.unit) },
+  ].filter((m): m is { label: string; value: string } => m !== null);
+
   const specs = [
     product.brand ? { label: "Marka", value: product.brand.name } : null,
-    product.category ? { label: "Kategori", value: product.category.name } : null,
-    { label: "Satış Birimi", value: UNIT_LABELS[product.unit] ?? product.unit },
+    product.category ? { label: "Kategori", value: trTitle(product.category.name) } : null,
+    product.productCode ? { label: "Ürün Kodu", value: product.productCode } : null,
+    { label: "Satış Birimi", value: unitLabel(product.unit) },
     { label: "Barkod", value: product.barcode },
   ].filter((s): s is { label: string; value: string } => s !== null);
 
@@ -61,7 +66,14 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
         <div>
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
-          <h1 className="mb-3 text-2xl font-bold text-neutral-900">{product.name}</h1>
+          <h1 className="mb-2 text-2xl font-bold text-neutral-900">{product.name}</h1>
+          <p className="mb-3 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-neutral-500">
+            {meta.map((m) => (
+              <span key={m.label}>
+                {m.label}: <span className="font-medium text-neutral-700">{m.value}</span>
+              </span>
+            ))}
+          </p>
 
           <div className="mb-1 flex items-baseline gap-3">
             {price.discounted && (
@@ -74,17 +86,17 @@ export default async function ProductDetail({ product }: { product: Product }) {
               </span>
             )}
           </div>
-          <p className="mb-4 text-xs text-neutral-400">KDV Dahil</p>
+          <p className="text-xs text-neutral-400">KDV Dahil</p>
+          <CorporatePriceHint className="mt-1" />
 
           {product.stock > 0 ? (
-            <p className="mb-4 text-sm text-emerald-700">Stokta var</p>
+            <p className="mt-3 mb-4 text-sm text-emerald-700">Stokta var</p>
           ) : (
-            <p className="mb-4 text-sm font-medium text-red-600">Stokta yok</p>
+            <p className="mt-3 mb-4 text-sm font-medium text-red-600">Stokta yok</p>
           )}
 
           <div className="mb-5">
             <AddToCartButton productId={product.id} stock={product.stock} name={product.name} />
-            <CariHesapNote status={membershipStatus} />
           </div>
 
           <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">
@@ -100,7 +112,8 @@ export default async function ProductDetail({ product }: { product: Product }) {
             )}
           </div>
 
-          {memberDiscountPercent === null && <MembershipBanner />}
+          {/* Eskiden iki ayrı mesaj vardı (cari hesap notu + üyelik başvuru kutusu); tek, derli toplu kutuda birleştirildi. */}
+          <ProductMembershipBox status={membershipStatus} />
         </div>
         </div>
 

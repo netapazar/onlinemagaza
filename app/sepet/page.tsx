@@ -7,6 +7,7 @@ import { getCartDetails, type CartLine, type MembershipKind } from "@/lib/cartAc
 import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import CartCariHesapBox from "@/components/CartCariHesapBox";
+import Skeleton from "@/components/Skeleton";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -33,7 +34,7 @@ export default function SepetPage() {
   }, [items]);
 
   if (lines === null) {
-    return <div className="mx-auto w-full max-w-3xl px-4 py-10 text-sm text-neutral-500">Yükleniyor...</div>;
+    return <div className="mx-auto w-full max-w-3xl space-y-3 px-4 py-10" role="status" aria-label="Yükleniyor"><Skeleton className="h-6 w-40" /><Skeleton className="h-20 w-full" /><Skeleton className="h-20 w-full" /></div>;
   }
 
   if (lines.length === 0) {
