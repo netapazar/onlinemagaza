@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { logSkippedEmail, sendEmail, type SendEmailInput } from "./send";
 import { formatTl, orderNo, renderEmail, storefrontUrl, type EmailBlock } from "./render";
 import { RESET_TOKEN_TTL_MINUTES, VERIFY_TOKEN_TTL_HOURS } from "@/lib/passwordPolicy";
+import { emailVerificationEnabled } from "@/lib/featureFlags";
 
 const PAYMENT_LABELS: Record<string, string> = {
   KART: "Kredi/Banka Kartı",
@@ -217,6 +218,7 @@ export async function notifyPasswordChanged(webCustomerId: string) {
 
 // E-posta doğrulama bağlantısı (yumuşak doğrulama — siparişi/girişi engellemez). Ham token yalnız bu e-postada yaşar.
 export async function notifyEmailVerification(webCustomerId: string, token: string) {
+  if (!emailVerificationEnabled()) return; // özellik kapalıyken hiçbir yoldan doğrulama e-postası gitmez
   const customer = await prisma.webCustomer.findUnique({
     where: { id: webCustomerId },
     select: { email: true, name: true, emailVerifiedAt: true },
