@@ -503,10 +503,15 @@ model WebCustomer {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
 
+  // Şifre en son ne zaman değiştirildi/sıfırlandı. Oturum çerezi (JWT, 30 gün) bundan ÖNCE düzenlenmişse
+  // geçersiz sayılır — şifre sıfırlanınca eski oturumlar (ör. çalınmış bir cihaz) kapanır. Null: hiç değişmedi.
+  passwordChangedAt DateTime?
+
   createdAt DateTime @default(now())
 
   orders                 WebOrder[]
   membershipApplications MembershipApplication[]
+  passwordResetTokens    PasswordResetToken[]
 
   @@index([firmaId])
 }
@@ -1747,4 +1752,33 @@ model FirmaDegisiklik {
 
   @@index([firmaId, createdAt])
   @@index([grupId])
+}
+
+// Müşteri hesabı güvenliği (2026-09-21) — Tedarikhane (magaza-online) şifre sıfırlama.
+// Ham token ASLA saklanmaz: e-postadaki bağlantıya giden rastgele değerin SHA-256 özeti tutulur (veritabanı
+// sızsa bile bağlantı üretilemez). Tek kullanımlık (usedAt), kısa ömürlü (expiresAt). Müşteri silinirse
+// token'ları da silinir (Cascade).
+model PasswordResetToken {
+  id            String      @id @default(cuid())
+  webCustomerId String
+  webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([webCustomerId])
+  @@index([expiresAt])
+}
+
+// Hız sınırı olayları (2026-09-21) — serverless'ta süreç belleği örnekler arasında paylaşılmadığı için sayaçlar
+// veritabanında: her denemede bir satır, "son N dakikada bu anahtardan kaç olay" sayılır (bkz. magaza-online
+// lib/rateLimit.ts). key: "<işlem>:<ip veya e-posta>". Eski satırlar uygulama tarafından düzenli silinir.
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }

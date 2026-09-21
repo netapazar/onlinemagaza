@@ -21,6 +21,17 @@ export default async function HesabimPage() {
       <p className="mb-8 text-sm text-neutral-500">{customer.name} · {customer.email}</p>
 
       <div className="mb-6 rounded-xl border border-neutral-200 p-6">
+        <h2 className="mb-2 text-sm font-medium text-neutral-700">Siparişlerim</h2>
+        <p className="mb-3 text-sm text-neutral-600">Siparişlerinizin durumunu ve kargo takip bilgisini görüntüleyin.</p>
+        <Link
+          href="/hesabim/siparisler"
+          className="inline-block rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-brand-hover)]"
+        >
+          Siparişlerimi Görüntüle
+        </Link>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-neutral-200 p-6">
         <h2 className="mb-2 text-sm font-medium text-neutral-700">Üyelik Durumu</h2>
         {status.kind === "approved" ? (
           <p className="text-sm text-green-700">
