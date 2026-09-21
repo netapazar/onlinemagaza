@@ -4,13 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { getWebSession } from "@/lib/webSession";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { logout } from "@/app/uyelik/actions";
+import ResendVerification from "./ResendVerification";
 
 export default async function HesabimPage() {
   const session = await getWebSession();
   if (!session) redirect("/uyelik/giris");
 
   const [customer, status] = await Promise.all([
-    prisma.webCustomer.findUnique({ where: { id: session.webCustomerId }, select: { name: true, email: true } }),
+    prisma.webCustomer.findUnique({ where: { id: session.webCustomerId }, select: { name: true, email: true, emailVerifiedAt: true } }),
     getMembershipStatus(),
   ]);
   if (!customer) redirect("/uyelik/giris");
@@ -19,6 +20,17 @@ export default async function HesabimPage() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="mb-1 text-xl font-semibold">Hesabım</h1>
       <p className="mb-8 text-sm text-neutral-500">{customer.name} · {customer.email}</p>
+
+      {!customer.emailVerifiedAt && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <h2 className="mb-1 text-sm font-medium text-amber-900">E-posta adresiniz doğrulanmadı</h2>
+          <p className="mb-3 text-sm text-amber-800">
+            {customer.email} adresine gönderdiğimiz bağlantıyla doğrulayabilirsiniz. Doğrulama yapmadan da alışveriş
+            yapabilirsiniz; ancak firma üyeliği başvurunuzun değerlendirilmesinde doğrulanmış adres bize yardımcı olur.
+          </p>
+          <ResendVerification />
+        </div>
+      )}
 
       <div className="mb-6 rounded-xl border border-neutral-200 p-6">
         <h2 className="mb-2 text-sm font-medium text-neutral-700">Siparişlerim</h2>

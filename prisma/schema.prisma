@@ -507,11 +507,16 @@ model WebCustomer {
   // geçersiz sayılır — şifre sıfırlanınca eski oturumlar (ör. çalınmış bir cihaz) kapanır. Null: hiç değişmedi.
   passwordChangedAt DateTime?
 
+  // E-posta adresi doğrulandı mı (2026-09-21, YUMUŞAK doğrulama): kayıt e-postasındaki bağlantıya tıklayınca ya da şifre
+  // sıfırlama bağlantısını kullanınca dolar. Siparişi/girişi ENGELLEMEZ; yalnız CRM üyelik onay ekranında rozet olarak görünür.
+  emailVerifiedAt DateTime?
+
   createdAt DateTime @default(now())
 
-  orders                 WebOrder[]
-  membershipApplications MembershipApplication[]
-  passwordResetTokens    PasswordResetToken[]
+  orders                  WebOrder[]
+  membershipApplications  MembershipApplication[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   @@index([firmaId])
 }
@@ -1402,6 +1407,9 @@ model Irsaliye {
   toplamCents   Int
   netTutarCents Int // cariye yazılan tutar
 
+  // Alıcı bilgisi kopyası (2026-09-21) — bkz. Fatura.aliciSnapshot / src/lib/belgeAlici.ts.
+  aliciSnapshot Json?
+
   // ZORUNLU — irsaliye = cari hareketi, bu ilişkisiz bir irsaliye olamaz.
   cariHareketId String      @unique
   cariHareket   CariHareket @relation(fields: [cariHareketId], references: [id])
@@ -1535,6 +1543,10 @@ model Fatura {
   faturaAltiIskontoValue Int          @default(0)
   faturaAltiIskontoCents Int          @default(0)
   netTutarCents          Int // toplamCents - faturaAltiIskontoCents — final amount
+
+  // Alıcı bilgisi kopyası (2026-09-21): belge oluşturulurken firma kartından kopyalanır; yazdırma/Excel çıktıları kartı değil bunu
+  // okur (bkz. src/lib/belgeAlici.ts). Alış faturalarında (kapsam dışı) null; çıktı canlı karta düşer.
+  aliciSnapshot Json?
 
   // Yol C: yön tersine çevrildi — bir fatura BİRDEN ÇOK CariHareket'i
   // kapsayabilir (irsaliyeden türetilen fatura, birden fazla irsaliyeyi tek
@@ -1783,4 +1795,20 @@ model RateLimitEvent {
   createdAt DateTime @default(now())
 
   @@index([key, createdAt])
+}
+
+// E-posta doğrulama bağlantısı (2026-09-21) — PasswordResetToken ile aynı güvenlik deseni: ham token saklanmaz (yalnız SHA-256
+// özeti), tek kullanımlık, süreli. Müşteri silinirse token'ları da silinir (Cascade).
+model EmailVerificationToken {
+  id            String      @id @default(cuid())
+  webCustomerId String
+  webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([webCustomerId])
+  @@index([expiresAt])
 }

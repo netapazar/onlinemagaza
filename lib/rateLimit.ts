@@ -17,6 +17,9 @@ export const RULES = {
   RESET_REQUEST_IP: { action: "reset-request-ip", max: 15, windowMinutes: 60 },
   RESET_REQUEST_EMAIL: { action: "reset-request-email", max: 3, windowMinutes: 60 },
   RESET_CONFIRM_IP: { action: "reset-confirm-ip", max: 20, windowMinutes: 60 },
+  VERIFY_RESEND_EMAIL: { action: "verify-resend-email", max: 3, windowMinutes: 60 },
+  VERIFY_RESEND_IP: { action: "verify-resend-ip", max: 15, windowMinutes: 60 },
+  VERIFY_CONFIRM_IP: { action: "verify-confirm-ip", max: 30, windowMinutes: 60 },
 } as const;
 
 export type RateLimitRule = { action: string; max: number; windowMinutes: number };
