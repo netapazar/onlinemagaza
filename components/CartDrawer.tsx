@@ -8,6 +8,7 @@ import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import Skeleton from "@/components/Skeleton";
+import StoreImage from "@/components/StoreImage";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -78,10 +79,9 @@ export default function CartDrawer() {
             <div className="space-y-4">
               {lines.map((line) => (
                 <div key={line.productId} className={`flex items-center gap-3 ${!line.available ? "opacity-60" : ""}`}>
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                     {line.coverImageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={line.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                      <StoreImage src={line.coverImageUrl} alt="" sizes="56px" eager className="object-cover" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">

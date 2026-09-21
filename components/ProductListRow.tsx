@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Check, Heart, ShoppingCart } from "lucide-react";
 import CorporatePriceHint from "@/components/MemberHint";
+import StoreImage from "@/components/StoreImage";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -30,8 +31,7 @@ export default function ProductListRow({
     <div className="flex items-center gap-4 rounded-xl border border-neutral-200 p-3 transition-all duration-200 hover:shadow-md">
       <Link href={href} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
         {product.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.coverImageUrl} alt={product.name} className="h-full w-full object-cover" />
+          <StoreImage src={product.coverImageUrl} alt={product.name} sizes="96px" className="object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">Görsel yok</div>
         )}

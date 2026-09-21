@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, type LucideIcon } from "lucide-react";
+import StoreImage from "@/components/StoreImage";
 
 // Sağdaki kampanya banner'ı. Görsel önceliği: (1) public/banners dosyası ya da (2) ürün fotoğrafı (küçük, hafif eğimli,
 // beyaz çerçeveli kart), (3) hiçbiri yoksa ilk hâldeki ikonlu daire. Mobilde (dar banner) yalnız ikonlu daire.
@@ -40,10 +41,12 @@ export default function PromoBanner({
         <div className="pointer-events-none absolute top-1/2 right-4 hidden h-[6.5rem] w-[6.5rem] -translate-y-1/2 sm:block" aria-hidden="true">
           {imageIsPhoto ? (
             <div className="animate-float h-full w-full rotate-[6deg] overflow-hidden rounded-xl bg-white p-1 shadow-lg shadow-black/25 transition-transform duration-300 group-hover:rotate-[3deg] group-hover:scale-105">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt="" loading="lazy" decoding="async" className="h-full w-full rounded-lg object-cover" />
+              <div className="relative h-full w-full">
+                <StoreImage src={image} alt="" sizes="104px" className="rounded-lg object-cover" />
+              </div>
             </div>
           ) : (
+            // Banner dosyası (public/banners) yerel statik dosya: olduğu gibi (saydam PNG/WebP olabilir)
             // eslint-disable-next-line @next/next/no-img-element
             <img src={image} alt="" loading="lazy" decoding="async" className="animate-float h-full w-full object-contain" />
           )}

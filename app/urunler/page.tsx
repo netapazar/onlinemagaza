@@ -152,8 +152,9 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} memberDiscountPercent={memberDiscountPercent} />
+              {/* İlk 4 kart ilk ekranda: görselleri tembel değil hemen yüklensin (LCP) */}
+              {products.map((product, i) => (
+                <ProductCard key={product.id} product={product} memberDiscountPercent={memberDiscountPercent} eager={i < 4} />
               ))}
             </div>
           )}
