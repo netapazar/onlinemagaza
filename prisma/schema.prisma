@@ -507,11 +507,16 @@ model WebCustomer {
   // geçersiz sayılır — şifre sıfırlanınca eski oturumlar (ör. çalınmış bir cihaz) kapanır. Null: hiç değişmedi.
   passwordChangedAt DateTime?
 
+  // E-posta adresi doğrulandı mı (2026-09-21, YUMUŞAK doğrulama): kayıt e-postasındaki bağlantıya tıklayınca ya da şifre
+  // sıfırlama bağlantısını kullanınca dolar. Siparişi/girişi ENGELLEMEZ; yalnız CRM üyelik onay ekranında rozet olarak görünür.
+  emailVerifiedAt DateTime?
+
   createdAt DateTime @default(now())
 
-  orders                 WebOrder[]
-  membershipApplications MembershipApplication[]
-  passwordResetTokens    PasswordResetToken[]
+  orders                  WebOrder[]
+  membershipApplications  MembershipApplication[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   @@index([firmaId])
 }
@@ -1783,4 +1788,20 @@ model RateLimitEvent {
   createdAt DateTime @default(now())
 
   @@index([key, createdAt])
+}
+
+// E-posta doğrulama bağlantısı (2026-09-21) — PasswordResetToken ile aynı güvenlik deseni: ham token saklanmaz (yalnız SHA-256
+// özeti), tek kullanımlık, süreli. Müşteri silinirse token'ları da silinir (Cascade).
+model EmailVerificationToken {
+  id            String      @id @default(cuid())
+  webCustomerId String
+  webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([webCustomerId])
+  @@index([expiresAt])
 }

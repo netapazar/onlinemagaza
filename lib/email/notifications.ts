@@ -15,7 +15,7 @@ import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logSkippedEmail, sendEmail, type SendEmailInput } from "./send";
 import { formatTl, orderNo, renderEmail, storefrontUrl, type EmailBlock } from "./render";
-import { RESET_TOKEN_TTL_MINUTES } from "@/lib/passwordPolicy";
+import { RESET_TOKEN_TTL_MINUTES, VERIFY_TOKEN_TTL_HOURS } from "@/lib/passwordPolicy";
 
 const PAYMENT_LABELS: Record<string, string> = {
   KART: "Kredi/Banka Kartı",
@@ -213,4 +213,30 @@ export async function notifyPasswordChanged(webCustomerId: string) {
     ],
   });
   await sendEmail({ type: "PASSWORD_CHANGED", to: customer.email, ...content });
+}
+
+// E-posta doğrulama bağlantısı (yumuşak doğrulama — siparişi/girişi engellemez). Ham token yalnız bu e-postada yaşar.
+export async function notifyEmailVerification(webCustomerId: string, token: string) {
+  const customer = await prisma.webCustomer.findUnique({
+    where: { id: webCustomerId },
+    select: { email: true, name: true, emailVerifiedAt: true },
+  });
+  if (!customer || customer.emailVerifiedAt) return;
+
+  const url = `${storefrontUrl()}/uyelik/eposta-dogrula?token=${encodeURIComponent(token)}`;
+  const content = renderEmail({
+    subject: "E-posta adresinizi doğrulayın",
+    preheader: "Hesabınızın e-posta adresini doğrulamak için bağlantıya tıklayın.",
+    heading: "E-posta adresinizi doğrulayın",
+    blocks: [
+      { kind: "p", text: customer.name ? `Merhaba ${customer.name},` : "Merhaba," },
+      {
+        kind: "p",
+        text: `Tedarikhane hesabınızın e-posta adresini doğrulamak için aşağıdaki düğmeye tıklayın. Bağlantı ${VERIFY_TOKEN_TTL_HOURS} saat geçerlidir. Doğrulama yapmasanız da alışveriş yapabilirsiniz.`,
+      },
+      { kind: "button", label: "E-postamı doğrula", url },
+      { kind: "p", text: "Bu hesabı siz açmadıysanız bu e-postayı görmezden gelebilirsiniz." },
+    ],
+  });
+  await sendEmail({ type: "EMAIL_VERIFICATION", to: customer.email, ...content });
 }
