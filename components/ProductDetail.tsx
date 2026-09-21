@@ -24,6 +24,7 @@ type Product = {
   barcode: string;
   barcodeIsGenerated?: boolean;
   productCode?: string | null;
+  packageInfo?: string | null;
   unit: string;
   categoryId: string | null;
   images: { id: string; url: string; altText: string | null }[];
@@ -48,6 +49,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
     product.productCode ? { label: "Ürün kodu", value: product.productCode } : null,
     product.barcode && !product.barcodeIsGenerated ? { label: "Barkod", value: product.barcode } : null,
     { label: "Satış birimi", value: unitLabel(product.unit) },
+    product.packageInfo ? { label: "Paket içeriği", value: product.packageInfo } : null,
   ].filter((m): m is { label: string; value: string } => m !== null);
 
   const specs = [
@@ -55,6 +57,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
     product.category ? { label: "Kategori", value: trTitle(product.category.name) } : null,
     product.productCode ? { label: "Ürün Kodu", value: product.productCode } : null,
     { label: "Satış Birimi", value: unitLabel(product.unit) },
+    product.packageInfo ? { label: "Paket İçeriği", value: product.packageInfo } : null,
     { label: "Barkod", value: product.barcode },
   ].filter((s): s is { label: string; value: string } => s !== null);
 
