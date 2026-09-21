@@ -196,6 +196,9 @@ model Product {
   // above, only ever meaningful on the isOnlineStore Product row for a given
   // barcode. Null/false means "not on the storefront."
   description         String?
+  // Paket/koli içeriği, serbest metin ("50'li paket", "Koli: 12 adet") — vitrinde kartta ve detayda gösterilir, boşsa gizlenir.
+  // `unit` yalnız birimin TÜRÜNÜ (Adet/Koli/Paket...) söyler; içinde kaç adet olduğu buradadır. En çok 60 karakter (src/lib/packageInfo.ts).
+  packageInfo         String?
   // Null falls back to salePriceCents in the storefront's own price-resolve
   // helper — same nullable-override convention as marketingPriceCents.
   onlinePriceCents    Int?

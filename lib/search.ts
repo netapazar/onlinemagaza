@@ -24,6 +24,7 @@ export type StorefrontProductSummary = {
   onlinePriceCents: number | null;
   stock: number;
   unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
+  packageInfo: string | null; // serbest metin paket/koli içeriği ("50'li paket"); boşsa vitrinde gösterilmez
   storefrontSortOrder: number | null;
   coverImageUrl: string | null;
   brandId: string | null;
@@ -39,6 +40,7 @@ export const BASE_SELECT = {
   onlinePriceCents: true,
   stock: true,
   unit: true,
+  packageInfo: true,
   storefrontSortOrder: true,
   categoryId: true,
   brand: { select: { id: true, name: true } },
@@ -53,6 +55,7 @@ export function toSummary(p: {
   onlinePriceCents: number | null;
   stock: number;
   unit: string;
+  packageInfo: string | null;
   storefrontSortOrder: number | null;
   categoryId: string | null;
   brand: { id: string; name: string } | null;
@@ -66,6 +69,7 @@ export function toSummary(p: {
     onlinePriceCents: p.onlinePriceCents,
     stock: p.stock,
     unit: p.unit,
+    packageInfo: p.packageInfo?.trim() || null,
     storefrontSortOrder: p.storefrontSortOrder,
     coverImageUrl: p.images[0]?.url ?? null,
     brandId: p.brand?.id ?? null,
