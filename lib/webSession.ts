@@ -18,6 +18,14 @@ function getSecretKey() {
   return new TextEncoder().encode(secret);
 }
 
+// Oturum (JWT iat, saniye) şifre değişiminden ÖNCE mi açılmış? Şifre hiç değişmediyse (null) hep false.
+// iat yoksa (beklenmez) güvenli tarafta: geçersiz say.
+export function sessionPredatesPasswordChange(issuedAtSeconds: number | undefined, passwordChangedAt: Date | null): boolean {
+  if (!passwordChangedAt) return false;
+  if (issuedAtSeconds === undefined) return true;
+  return issuedAtSeconds < Math.floor(passwordChangedAt.getTime() / 1000);
+}
+
 export type WebSessionPayload = {
   webCustomerId: string;
   name: string;
@@ -55,9 +63,11 @@ export const getWebSession = cache(async (): Promise<WebSessionPayload | null> =
   if (!token) return null;
 
   let payload: WebSessionPayload;
+  let issuedAt: number | undefined;
   try {
     const verified = await jwtVerify(token, getSecretKey());
     payload = verified.payload as unknown as WebSessionPayload;
+    issuedAt = verified.payload.iat;
   } catch {
     return null;
   }
@@ -66,9 +76,13 @@ export const getWebSession = cache(async (): Promise<WebSessionPayload | null> =
   // indexed lookup, magaza-crm'in active kontrolüyle aynı gerekçe.
   const customer = await prisma.webCustomer.findUnique({
     where: { id: payload.webCustomerId },
-    select: { id: true },
+    select: { id: true, passwordChangedAt: true },
   });
   if (!customer) return null;
+
+  // Şifre sıfırlandıktan sonra, ÖNCEDEN açılmış oturumlar (ör. kaybolmuş/çalınmış bir cihaz) geçersiz olur.
+  // JWT iat saniye cinsinden; karşılaştırma saniyeye yuvarlanmış değerle yapılır.
+  if (sessionPredatesPasswordChange(issuedAt, customer.passwordChangedAt)) return null;
 
   return payload;
 });

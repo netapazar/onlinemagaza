@@ -9,6 +9,7 @@ import { getWebSession } from "@/lib/webSession";
 import { resolvePrice } from "@/lib/pricing";
 import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
+import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
 
 export type CartItemInput = { productId: string; quantity: number };
 
@@ -240,6 +241,11 @@ export async function createOrder(
   }
   if (orderItemsData.length === 0) {
     return { error: "Sepetinizdeki ürünler artık mevcut değil." };
+  }
+
+  // Hız sınırı: tüm doğrulamalar geçti, sipariş yazılmak üzere — burada sayılır (doğrulama hataları hakkı tüketmez).
+  if (!(await consumeIpRateLimit(RULES.ORDER_IP))) {
+    return { error: RATE_LIMIT_MESSAGE };
   }
 
   const shippingCents = SHIPPING_COST_CENTS;

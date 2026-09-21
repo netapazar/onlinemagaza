@@ -14,7 +14,8 @@
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logSkippedEmail, sendEmail, type SendEmailInput } from "./send";
-import { formatTl, orderNo, renderEmail, type EmailBlock } from "./render";
+import { formatTl, orderNo, renderEmail, storefrontUrl, type EmailBlock } from "./render";
+import { RESET_TOKEN_TTL_MINUTES } from "@/lib/passwordPolicy";
 
 const PAYMENT_LABELS: Record<string, string> = {
   KART: "Kredi/Banka Kartı",
@@ -159,4 +160,57 @@ export async function notifyNewMembershipApplication(applicationId: string) {
     ],
   });
   await sendToAdmin({ type: "ADMIN_NEW_APPLICATION", ...content, relatedApplicationId: application.id });
+}
+
+// Şifre sıfırlama bağlantısı. Ham token yalnızca bu e-postada yaşar (veritabanında özeti var); EmailLog'a
+// bağlantı/gövde YAZILMAZ (sendEmail yalnız alıcı, konu ve durum kaydeder).
+export async function notifyPasswordReset(webCustomerId: string, token: string) {
+  const customer = await prisma.webCustomer.findUnique({
+    where: { id: webCustomerId },
+    select: { email: true, name: true },
+  });
+  if (!customer) return;
+
+  const url = `${storefrontUrl()}/uyelik/sifre-sifirla?token=${encodeURIComponent(token)}`;
+  const content = renderEmail({
+    subject: "Şifre sıfırlama bağlantınız",
+    preheader: "Şifrenizi sıfırlamak için bağlantıya tıklayın.",
+    heading: "Şifrenizi sıfırlayın",
+    blocks: [
+      { kind: "p", text: customer.name ? `Merhaba ${customer.name},` : "Merhaba," },
+      {
+        kind: "p",
+        text: `Hesabınız için şifre sıfırlama talebi aldık. Aşağıdaki düğmeyle yeni şifrenizi belirleyebilirsiniz. Bağlantı ${RESET_TOKEN_TTL_MINUTES} dakika geçerlidir ve yalnızca bir kez kullanılabilir.`,
+      },
+      { kind: "button", label: "Şifremi sıfırla", url },
+      {
+        kind: "p",
+        text: "Bu talebi siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz; şifreniz değişmez.",
+      },
+    ],
+  });
+  await sendEmail({ type: "PASSWORD_RESET", to: customer.email, ...content });
+}
+
+// Şifre değiştirildikten sonra bilgilendirme — hesabı kim değiştirdiyse müşteri fark edebilsin.
+export async function notifyPasswordChanged(webCustomerId: string) {
+  const customer = await prisma.webCustomer.findUnique({
+    where: { id: webCustomerId },
+    select: { email: true, name: true },
+  });
+  if (!customer) return;
+
+  const content = renderEmail({
+    subject: "Şifreniz değiştirildi",
+    preheader: "Hesabınızın şifresi değiştirildi.",
+    heading: "Şifreniz değiştirildi",
+    blocks: [
+      { kind: "p", text: customer.name ? `Merhaba ${customer.name},` : "Merhaba," },
+      {
+        kind: "p",
+        text: "Hesabınızın şifresi az önce değiştirildi ve açık oturumlarınız kapatıldı. Bu işlemi siz yapmadıysanız lütfen bizimle hemen iletişime geçin.",
+      },
+    ],
+  });
+  await sendEmail({ type: "PASSWORD_CHANGED", to: customer.email, ...content });
 }
