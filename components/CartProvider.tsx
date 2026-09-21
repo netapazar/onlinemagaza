@@ -15,6 +15,8 @@ type CartContextValue = {
   drawerOpen: boolean;
   closeDrawer: () => void;
   toast: CartToast | null;
+  /** Her addItem çağrısında artar — üst bardaki sepet rozetinin "zıplama" animasyonunu (key ile) yeniden başlatır. */
+  addTick: number;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -25,6 +27,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toast, setToast] = useState<CartToast | null>(null);
+  const [addTick, setAddTick] = useState(0);
 
   // localStorage per-viewer sepet — sunucu tarafında bilinmesi gerekmiyor,
   // checkout anına kadar sadece bu tarayıcıya özel bir taslak. localStorage
@@ -66,6 +69,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // liste satırı, ürün detay) tek bir addItem() çağrısıyla ikisini de
     // otomatik tetikliyor.
     setDrawerOpen(true);
+    setAddTick((t) => t + 1);
     setToast({ id: Date.now(), message: productName ? `${productName} sepete eklendi` : "Ürün sepete eklendi" });
   }, []);
 
@@ -89,7 +93,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, itemCount, addItem, updateQuantity, removeItem, clear, drawerOpen, closeDrawer, toast }}
+      value={{ items, itemCount, addItem, updateQuantity, removeItem, clear, drawerOpen, closeDrawer, toast, addTick }}
     >
       {children}
     </CartContext.Provider>

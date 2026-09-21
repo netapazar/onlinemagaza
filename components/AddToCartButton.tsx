@@ -43,10 +43,14 @@ export default function AddToCartButton({
             setAdded(true);
             setTimeout(() => setAdded(false), 1500);
           }}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+          className={`flex flex-1 items-center justify-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
+            added
+              ? "border-emerald-600 bg-emerald-600 text-white"
+              : "border-[var(--color-brand)] text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+          }`}
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-          {added ? "Eklendi ✓" : "Sepete Ekle"}
+          {added ? "✓ Eklendi" : "Sepete Ekle"}
         </button>
       </div>
       <button
@@ -55,7 +59,7 @@ export default function AddToCartButton({
           addItem(productId, quantity, name);
           router.push("/checkout");
         }}
-        className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--color-brand-hover)]"
+        className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-[var(--color-brand-hover)] active:scale-[0.98]"
       >
         Hemen Al
       </button>

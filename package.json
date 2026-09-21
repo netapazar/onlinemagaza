@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/build-banner-manifest.mjs",
     "dev": "next dev",
-    "build": "node scripts/check-schema-sync.mjs && prisma generate && next build",
+    "build": "node scripts/check-schema-sync.mjs && node scripts/build-banner-manifest.mjs && prisma generate && next build",
     "check:schema-sync": "node scripts/check-schema-sync.mjs",
     "start": "next start",
     "lint": "eslint",

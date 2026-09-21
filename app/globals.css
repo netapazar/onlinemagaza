@@ -93,3 +93,63 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* ------------------------------------------------------------------ */
+/* İnce animasyonlar — kurumsal ve sade. Süreler 150-400 ms; yalnız    */
+/* transform/opacity (yerleşimi etkilemez, GPU'da çalışır). Ağır       */
+/* kütüphane yok, hepsi CSS.                                            */
+/* ------------------------------------------------------------------ */
+@keyframes fade-slide-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cart-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4); }
+  70% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-fade-slide { animation: fade-slide-in 400ms ease-out both; }
+.animate-cart-bump { animation: cart-bump 350ms ease-out; }
+.animate-float { animation: float-soft 7s ease-in-out infinite; }
+.animate-pop { animation: pop-in 200ms ease-out both; }
+
+/* Bölüm girişi: JS yoksa/ilk ekrandaysa HİÇ gizlenmez (bkz. components/Reveal.tsx); yalnız ekran dışındaki bölümler
+   .reveal-hidden alır ve görününce bir kez .reveal-in ile yukarı kayarak belirir. */
+.reveal-hidden { opacity: 0; transform: translateY(14px); }
+.reveal-hidden.reveal-in { opacity: 1; transform: none; transition: opacity 400ms ease-out, transform 400ms ease-out; }
+
+/* İskelet kutular + hafif parıltı */
+.skeleton { position: relative; overflow: hidden; background: #e6eaee; border-radius: 0.5rem; }
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Hareketi azaltmayı isteyen kullanıcılar: tüm animasyon/geçişler kapanır, içerik doğrudan görünür. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal-hidden { opacity: 1 !important; transform: none !important; }
+  .skeleton::after { display: none; }
+}

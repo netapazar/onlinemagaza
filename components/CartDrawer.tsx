@@ -7,6 +7,7 @@ import { useCart } from "@/components/CartProvider";
 import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
+import Skeleton from "@/components/Skeleton";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -60,7 +61,17 @@ export default function CartDrawer() {
 
         <div className="flex-1 overflow-y-auto p-4">
           {lines === null ? (
-            <p className="text-sm text-neutral-500">Yükleniyor...</p>
+            <div className="space-y-4" role="status" aria-label="Yükleniyor">
+              {[0, 1].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : lines.length === 0 ? (
             <p className="text-sm text-neutral-500">Sepetiniz boş.</p>
           ) : (

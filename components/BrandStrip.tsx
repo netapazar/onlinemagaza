@@ -1,7 +1,6 @@
-// Tek marka varken bir "şerit" göstermenin anlamı yok — en az 2 marka
-// olduğunda render ediliyor (bkz. proje kısıtı: az veriyle yarım/anlamsız
-// görünen bölümler gizlenmeli).
-const MIN_BRANDS = 2;
+// Az markayla bir "şerit" göstermenin anlamı yok — en az 6 marka olduğunda render ediliyor (bkz. proje kısıtı: az
+// veriyle yarım/anlamsız görünen bölümler gizlenmeli). Çağıran taraf (anasayfa) kartı da aynı eşikle gizler.
+export const MIN_BRANDS = 6;
 
 export default function BrandStrip({ brands }: { brands: { id: string; name: string }[] }) {
   if (brands.length < MIN_BRANDS) return null;

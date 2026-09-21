@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CreditCard, Landmark, Phone } from "lucide-react";
+import { Clock, CreditCard, Landmark, Mail, MapPin, Phone } from "lucide-react";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
+import { getSiteInfo } from "@/lib/siteInfo";
+import SocialIcon from "@/components/SocialIcons";
 
 // wa.me numarasıyla aynı hat (bkz. AnnouncementBar/WhatsAppButton) — ayrı bir
 // sabit hat/e-posta adresi tanımlı değil, uydurulmadı.
@@ -10,6 +12,8 @@ const PHONE_HREF = "tel:+905514872174";
 
 export default async function Footer() {
   const categories = await getStorefrontCategoriesWithCounts();
+  // Adres / e-posta / çalışma saatleri / sosyal medya ortam değişkenlerinden gelir (bkz. lib/siteInfo.ts); tanımsızsa GİZLİ.
+  const info = getSiteInfo();
 
   return (
     <footer className="border-t border-neutral-200 bg-neutral-50">
@@ -19,10 +23,62 @@ export default async function Footer() {
           <p className="mb-3 text-sm text-neutral-500">
             İşletmenizin ve evinizin tüm ofis/kırtasiye tedarik ihtiyacı için tek adres.
           </p>
-          <a href={PHONE_HREF} className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-[var(--color-brand)]">
-            <Phone className="h-4 w-4" aria-hidden="true" />
-            {PHONE_DISPLAY}
-          </a>
+          <ul className="space-y-2 text-sm text-neutral-600">
+            <li>
+              <a href={PHONE_HREF} className="flex items-center gap-1.5 hover:text-[var(--color-brand)]">
+                <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {PHONE_DISPLAY}
+              </a>
+            </li>
+            {info.email && (
+              <li>
+                <a href={`mailto:${info.email}`} className="flex items-center gap-1.5 break-all hover:text-[var(--color-brand)]">
+                  <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {info.email}
+                </a>
+              </li>
+            )}
+            {info.address && (
+              <li className="flex items-start gap-1.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {info.address.map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </span>
+              </li>
+            )}
+            {info.hours && (
+              <li className="flex items-start gap-1.5">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {info.hours.map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </span>
+              </li>
+            )}
+          </ul>
+          {info.social.length > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              {info.social.map((s) => (
+                <a
+                  key={s.key}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:text-[var(--color-brand)]"
+                >
+                  <SocialIcon name={s.key} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>

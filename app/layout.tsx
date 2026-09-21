@@ -9,6 +9,8 @@ import CartToast from "@/components/CartToast";
 import { CartProvider } from "@/components/CartProvider";
 import { FavoritesProvider } from "@/components/FavoritesProvider";
 import { getWebSession } from "@/lib/webSession";
+import { getMembershipStatus } from "@/lib/membershipStatus";
+import { MemberHintProvider } from "@/components/MemberHint";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import "./globals.css";
 
@@ -45,7 +47,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [session, categories] = await Promise.all([getWebSession(), getStorefrontCategoriesWithCounts()]);
+  // getMembershipStatus React cache() içinde — Header/sayfalardaki çağrılarla aynı istekte tek sorgu.
+  const [session, categories, membershipStatus] = await Promise.all([
+    getWebSession(),
+    getStorefrontCategoriesWithCounts(),
+    getMembershipStatus(),
+  ]);
 
   return (
     <html
@@ -55,13 +62,15 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col bg-[var(--background)] text-[var(--foreground)]">
         <CartProvider>
           <FavoritesProvider>
-            <Header />
-            <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
-            <Footer />
-            <WhatsAppButton />
-            <MobileBottomNav loggedIn={Boolean(session)} categories={categories} />
-            <CartDrawer />
-            <CartToast />
+            <MemberHintProvider kind={membershipStatus.kind}>
+              <Header />
+              <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
+              <Footer />
+              <WhatsAppButton />
+              <MobileBottomNav loggedIn={Boolean(session)} categories={categories} />
+              <CartDrawer />
+              <CartToast />
+            </MemberHintProvider>
           </FavoritesProvider>
         </CartProvider>
       </body>

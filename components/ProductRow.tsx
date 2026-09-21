@@ -23,16 +23,19 @@ export default function ProductRow({
         {viewAllHref && (
           <Link
             href={viewAllHref}
-            className="flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"
+            className="group flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"
           >
             Tümünü Gör
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         )}
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-1">
+      {/* Az ürün varken satır sola yığılıp sağda boşluk bırakmasın: ilk/son kartın otomatik kenar boşluğu ürünleri ORTALAR;
+          çok ürün varken (taşma) otomatik boşluklar sıfırlanır ve satır soldan kaydırılabilir olarak kalır. */}
+      {/* pt/pb + negatif kenar: kartın hover'da yukarı kalkması ve gölgesi kaydırma kabında KESİLMESİN. */}
+      <div className="-mx-1 -mt-2 -mb-3 flex gap-3 overflow-x-auto px-1 pt-2 pb-4">
         {products.map((product) => (
-          <div key={product.id} className="w-44 shrink-0 sm:w-52">
+          <div key={product.id} className="w-44 shrink-0 first:ml-auto last:mr-auto sm:w-52">
             <ProductCard product={product} memberDiscountPercent={memberDiscountPercent} />
           </div>
         ))}

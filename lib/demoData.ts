@@ -7,6 +7,8 @@ import type { StorefrontProductSummary, StorefrontSort } from "@/lib/search";
 // isteğe bağlı açmak için); Vercel önizleme dağıtımlarında ekstra bir
 // ayara gerek kalmasın diye `VERCEL_ENV === "preview"` iken otomatik açık.
 export function isDemoMode(): boolean {
+  // DEMO_DATA=false: önizleme (preview) dağıtımında da GERÇEK katalog gösterilsin (tasarımı gerçek verilerle görmek için).
+  if (process.env.DEMO_DATA === "false") return false;
   return process.env.DEMO_DATA === "true" || process.env.VERCEL_ENV === "preview";
 }
 
@@ -209,6 +211,7 @@ export function demoProductBySlugOrId(slugOrId: string) {
     onlinePriceCents: product.onlinePriceCents,
     stock: product.stock,
     barcode: product.barcode,
+    productCode: `TDR-${product.barcode.slice(-5)}`,
     unit: product.unit,
     categoryId: product.categoryId,
     images: [{ id: `${product.id}-img`, url: product.coverImageUrl ?? "", altText: product.name }],
