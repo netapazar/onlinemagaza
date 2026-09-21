@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
-import { Lock } from "lucide-react";
 
 // "Kurumsal fiyat" ipucu — ürün kartında ve detayında, RAKAM göstermeden. Yalnız onaysız ziyaretçilere gösterilir;
 // ONAYLI üyeye hiç çıkmaz. Üyelik durumu layout'ta bir kez (React cache ile Header'la aynı sorgu) bu bağlama konur,
@@ -28,25 +27,19 @@ export function corporateHintFor(kind: MemberHintKind): { text: string; href: st
   }
 }
 
+// Bu ipucu her ürün kartında tekrarlanır: işaretleme bilerek minimum (stil + kilit simgesi globals.css'teki .member-hint'te,
+// düz <a> — next/link değil). Mobil ölçümde kart başına ~700 bayt HTML'den ~100 bayta indi.
 export default function CorporatePriceHint({ className = "" }: { className?: string }) {
   const kind = useContext(MemberHintContext);
   const hint = corporateHintFor(kind);
   if (!hint) return null;
 
-  const base = `inline-flex items-center gap-1 text-[11px] leading-tight text-[var(--color-brand-700)] ${className}`;
-  const content = (
-    <>
-      <Lock className="h-3 w-3 shrink-0 opacity-70" aria-hidden="true" />
-      <span>{hint.text}</span>
-    </>
-  );
-  // Düz <a>: bu ipucu her ürün kartında tekrarlanıyor — next/link her örnek için ayrı prefetch gözlemcisi ve hydration
-  // maliyeti getirirdi (mobil TBT ölçümü). Hedef sayfa (giriş/başvuru) zaten tek tıklık, tam sayfa geçişi sorun değil.
+  const cls = className ? `member-hint ${className}` : "member-hint";
   return hint.href ? (
-    <a href={hint.href} className={`${base} underline-offset-2 hover:underline`}>
-      {content}
+    <a href={hint.href} className={cls}>
+      {hint.text}
     </a>
   ) : (
-    <span className={`${base} text-neutral-500`}>{content}</span>
+    <span className={cls}>{hint.text}</span>
   );
 }

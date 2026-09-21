@@ -51,7 +51,7 @@ export default function ProductListRow({
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
         <p className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</p>
         <p className="text-[10px] text-neutral-400">KDV Dahil</p>
-        <CorporatePriceHint className="mt-0.5" />
+        <CorporatePriceHint className="mt-0.5 justify-end" />
       </div>
 
       <div className="flex shrink-0 items-center gap-2">

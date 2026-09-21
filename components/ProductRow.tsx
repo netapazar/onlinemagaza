@@ -35,7 +35,7 @@ export default function ProductRow({
       {/* pt/pb + negatif kenar: kartın hover'da yukarı kalkması ve gölgesi kaydırma kabında KESİLMESİN. */}
       <div className="-mx-1 -mt-2 -mb-3 flex gap-3 overflow-x-auto px-1 pt-2 pb-4">
         {products.map((product) => (
-          <div key={product.id} className="w-44 shrink-0 first:ml-auto last:mr-auto sm:w-52">
+          <div key={product.id} className="flex w-44 shrink-0 first:ml-auto last:mr-auto sm:w-52">
             <ProductCard product={product} memberDiscountPercent={memberDiscountPercent} />
           </div>
         ))}

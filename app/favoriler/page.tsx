@@ -6,6 +6,7 @@ import { getStorefrontProductsByIds, getMemberDiscountPercentAction } from "@/li
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
+import { ProductCardSkeleton } from "@/components/Skeleton";
 
 export default function FavorilerPage() {
   const { ids } = useFavorites();
@@ -29,7 +30,7 @@ export default function FavorilerPage() {
       <h1 className="mb-4 text-2xl font-bold text-neutral-900">Favorilerim</h1>
 
       {products === null ? (
-        <div className="py-10 text-sm text-neutral-500">Yükleniyor...</div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5" role="status" aria-label="Yükleniyor">{Array.from({ length: 5 }, (_, i) => <ProductCardSkeleton key={i} />)}</div>
       ) : products.length === 0 ? (
         <EmptyState
           title="Favori listeniz boş"

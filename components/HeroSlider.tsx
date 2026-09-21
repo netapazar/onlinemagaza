@@ -125,7 +125,7 @@ export default function HeroSlider({
       )}
       {/* Mobilde (kolaj/dosya gizli) küçük ikon rozeti: metinle çakışmadan köşede */}
       {(bannerFile || photos.length > 0) && (
-        <div className="pointer-events-none absolute -top-8 -right-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/[0.07] sm:hidden">
+        <div className="pointer-events-none absolute -right-8 -bottom-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/[0.07] sm:hidden">
           <Icon className="h-10 w-10 text-white/80" aria-hidden="true" />
         </div>
       )}

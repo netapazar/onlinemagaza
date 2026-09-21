@@ -32,7 +32,7 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -101,7 +101,7 @@ export default function ProductCard({
             <span className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</span>
           </div>
           <span className="text-[10px] text-neutral-400">KDV Dahil</span>
-          <CorporatePriceHint className="mt-0.5 block" />
+          <CorporatePriceHint className="mt-0.5" />
         </div>
 
         {inStock && (

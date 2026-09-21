@@ -26,9 +26,10 @@ export default function PromoBanner({
       href={href}
       className={`group relative flex flex-1 items-center justify-between gap-3 overflow-hidden rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${className}`}
     >
-      <div className="relative z-10 max-w-[62%]">
+      <div className="relative z-10 max-w-[78%] sm:max-w-[62%]">
         <h3 className="mb-1 text-base leading-tight font-bold text-white">{title}</h3>
-        <p className="mb-2 text-xs leading-snug text-white/85">{description}</p>
+        {/* Dar mobil sütununda açıklama 6 satıra taşıyordu — mobilde yalnız başlık + "İncele" */}
+        <p className="mb-2 hidden text-xs leading-snug text-white/85 sm:block">{description}</p>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-white">
           İncele
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />

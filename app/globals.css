@@ -153,3 +153,33 @@ body {
   .reveal-hidden { opacity: 1 !important; transform: none !important; }
   .skeleton::after { display: none; }
 }
+
+/* "Kurumsal fiyat için giriş yapın" ipucu (components/MemberHint.tsx) — her ürün kartında tekrarlandığı için işaretleme
+   minimum tutuldu: kilit simgesi satır içi SVG yerine CSS maskesi (kart başına ~600 bayt HTML tasarrufu, mobil ölçüm). */
+.member-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--color-brand-700);
+}
+.member-hint::before {
+  content: "";
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: currentColor;
+  opacity: 0.7;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='11' x='3' y='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='11' x='3' y='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+a.member-hint {
+  text-underline-offset: 2px;
+}
+a.member-hint:hover {
+  text-decoration: underline;
+}
+span.member-hint {
+  color: var(--color-neutral-500, #737373);
+}
