@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { getOnlineStoreId } from "@/lib/onlineStore";
+import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
+import { computeListPriceCents } from "@/lib/pricing";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
 import { trTitle } from "@/lib/text";
 import {
@@ -22,6 +23,10 @@ export type StorefrontProductSummary = {
   name: string;
   salePriceCents: number;
   onlinePriceCents: number | null;
+  // Artış oranı uygulanmış, 50 kuruşa yuvarlanmış nihai liste fiyatı (KDV dahil,
+  // üye indiriminden ÖNCE) — bkz. lib/pricing.ts computeListPriceCents. resolvePrice
+  // bunu doğrudan kullanır, salePriceCents/onlinePriceCents'i tekrar hesaplamaz.
+  listPriceCents: number;
   stock: number;
   unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
   packageInfo: string | null; // serbest metin paket/koli içeriği ("50'li paket"); boşsa vitrinde gösterilmez
@@ -47,26 +52,30 @@ export const BASE_SELECT = {
   images: { where: { isCover: true }, take: 1, select: { url: true } },
 } as const;
 
-export function toSummary(p: {
-  id: string;
-  slug: string | null;
-  name: string;
-  salePriceCents: number;
-  onlinePriceCents: number | null;
-  stock: number;
-  unit: string;
-  packageInfo: string | null;
-  storefrontSortOrder: number | null;
-  categoryId: string | null;
-  brand: { id: string; name: string } | null;
-  images: { url: string }[];
-}): StorefrontProductSummary {
+export function toSummary(
+  p: {
+    id: string;
+    slug: string | null;
+    name: string;
+    salePriceCents: number;
+    onlinePriceCents: number | null;
+    stock: number;
+    unit: string;
+    packageInfo: string | null;
+    storefrontSortOrder: number | null;
+    categoryId: string | null;
+    brand: { id: string; name: string } | null;
+    images: { url: string }[];
+  },
+  markupPercent: number
+): StorefrontProductSummary {
   return {
     id: p.id,
     slug: p.slug,
     name: p.name,
     salePriceCents: p.salePriceCents,
     onlinePriceCents: p.onlinePriceCents,
+    listPriceCents: computeListPriceCents(p, markupPercent),
     stock: p.stock,
     unit: p.unit,
     packageInfo: p.packageInfo?.trim() || null,
@@ -81,9 +90,10 @@ export function toSummary(p: {
 // Etiket (liste) fiyatı — üyelik durumundan bağımsız, herkes için aynı.
 // Fiyat aralığı/sıralama filtreleri bilerek bunun üzerinden çalışıyor,
 // resolvePrice'ın üyeye özel indirimli fiyatı ASLA paylaşılan bir
-// sorguda/filtrede hesaplanmıyor (bkz. proje kısıtı).
-function effectiveListCents(p: { salePriceCents: number; onlinePriceCents: number | null }): number {
-  return p.onlinePriceCents ?? p.salePriceCents;
+// sorguda/filtrede hesaplanmıyor (bkz. proje kısıtı). Artış oranı toSummary'de
+// zaten uygulandığı için burada yalnız listPriceCents okunuyor.
+function effectiveListCents(p: { listPriceCents: number }): number {
+  return p.listPriceCents;
 }
 
 export type StorefrontSort = "onerilen" | "fiyat-artan" | "fiyat-azalan" | "isim-az" | "yeni";
@@ -165,7 +175,7 @@ export async function listStorefrontProducts(options: {
 } = {}): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoListStorefrontProducts(options);
 
-  const storeId = await getOnlineStoreId();
+  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
 
   let summaries: StorefrontProductSummary[];
 
@@ -179,7 +189,7 @@ export async function listStorefrontProducts(options: {
     const byId = new Map(products.map((p) => [p.id, p]));
     // $queryRaw'ın döndürdüğü sıralama (en iyi eşleşme önce) korunuyor —
     // Prisma'nın `id: { in: [...] }` sorgusu bu sırayı garanti etmiyor.
-    summaries = orderedIds.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+    summaries = orderedIds.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
   } else {
     const products = await prisma.product.findMany({
       where: {
@@ -191,7 +201,7 @@ export async function listStorefrontProducts(options: {
       select: BASE_SELECT,
       orderBy: options.sort === "yeni" ? { updatedAt: "desc" } : [{ storefrontSortOrder: "asc" }, { name: "asc" }],
     });
-    summaries = products.map(toSummary);
+    summaries = products.map((p) => toSummary(p, markupPercent));
   }
 
   // Marka/fiyat aralığı filtreleri — küçük katalog boyutunda DB'den sonra
@@ -266,14 +276,14 @@ export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
 // vitrine taşımak için (küçük bir kataloğa "hareket" hissi katıyor).
 export async function getNewArrivals(limit: number): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoNewArrivals(limit);
-  const storeId = await getOnlineStoreId();
+  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
   const products = await prisma.product.findMany({
     where: { storeId, archivedAt: null, showOnStorefront: true },
     select: BASE_SELECT,
     orderBy: { updatedAt: "desc" },
     take: limit,
   });
-  return products.map(toSummary);
+  return products.map((p) => toSummary(p, markupPercent));
 }
 
 // Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
@@ -285,14 +295,14 @@ export async function getRelatedProducts(
 ): Promise<StorefrontProductSummary[]> {
   if (!categoryId) return [];
   if (isDemoMode()) return demoRelatedProducts(categoryId, excludeId, limit);
-  const storeId = await getOnlineStoreId();
+  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
   const products = await prisma.product.findMany({
     where: { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } },
     select: BASE_SELECT,
     orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
     take: limit,
   });
-  return products.map(toSummary);
+  return products.map((p) => toSummary(p, markupPercent));
 }
 
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
@@ -317,7 +327,7 @@ export type SearchSuggestion = {
 // bölümü nazikçe gizlenmeli).
 export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoBestSellers(limit);
-  const storeId = await getOnlineStoreId();
+  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
   const grouped = await prisma.webOrderItem.groupBy({
     by: ["productId"],
     where: { webOrder: { status: { notIn: ["ODEME_BEKLIYOR", "IPTAL_EDILDI"] } } },
@@ -333,7 +343,7 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
     select: BASE_SELECT,
   });
   const byId = new Map(products.map((p) => [p.id, p]));
-  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
 }
 
 // Anasayfadaki marka şeridi — sadece storefront'ta ürünü olan markalar,

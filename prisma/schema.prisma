@@ -115,6 +115,10 @@ model Store {
   // değiştirebilir. Onay ekranı bu oranı zorunlu alana ön-doldurur, pazarlama
   // her başvuruda isterse değiştirir.
   varsayilanOnlineIskontoOrani Int      @default(0)
+  // Vitrin liste fiyatı = Product.salePriceCents * (1 + bu oran/100), en yakın
+  // 50 kuruşa yuvarlanır. Product.onlinePriceCents elle girilmişse ÖNCELİKLİDİR,
+  // bu orana hiç uğramaz — bkz. lib/pricing.ts (applyMarkup) + lib/onlineStore.ts.
+  onlineFiyatArtisOrani        Int      @default(0)
   createdAt                    DateTime @default(now())
 
   users    User[]

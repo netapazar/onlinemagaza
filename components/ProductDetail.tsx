@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { Truck, Clock } from "lucide-react";
-import { resolvePrice, centsToTl } from "@/lib/pricing";
+import { resolvePrice, computeListPriceCents, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
+import { getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { getRelatedProducts } from "@/lib/search";
 import { isBeforeShippingCutoff } from "@/lib/shipping";
 import { trTitle } from "@/lib/text";
@@ -35,12 +36,14 @@ type Product = {
 export default async function ProductDetail({ product }: { product: Product }) {
   if (!product) notFound();
 
-  const [memberDiscountPercent, membershipStatus, relatedProducts] = await Promise.all([
+  const [memberDiscountPercent, membershipStatus, relatedProducts, markupPercent] = await Promise.all([
     getMemberDiscountPercent(),
     getMembershipStatus(),
     getRelatedProducts(product.categoryId, product.id, 8),
+    getOnlineFiyatArtisOrani(),
   ]);
-  const price = resolvePrice(product, memberDiscountPercent);
+  const listPriceCents = computeListPriceCents(product, markupPercent);
+  const price = resolvePrice({ listPriceCents }, memberDiscountPercent);
   const sameDayShipping = product.stock > 0 && isBeforeShippingCutoff();
 
   // Kurumsal alıcının hızlı bakacağı künye satırı. İç üretim (barcodeIsGenerated) barkodlar üreticiye ait olmadığı ve

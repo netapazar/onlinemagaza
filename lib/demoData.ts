@@ -1,4 +1,5 @@
 import type { StorefrontProductSummary, StorefrontSort } from "@/lib/search";
+import { round50 } from "@/lib/pricing";
 
 // Yalnızca yerel geliştirme ve Vercel önizleme (preview) dağıtımlarında
 // aktif — canlı (production) ortamda HER ZAMAN kapalı. Gerçek veritabanına
@@ -115,6 +116,9 @@ export const DEMO_PRODUCTS: DemoProduct[] = DEMO_CATEGORIES.flatMap((cat, catInd
       name,
       salePriceCents: basePrice,
       onlinePriceCents: hasOnlineOverride ? Math.round(basePrice * 0.92) : null,
+      // Demo veri gerçek Store.onlineFiyatArtisOrani'yi okumuyor (statik, DB'siz
+      // önizleme) — burada sabit %20 varsayılıyor, sadece görünüm amaçlı.
+      listPriceCents: hasOnlineOverride ? Math.round(basePrice * 0.92) : round50(basePrice * 1.2),
       stock,
       storefrontSortOrder: globalIndex,
       coverImageUrl: placeholderImage(name.slice(0, 2).toUpperCase(), cat.id),
@@ -131,8 +135,8 @@ export const DEMO_PRODUCTS: DemoProduct[] = DEMO_CATEGORIES.flatMap((cat, catInd
   });
 });
 
-function effectiveListCents(p: { salePriceCents: number; onlinePriceCents: number | null }): number {
-  return p.onlinePriceCents ?? p.salePriceCents;
+function effectiveListCents(p: { listPriceCents: number }): number {
+  return p.listPriceCents;
 }
 
 export function demoListStorefrontProducts(options: {
