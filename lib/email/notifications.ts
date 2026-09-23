@@ -242,3 +242,74 @@ export async function notifyEmailVerification(webCustomerId: string, token: stri
   });
   await sendEmail({ type: "EMAIL_VERIFICATION", to: customer.email, ...content });
 }
+
+// Hesabım › Firma Bilgilerim — onaylı üyenin firma bilgisi değişiklik talebi (yöneticiye).
+const FIRMA_ALAN_ETIKET: Record<string, string> = {
+  unvan: "Unvan",
+  vkn: "VKN/TCKN",
+  vergiDairesi: "Vergi dairesi",
+  faturaAdresi: "Fatura adresi",
+};
+
+export async function notifyFirmaBilgiTalebi(talepId: string) {
+  const talep = await prisma.firmaBilgiTalebi.findUnique({
+    where: { id: talepId },
+    include: { firma: { select: { unvan: true } }, webCustomer: { select: { name: true, email: true } } },
+  });
+  if (!talep) return;
+  const istenen = (talep.istenen ?? {}) as Record<string, string>;
+  const mevcut = (talep.mevcut ?? {}) as Record<string, string | null>;
+  const rows: Array<[string, string]> = [
+    ["Firma", talep.firma.unvan],
+    ["Talep eden", `${talep.webCustomer.name} (${talep.webCustomer.email})`],
+    ...Object.keys(istenen).map((k): [string, string] => [FIRMA_ALAN_ETIKET[k] ?? k, `${mevcut[k] || "—"} → ${istenen[k] || "—"}`]),
+  ];
+  if (talep.musteriNotu) rows.push(["Not", talep.musteriNotu]);
+  const content = renderEmail({
+    subject: `Firma bilgisi değişiklik talebi — ${talep.firma.unvan}`,
+    preheader: `${talep.firma.unvan} firma bilgilerinde değişiklik istedi.`,
+    heading: "Firma bilgisi değişiklik talebi",
+    blocks: [{ kind: "kv", rows }, ...crmLink("/online-magaza/firma-talepleri", "Talebi CRM'de incele")],
+  });
+  await sendToAdmin({ type: "ADMIN_FIRMA_BILGI_TALEBI", ...content });
+}
+
+// E-posta değişikliği — onay bağlantısı YENİ adrese gider. Ham token yalnız bu e-postada yaşar.
+export async function notifyEmailChangeRequest(webCustomerId: string, newEmail: string, token: string) {
+  const customer = await prisma.webCustomer.findUnique({ where: { id: webCustomerId }, select: { name: true } });
+  if (!customer) return;
+  const url = `${storefrontUrl()}/hesabim/eposta-onay?token=${encodeURIComponent(token)}`;
+  const content = renderEmail({
+    subject: "Yeni e-posta adresinizi onaylayın",
+    preheader: "Tedarikhane hesabınızın e-posta adresini değiştirmek için onay bağlantısı.",
+    heading: "Yeni e-posta adresinizi onaylayın",
+    blocks: [
+      { kind: "p", text: customer.name ? `Merhaba ${customer.name},` : "Merhaba," },
+      {
+        kind: "p",
+        text: `Tedarikhane hesabınızın e-posta adresini bu adresle değiştirmek istediniz. Değişikliği tamamlamak için aşağıdaki düğmeye tıklayın. Bağlantı ${VERIFY_TOKEN_TTL_HOURS} saat geçerlidir.`,
+      },
+      { kind: "button", label: "E-posta adresimi değiştir", url },
+      { kind: "p", text: "Bu isteği siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz; hesabınızda bir değişiklik olmaz." },
+    ],
+  });
+  await sendEmail({ type: "EMAIL_CHANGE_REQUEST", to: newEmail, ...content });
+}
+
+// E-posta değiştikten sonra ESKİ adrese bilgilendirme — hesabı kim değiştirdiyse sahibi fark edebilsin.
+export async function notifyEmailChanged(oldEmail: string, name: string, newEmail: string) {
+  const masked = newEmail.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+  const content = renderEmail({
+    subject: "Hesabınızın e-posta adresi değiştirildi",
+    preheader: "Tedarikhane hesabınızın e-posta adresi değiştirildi.",
+    heading: "E-posta adresiniz değiştirildi",
+    blocks: [
+      { kind: "p", text: name ? `Merhaba ${name},` : "Merhaba," },
+      {
+        kind: "p",
+        text: `Tedarikhane hesabınızın e-posta adresi ${masked} olarak değiştirildi. Bundan sonra bu adrese e-posta gelmeyecek. Bu işlemi siz yapmadıysanız lütfen bizimle hemen iletişime geçin.`,
+      },
+    ],
+  });
+  await sendEmail({ type: "EMAIL_CHANGED", to: oldEmail, ...content });
+}

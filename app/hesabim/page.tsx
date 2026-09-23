@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Heart, KeyRound, Package, UserRound } from "lucide-react";
+import { Building2, Heart, KeyRound, MapPin, Package, RotateCcw, UserRound } from "lucide-react";
 import type { ComponentType } from "react";
 import { prisma } from "@/lib/prisma";
 import { getWebSession } from "@/lib/webSession";
@@ -39,7 +39,9 @@ export default async function HesabimPage() {
   const approved = status.kind === "approved";
   const shortcuts: Shortcut[] = [
     { href: "/hesabim/siparisler", label: "Siparişlerim", hint: orderCount ? `${orderCount} sipariş` : "Henüz sipariş yok", icon: Package },
+    { href: "/hesabim/adresler", label: "Adreslerim", hint: "Teslimat ve fatura adresleri", icon: MapPin },
     { href: "/favoriler", label: "Favoriler", hint: "Beğendiğiniz ürünler", icon: Heart },
+    { href: "/hesabim/sik-aldiklarim", label: "Sık Aldıklarım", hint: "Tekrar sipariş", icon: RotateCcw },
     { href: "/hesabim/profil", label: "Profil Bilgilerim", hint: "Ad soyad, telefon", icon: UserRound },
     { href: "/hesabim/sifre", label: "Şifre Değiştir", hint: "Hesap güvenliği", icon: KeyRound },
     ...(approved ? [{ href: "/hesabim/firma", label: "Firma Bilgilerim", hint: "Fatura bilgileri", icon: Building2 }] : []),
@@ -73,7 +75,7 @@ export default async function HesabimPage() {
       )}
 
       {/* Kısayollar */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {shortcuts.map(({ href, label, hint, icon: Icon }) => (
           <Link
             key={href}
