@@ -10,9 +10,11 @@ import {
   createOrder,
   type CartLine,
   type CreateOrderState,
+  type CheckoutAddress,
 } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
 import Skeleton from "@/components/Skeleton";
+import AddressSection from "./AddressSection";
 
 const initialState: CreateOrderState = { error: null };
 
@@ -26,6 +28,8 @@ export default function CheckoutPage() {
     email: string;
     phone: string;
     canUseCariHesap: boolean;
+    addresses: CheckoutAddress[];
+    corporateUnvan: string | null;
   } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("KART");
   const [sozlesmeOnay, setSozlesmeOnay] = useState(false);
@@ -105,56 +109,11 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-neutral-900">Teslimat Adresi</h2>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-neutral-700">Adres</label>
-            <input
-              name="shippingLine1"
-              type="text"
-              required
-              placeholder="Mahalle, cadde, no"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-neutral-700">Adres Devamı (opsiyonel)</label>
-            <input
-              name="shippingLine2"
-              type="text"
-              placeholder="Daire, kat vb."
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-neutral-700">İl</label>
-              <input
-                name="shippingIl"
-                type="text"
-                required
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-neutral-700">İlçe</label>
-              <input
-                name="shippingIlce"
-                type="text"
-                required
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-neutral-700">Posta Kodu</label>
-              <input
-                name="shippingPostaKodu"
-                type="text"
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-[var(--color-brand)] focus:outline-none"
-              />
-            </div>
-          </div>
-        </div>
+        <AddressSection
+          loggedIn={eligibility.loggedIn}
+          addresses={eligibility.addresses}
+          corporateUnvan={eligibility.corporateUnvan}
+        />
 
         <div className="space-y-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-neutral-900">Ödeme Yöntemi</h2>

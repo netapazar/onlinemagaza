@@ -294,9 +294,10 @@ export async function verifyEmail(_prevState: VerifyEmailState, formData: FormDa
 
   const row = await prisma.emailVerificationToken.findUnique({
     where: { tokenHash: hashResetToken(token) },
-    select: { id: true, usedAt: true, expiresAt: true, webCustomerId: true },
+    select: { id: true, usedAt: true, expiresAt: true, webCustomerId: true, newEmail: true },
   });
-  if (!row || !isResetTokenUsable(row)) return { error: VERIFY_LINK_INVALID, done: false };
+  // E-posta DEĞİŞİKLİĞİ token'ları (newEmail dolu) bu akışta kullanılamaz — ayrı onay sayfası var (Hesabım › Profil).
+  if (!row || row.newEmail !== null || !isResetTokenUsable(row)) return { error: VERIFY_LINK_INVALID, done: false };
 
   const now = new Date();
   const verified = await prisma.$transaction(async (tx) => {
@@ -310,7 +311,7 @@ export async function verifyEmail(_prevState: VerifyEmailState, formData: FormDa
       where: { id: row.webCustomerId, emailVerifiedAt: null },
       data: { emailVerifiedAt: now },
     });
-    await tx.emailVerificationToken.deleteMany({ where: { webCustomerId: row.webCustomerId, id: { not: row.id } } });
+    await tx.emailVerificationToken.deleteMany({ where: { webCustomerId: row.webCustomerId, id: { not: row.id }, newEmail: null } });
     return true;
   });
   if (!verified) return { error: VERIFY_LINK_INVALID, done: false };
@@ -345,7 +346,7 @@ export async function resendEmailVerification(
   const { token, tokenHash } = generateResetToken();
   // Önceki kullanılmamış bağlantılar iptal edilir — yalnız en son gönderilen geçerli.
   await prisma.$transaction([
-    prisma.emailVerificationToken.deleteMany({ where: { webCustomerId: customer.id, usedAt: null } }),
+    prisma.emailVerificationToken.deleteMany({ where: { webCustomerId: customer.id, usedAt: null, newEmail: null } }),
     prisma.emailVerificationToken.create({
       data: { webCustomerId: customer.id, tokenHash, expiresAt: verificationExpiry() },
     }),

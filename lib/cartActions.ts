@@ -10,6 +10,7 @@ import { resolvePrice, computeListPriceCents } from "@/lib/pricing";
 import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
+import { formatAddress, parseAddress } from "@/lib/addressCore";
 
 export type CartItemInput = { productId: string; quantity: number };
 
@@ -111,20 +112,43 @@ export async function getCartDetails(items: CartItemInput[]) {
   };
 }
 
+export type CheckoutAddress = {
+  id: string;
+  title: string;
+  recipientName: string;
+  text: string;
+  isDefaultShipping: boolean;
+  isDefaultBilling: boolean;
+};
+
 export async function getCheckoutEligibility() {
   const session = await getWebSession();
   if (!session) {
-    return { loggedIn: false, name: "", email: "", phone: "", canUseCariHesap: false };
+    return { loggedIn: false, name: "", email: "", phone: "", canUseCariHesap: false, addresses: [] as CheckoutAddress[], corporateUnvan: null as string | null };
   }
   const customer = await prisma.webCustomer.findUnique({
     where: { id: session.webCustomerId },
-    include: { firma: { select: { onlineErisimAktif: true, onlineCariHesapAktif: true } } },
+    include: {
+      firma: { select: { onlineErisimAktif: true, onlineCariHesapAktif: true, unvan: true } },
+      addresses: { orderBy: [{ isDefaultShipping: "desc" }, { updatedAt: "desc" }] },
+    },
   });
+  const addresses: CheckoutAddress[] = (customer?.addresses ?? []).map((a) => ({
+    id: a.id,
+    title: a.label || a.recipientName,
+    recipientName: a.recipientName,
+    text: formatAddress(a),
+    isDefaultShipping: a.isDefaultShipping,
+    isDefaultBilling: a.isDefaultBilling,
+  }));
   return {
     loggedIn: true,
     name: customer?.name ?? "",
     email: customer?.email ?? "",
     phone: customer?.phone ?? "",
+    addresses,
+    // Onaylı kurumsal üyede fatura firma kartından kesilir — ödemede fatura adresi sorulmaz.
+    corporateUnvan: customer?.firma?.onlineErisimAktif ? customer.firma.unvan : null,
     // Grup 3: cari hesapla ödeme artık ayrı bir yetki (onlineCariHesapAktif) —
     // üyelik erişimi (iskonto) açık olsa bile bu kapalı olabilir.
     canUseCariHesap: Boolean(customer?.firma?.onlineErisimAktif && customer.firma.onlineCariHesapAktif),
@@ -162,20 +186,53 @@ export async function createOrder(
   const guestName = String(formData.get("guestName") ?? "").trim();
   const guestEmail = String(formData.get("guestEmail") ?? "").trim();
   const guestPhone = String(formData.get("guestPhone") ?? "").trim();
-  const shippingLine1 = String(formData.get("shippingLine1") ?? "").trim();
-  const shippingLine2 = String(formData.get("shippingLine2") ?? "").trim();
-  const shippingIl = String(formData.get("shippingIl") ?? "").trim();
-  const shippingIlce = String(formData.get("shippingIlce") ?? "").trim();
-  const shippingPostaKodu = String(formData.get("shippingPostaKodu") ?? "").trim();
-
-  if (!shippingLine1 || !shippingIl || !shippingIlce) {
-    return { error: "Teslimat adresi eksik." };
-  }
+  let shippingLine1 = String(formData.get("shippingLine1") ?? "").trim();
+  let shippingLine2 = String(formData.get("shippingLine2") ?? "").trim();
+  let shippingIl = String(formData.get("shippingIl") ?? "").trim();
+  let shippingIlce = String(formData.get("shippingIlce") ?? "").trim();
+  let shippingPostaKodu = String(formData.get("shippingPostaKodu") ?? "").trim();
 
   const session = await getWebSession();
   const webCustomer = session
     ? await prisma.webCustomer.findUnique({ where: { id: session.webCustomerId }, include: { firma: true } })
     : null;
+
+  // Kayıtlı teslimat adresi seçildiyse adres SUNUCUDA, müşteriye ait olduğu doğrulanarak okunur
+  // (istemcinin gönderdiği adres metnine güvenilmez).
+  const shippingAddressId = String(formData.get("shippingAddressId") ?? "");
+  if (webCustomer && shippingAddressId) {
+    const saved = await prisma.webCustomerAddress.findFirst({ where: { id: shippingAddressId, webCustomerId: webCustomer.id } });
+    if (!saved) return { error: "Seçilen teslimat adresi bulunamadı." };
+    shippingLine1 = saved.line1;
+    shippingLine2 = saved.line2 ?? "";
+    shippingIl = saved.il;
+    shippingIlce = saved.ilce;
+    shippingPostaKodu = saved.postaKodu ?? "";
+  }
+
+  if (!shippingLine1 || !shippingIl || !shippingIlce) {
+    return { error: "Teslimat adresi eksik." };
+  }
+
+  // Fatura adresi: kurumsal üyede firma kartından (sorulmaz). Diğerlerinde "teslimat ile aynı" varsayılan;
+  // değilse kayıtlı bir adres ya da elle girilen adres (billing.* alanları).
+  const corporate = Boolean(webCustomer?.firma?.onlineErisimAktif);
+  const billingSame = corporate || formData.get("billingSameAsShipping") !== "off";
+  let billing: { billingName: string; billingLine1: string; billingLine2: string | null; billingIl: string; billingIlce: string; billingPostaKodu: string | null } | null = null;
+  if (!billingSame) {
+    const billingAddressId = String(formData.get("billingAddressId") ?? "");
+    if (webCustomer && billingAddressId) {
+      const saved = await prisma.webCustomerAddress.findFirst({ where: { id: billingAddressId, webCustomerId: webCustomer.id } });
+      if (!saved) return { error: "Seçilen fatura adresi bulunamadı." };
+      billing = { billingName: saved.recipientName, billingLine1: saved.line1, billingLine2: saved.line2, billingIl: saved.il, billingIlce: saved.ilce, billingPostaKodu: saved.postaKodu };
+    } else {
+      const parsed = parseAddress((k) => formData.get(`billing.${k}`));
+      if (!parsed.ok) return { error: `Fatura adresi: ${parsed.error}` };
+      const b = parsed.value;
+      billing = { billingName: b.recipientName, billingLine1: b.line1, billingLine2: b.line2, billingIl: b.il, billingIlce: b.ilce, billingPostaKodu: b.postaKodu };
+    }
+  }
+  const saveShippingAddress = Boolean(webCustomer) && !shippingAddressId && formData.get("saveAddress") === "on";
 
   if (!webCustomer && (!guestName || !guestEmail || !guestPhone)) {
     return { error: "Ad, e-posta ve telefon gerekli." };
@@ -264,6 +321,8 @@ export async function createOrder(
       shippingIl,
       shippingIlce,
       shippingPostaKodu: shippingPostaKodu || null,
+      billingSameAsShipping: billingSame,
+      ...(billing ?? {}),
       subtotalCents,
       shippingCents,
       totalCents,
@@ -275,6 +334,35 @@ export async function createOrder(
 
   // E-posta (müşteriye "sipariş alındı" + yöneticiye "yeni sipariş") DB yazımı
   // bittikten sonra, yanıttan bağımsız çalışır — başarısız olsa bile sipariş etkilenmez.
+  // "Bu adresi kaydet": sipariş yazıldıktan sonra adres defterine eklenir (başarısız olsa bile sipariş etkilenmez).
+  if (saveShippingAddress && webCustomer) {
+    try {
+      const count = await prisma.webCustomerAddress.count({ where: { webCustomerId: webCustomer.id } });
+      const duplicate = await prisma.webCustomerAddress.findFirst({
+        where: { webCustomerId: webCustomer.id, line1: shippingLine1, il: shippingIl.toLocaleUpperCase("tr-TR"), ilce: shippingIlce.toLocaleUpperCase("tr-TR") },
+        select: { id: true },
+      });
+      if (!duplicate && count < 20) {
+        await prisma.webCustomerAddress.create({
+          data: {
+            webCustomerId: webCustomer.id,
+            recipientName: webCustomer.name,
+            phone: webCustomer.phone,
+            line1: shippingLine1,
+            line2: shippingLine2 || null,
+            il: shippingIl.toLocaleUpperCase("tr-TR"),
+            ilce: shippingIlce.toLocaleUpperCase("tr-TR"),
+            postaKodu: shippingPostaKodu || null,
+            isDefaultShipping: count === 0,
+            isDefaultBilling: count === 0,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("[checkout] adres kaydedilemedi:", error);
+    }
+  }
+
   runAfterResponse("ORDER_PLACED", () => notifyOrderPlaced(order.id));
 
   redirect(`/siparis-alindi/${order.id}`);
