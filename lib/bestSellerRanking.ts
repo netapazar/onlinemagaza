@@ -16,6 +16,9 @@ export type BestSellerRank = { barcode: string; belge: number; ciroKurus: number
 async function computeRanking(): Promise<BestSellerRank[]> {
   // Online siparişin ürettiği irsaliye (cari hesap / üye siparişi) pazarlama tarafında sayılmaz — çift sayım olmasın.
   // İptal edilen irsaliyeler ve onları iptal eden ters kayıtlar da sayılmaz.
+  // Başlangıç TARİH parametresi olarak geçilir: make_interval(days => $1) Prisma sayıyı bigint gönderdiği için
+  // canlıda 42883 hatası veriyordu (2026-09-23).
+  const since = new Date(Date.now() - BEST_SELLER_WINDOW_DAYS * 24 * 60 * 60 * 1000);
   const rows = await prisma.$queryRaw<{ barcode: string; belge: bigint; ciro: bigint }[]>`
     WITH olaylar AS (
       SELECT p.barcode, 'i:' || ir.id AS belge, k."netTutarCents"::bigint AS tutar
@@ -23,7 +26,7 @@ async function computeRanking(): Promise<BestSellerRank[]> {
       JOIN "Irsaliye" ir ON ir.id = k."irsaliyeId"
       JOIN "Product" p ON p.id = k."productId"
       WHERE NOT ir.iptal
-        AND ir.tarih >= now() - make_interval(days => ${BEST_SELLER_WINDOW_DAYS})
+        AND ir.tarih >= ${since}
         AND NOT EXISTS (SELECT 1 FROM "Irsaliye" x WHERE x."iptalEdenId" = ir.id)
         AND NOT EXISTS (SELECT 1 FROM "WebOrder" w WHERE w."irsaliyeId" = ir.id)
       UNION ALL
@@ -31,7 +34,7 @@ async function computeRanking(): Promise<BestSellerRank[]> {
       FROM "WebOrderItem" i
       JOIN "WebOrder" w ON w.id = i."webOrderId"
       WHERE w.status NOT IN ('ODEME_BEKLIYOR', 'IPTAL_EDILDI')
-        AND w."createdAt" >= now() - make_interval(days => ${BEST_SELLER_WINDOW_DAYS})
+        AND w."createdAt" >= ${since}
     )
     SELECT barcode, count(DISTINCT belge) AS belge, coalesce(sum(tutar), 0) AS ciro
     FROM olaylar
