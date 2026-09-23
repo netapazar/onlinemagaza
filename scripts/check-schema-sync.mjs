@@ -35,7 +35,7 @@
 // token'ı + Action kurulumu gerektiriyor; bu script sadece DOĞRULUYOR,
 // kopyalamıyor, kurulumu en az bu üçü arasında.
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -44,6 +44,21 @@ const LOCAL_SCHEMA_PATH = path.join(__dirname, "..", "prisma", "schema.prisma");
 const CRM_REPO = "netapazar/crm";
 const CRM_SCHEMA_PATH = "prisma/schema.prisma";
 const CRM_REF = "main";
+
+// --local: GitHub/token gerektirmez, iki repo aynı makinede yan yana checkout
+// edilmişse (bu projenin geliştirme kurulumu tam olarak bu) kardeş dizindeki
+// magaza-crm'in O ANKİ ÇALIŞMA KOPYASIYLA (commit edilmemiş/henüz main'e
+// alınmamış değişiklikler DAHİL) karşılaştırır. 2026-09-23'te yakalanan gerçek
+// boşluk buydu: --local YOKTU, tek kontrol CRM main'e karşıydı — CRM ve online
+// tarafları aynı anda, henüz birleştirilmemiş dallarda geliştirilirken (bu
+// oturumdaki gibi) CRM main de değişikliği içermediğinden GitHub kontrolü “aynı”
+// derdi (ikisi de eksik), asıl hata (online şeması CRM'in KENDİ dalındaki
+// güncel hâlinden bile geri kalmış olması) hiç yakalanmazdı. Bunu commit/PR
+// öncesi (`node scripts/check-schema-sync.mjs --local`) çalıştırmak, build-time
+// GitHub kontrolünün YERİNE değil, EK bir erken uyarı katmanı olarak düşünülmeli
+// — CI/Vercel build'i hâlâ (main'e karşı) GitHub moduyla çalışır.
+const LOCAL_MODE = process.argv.includes("--local");
+const SIBLING_CRM_SCHEMA_PATH = path.join(__dirname, "..", "..", "magaza-crm", "prisma", "schema.prisma");
 // generator/datasource blokları iki projede KASITLI olarak farklı (output
 // yolu, vb.) — karşılaştırma bu noktadan sonrasını (ilk gerçek model/enum
 // tanımından itibaren) kapsıyor. İki dosyada da aynı isimle var olması
@@ -108,9 +123,33 @@ async function fetchCrmSchema() {
 
 async function main() {
   const local = readFileSync(LOCAL_SCHEMA_PATH, "utf8");
-  const crm = await fetchCrmSchema();
-
   const localTail = stripFromAnchor(local, "yerel schema.prisma");
+
+  if (LOCAL_MODE) {
+    if (!existsSync(SIBLING_CRM_SCHEMA_PATH)) {
+      console.error(
+        `\n❌ --local: kardeş dizinde magaza-crm bulunamadı (${SIBLING_CRM_SCHEMA_PATH}). ` +
+          "Bu kontrol yalnız iki repo yan yana checkout edilmişse çalışır.\n"
+      );
+      process.exit(1);
+    }
+    const crmLocal = readFileSync(SIBLING_CRM_SCHEMA_PATH, "utf8");
+    const crmLocalTail = stripFromAnchor(crmLocal, "kardeş magaza-crm/prisma/schema.prisma");
+    if (localTail !== crmLocalTail) {
+      console.error(
+        "\n❌ ŞEMA SENKRON HATASI (--local): magaza-online/prisma/schema.prisma, kardeş " +
+          "magaza-crm'in O ANKİ ÇALIŞMA KOPYASIYLA (commit edilmemiş değişiklikler dahil, dal " +
+          "adı önemli değil) aynı değil.\n" +
+          "Düzeltmek için: magaza-crm/prisma/schema.prisma'yı buraya (generator/datasource " +
+          "blokları hariç) kopyalayın, `npx prisma generate` çalıştırın.\n"
+      );
+      process.exit(1);
+    }
+    console.log("✓ (--local) Şema kardeş magaza-crm çalışma kopyasıyla senkron.");
+    return;
+  }
+
+  const crm = await fetchCrmSchema();
   const crmTail = stripFromAnchor(crm, "CRM'in schema.prisma'sı");
 
   if (localTail !== crmTail) {

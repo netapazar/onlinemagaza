@@ -42,6 +42,9 @@ export default function ProductListRow({
           {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
           <p className="truncate text-sm font-medium text-neutral-900">{product.name}</p>
         </Link>
+        {product.shortDescription && (
+          <p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
+        )}
         {product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>}
         <p className="mt-1 text-xs font-medium">
           {inStock ? <span className="text-emerald-700">Bugün Kargoda</span> : <span className="text-red-600">Stokta Yok</span>}

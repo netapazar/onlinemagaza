@@ -2,11 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getOnlineStoreId } from "@/lib/onlineStore";
+import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { getWebSession } from "@/lib/webSession";
-import { resolvePrice } from "@/lib/pricing";
+import { resolvePrice, computeListPriceCents } from "@/lib/pricing";
 import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
@@ -56,10 +56,11 @@ export async function getCartDetails(items: CartItemInput[]) {
   // Birbirinden bağımsız iki sorgu ayrı ayrı await ediliyordu (sıralı, toplam
   // gecikme ikisinin toplamıydı) — paralel çalıştırılınca sepet sayfasının/
   // çekmecesinin "Yükleniyor..." süresi gözle görülür şekilde kısalıyor.
-  const [storeId, memberDiscountPercent, membershipStatus] = await Promise.all([
+  const [storeId, memberDiscountPercent, membershipStatus, markupPercent] = await Promise.all([
     getOnlineStoreId(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
+    getOnlineFiyatArtisOrani(),
   ]);
 
   // Kasıtlı olarak showOnStorefront/archivedAt'e göre FİLTRELENMİYOR — bir
@@ -78,7 +79,7 @@ export async function getCartDetails(items: CartItemInput[]) {
     // hiçbir bilgi (isim/görsel) yok, bu tek durumda satır atlanıyor.
     // Nadir bir uç durum: proje genelinde ürünler silinmez, arşivlenir.
     if (!product) continue;
-    const price = resolvePrice(product, memberDiscountPercent);
+    const price = resolvePrice({ listPriceCents: computeListPriceCents(product, markupPercent) }, memberDiscountPercent);
     const notForSale = !product.showOnStorefront || Boolean(product.archivedAt);
     const outOfStock = product.stock <= 0;
     const unavailableReason: CartUnavailableReason = notForSale ? "NOT_FOR_SALE" : outOfStock ? "STOCK" : null;
@@ -152,6 +153,7 @@ export async function createOrder(
   // gecikme sıralı iki DB round-trip'in toplamıydı — bkz. getCartDetails'teki
   // aynı gerekçe.
   const storeIdPromise = getOnlineStoreId();
+  const markupPercentPromise = getOnlineFiyatArtisOrani();
 
   const paymentMethodRaw = String(formData.get("paymentMethod") ?? "KART");
   const paymentMethod =
@@ -192,7 +194,7 @@ export async function createOrder(
     ? webCustomer.firma.onlineIskontoOrani ?? null
     : null;
 
-  const storeId = await storeIdPromise;
+  const [storeId, markupPercent] = await Promise.all([storeIdPromise, markupPercentPromise]);
   const products = await prisma.product.findMany({
     where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
   });
@@ -221,7 +223,7 @@ export async function createOrder(
       outOfStock.push(product.name);
       continue;
     }
-    const price = resolvePrice(product, memberDiscountPercent);
+    const price = resolvePrice({ listPriceCents: computeListPriceCents(product, markupPercent) }, memberDiscountPercent);
     const lineTotalCents = price.displayCents * item.quantity;
     subtotalCents += lineTotalCents;
     orderItemsData.push({

@@ -88,6 +88,9 @@ export default function ProductCard({
         <div className="p-2.5 pb-0">
           {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
           <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
+          {product.shortDescription && (
+            <p className="line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
+          )}
           {/* Paket içeriği varsa o ("50'li paket"); yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa hiçbir şey */}
           {(product.packageInfo || product.unit !== "ADET") && (
             <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
