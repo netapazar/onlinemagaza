@@ -116,8 +116,12 @@ model Store {
   // her başvuruda isterse değiştirir.
   varsayilanOnlineIskontoOrani Int      @default(0)
   // Vitrin liste fiyatı = Product.salePriceCents * (1 + bu oran/100), en yakın
-  // 50 kuruşa yuvarlanır. Product.onlinePriceCents elle girilmişse ÖNCELİKLİDİR,
-  // bu orana hiç uğramaz — bkz. lib/pricing.ts (applyMarkup) + lib/onlineStore.ts.
+  // 50 kuruşa yuvarlanır (sadece isOnlineStore=true store'da anlamlı, aynı
+  // varsayilanOnlineIskontoOrani gibi tekil satıra eklendi). Product.onlinePriceCents
+  // elle girilmişse ÖNCELİKLİDİR, bu orana hiç uğramaz — bkz. online repo lib/pricing.ts.
+  // Fiyat HİÇBİR YERDE saklanmaz, her okumada canlı hesaplanır — oran değişince
+  // tüm ürünler otomatik yeni fiyatı yansıtır (sepete eklenen/sipariş edilen kalemler
+  // o ANKİ hesaplanan değeri donduruyor, geçmiş siparişler etkilenmez).
   onlineFiyatArtisOrani        Int      @default(0)
   createdAt                    DateTime @default(now())
 
