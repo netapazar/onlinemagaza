@@ -244,6 +244,13 @@ model Product {
   // aksine editöryel bir seçimdir. sortOrder null ise oluşturulma sırasına düşer.
   isFeatured           Boolean @default(false)
   featuredSortOrder    Int?
+  // Toplu/araştırma tabanlı aktarımda (barkod/fiyat/birim/marka şüphesi vb.)
+  // otomatik işaretlenir — CRM uygulama katmanı bu true iken showOnStorefront'u
+  // true'ya çevirmeyi REDDEDER (bkz. online-magaza/urunler/actions.ts). Müşteriye
+  // ASLA gösterilmez: storefront'un ürün detay sorgusu (lib/search.ts) bu iki
+  // alanı bilerek select ETMİYOR (include değil, dar bir select kullanıyor).
+  needsReview          Boolean @default(false)
+  reviewNote           String?
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

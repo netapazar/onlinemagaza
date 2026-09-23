@@ -367,12 +367,38 @@ export async function getStorefrontBrands(): Promise<{ id: string; name: string 
   });
 }
 
+// Ürün detay sayfasının ihtiyacı olan alanların TAM listesi — bilerek `include`
+// DEĞİL `select`. `include` Product'ın TÜM skaler alanlarını döndürür; bu da
+// needsReview/reviewNote gibi yalnız CRM içi alanların (bkz. proje kısıtı: bu
+// ikisi müşteriye asla görünmemeli) sayfa/RSC payload'una hiç girmemesini
+// KODUN KENDİSİNİN garanti etmesi anlamına gelir — "zaten render edilmiyor"
+// gibi kırılgan bir varsayıma değil.
+const DETAIL_SELECT = {
+  id: true,
+  name: true,
+  shortDescription: true,
+  description: true,
+  features: true,
+  salePriceCents: true,
+  onlinePriceCents: true,
+  stock: true,
+  barcode: true,
+  barcodeIsGenerated: true,
+  productCode: true,
+  packageInfo: true,
+  unit: true,
+  categoryId: true,
+  images: { orderBy: { sortOrder: "asc" as const }, select: { id: true, url: true, altText: true } },
+  brand: { select: { name: true } },
+  category: { select: { name: true } },
+} as const;
+
 export async function getStorefrontProductBySlug(slug: string) {
   if (isDemoMode()) return demoProductBySlugOrId(slug);
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({
     where: { storeId, slug, showOnStorefront: true, archivedAt: null },
-    include: { images: { orderBy: { sortOrder: "asc" } }, brand: true, category: true },
+    select: DETAIL_SELECT,
   });
 }
 
@@ -384,6 +410,6 @@ export async function getStorefrontProductById(id: string) {
   const storeId = await getOnlineStoreId();
   return prisma.product.findFirst({
     where: { id, storeId, showOnStorefront: true, archivedAt: null },
-    include: { images: { orderBy: { sortOrder: "asc" } }, brand: true, category: true },
+    select: DETAIL_SELECT,
   });
 }
