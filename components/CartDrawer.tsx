@@ -9,6 +9,7 @@ import { centsToTl } from "@/lib/pricing";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -80,8 +81,10 @@ export default function CartDrawer() {
               {lines.map((line) => (
                 <div key={line.productId} className={`flex items-center gap-3 ${!line.available ? "opacity-60" : ""}`}>
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-                    {line.coverImageUrl && (
+                    {line.coverImageUrl ? (
                       <StoreImage src={line.coverImageUrl} alt="" sizes="56px" eager className="object-cover" />
+                    ) : (
+                      <ProductPlaceholder name={line.name} variant="icon" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">

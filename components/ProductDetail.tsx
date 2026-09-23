@@ -79,7 +79,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
       <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
         <div className="grid gap-8 sm:grid-cols-2">
-        <ProductGallery images={product.images} name={product.name} />
+        <ProductGallery images={product.images} name={product.name} brandName={product.brand?.name ?? null} />
 
         <div>
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}

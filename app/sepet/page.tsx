@@ -9,6 +9,7 @@ import { QuantityStepper } from "@/components/QuantityStepper";
 import CartCariHesapBox from "@/components/CartCariHesapBox";
 import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
   STOCK: "Stokta yok",
@@ -57,8 +58,10 @@ export default function SepetPage() {
         {lines.map((line) => (
           <div key={line.productId} className={`flex items-center gap-3 p-4 ${!line.available ? "opacity-60" : ""}`}>
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-              {line.coverImageUrl && (
+              {line.coverImageUrl ? (
                 <StoreImage src={line.coverImageUrl} alt="" sizes="64px" eager className="object-cover" />
+              ) : (
+                <ProductPlaceholder name={line.name} variant="icon" />
               )}
             </div>
             <div className="flex-1">
