@@ -20,6 +20,8 @@ export const RULES = {
   VERIFY_RESEND_EMAIL: { action: "verify-resend-email", max: 3, windowMinutes: 60 },
   VERIFY_RESEND_IP: { action: "verify-resend-ip", max: 15, windowMinutes: 60 },
   VERIFY_CONFIRM_IP: { action: "verify-confirm-ip", max: 30, windowMinutes: 60 },
+  // Hesabım › Şifre Değiştir: giriş yapmış oturumdan mevcut şifre tahmini (çalınmış açık oturum) yavaşlasın.
+  PASSWORD_CHANGE_ACCOUNT: { action: "password-change-account", max: 5, windowMinutes: 15 },
 } as const;
 
 export type RateLimitRule = { action: string; max: number; windowMinutes: number };
