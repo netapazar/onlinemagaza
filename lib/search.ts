@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { computeListPriceCents } from "@/lib/pricing";
+import { getBestSellerRanking } from "@/lib/bestSellerRanking";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
 import { trTitle } from "@/lib/text";
 import {
@@ -336,23 +337,25 @@ export type SearchSuggestion = {
 // bölümü nazikçe gizlenmeli).
 export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoBestSellers(limit);
-  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
-  const grouped = await prisma.webOrderItem.groupBy({
-    by: ["productId"],
-    where: { webOrder: { status: { notIn: ["ODEME_BEKLIYOR", "IPTAL_EDILDI"] } } },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take: limit,
-  });
-  if (grouped.length === 0) return [];
+  // Sıra günde bir hesaplanır (bkz. lib/bestSellerRanking.ts — pazarlama + online, son 90 gün, belge sayısı);
+  // ürün bilgisi (fiyat, stok, yayın) her istekte güncel okunur. Yayında olmayanlar atlanır.
+  const [ranking, storeId, markupPercent] = await Promise.all([
+    getBestSellerRanking(),
+    getOnlineStoreId(),
+    getOnlineFiyatArtisOrani(),
+  ]);
+  if (ranking.length === 0) return [];
 
-  const ids = grouped.map((g) => g.productId);
   const products = await prisma.product.findMany({
-    where: { id: { in: ids }, storeId, showOnStorefront: true, archivedAt: null },
-    select: BASE_SELECT,
+    where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: ranking.map((r) => r.barcode) } },
+    select: { ...BASE_SELECT, barcode: true },
   });
-  const byId = new Map(products.map((p) => [p.id, p]));
-  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
+  const byBarcode = new Map(products.map((p) => [p.barcode, p]));
+  return ranking
+    .map((r) => byBarcode.get(r.barcode))
+    .filter((p) => p !== undefined)
+    .slice(0, limit)
+    .map((p) => toSummary(p, markupPercent));
 }
 
 // Anasayfadaki marka şeridi — sadece storefront'ta ürünü olan markalar,
