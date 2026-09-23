@@ -157,7 +157,7 @@ model Brand {
 }
 
 model Category {
-  id       String  @id @default(cuid())
+  id       String     @id @default(cuid())
   name     String
   // Self-reference for a two-level tree (online storefront kategori ağacı).
   // null = ana kategori. Uniqueness is scoped to the parent (app layer also
@@ -223,14 +223,14 @@ model Product {
   // ürünlerden bağımsız sorgulanmıyor (her zaman kendi ürünüyle birlikte okunuyor),
   // aramada da düz metin olarak yeterli (bkz. searchKeywords ile aynı mantık) — bu
   // yüzden JSON, ekstra join/CRUD karmaşası getiren ayrı bir tablodan daha basit.
-  features             Json?
+  features            Json?
   // Null ise storefront ürün adı + shortDescription'dan otomatik üretir (aynı
   // nullable-override kuralı: sayfada asla boş görünmez, sadece elle girilmemiş olur).
-  seoTitle             String?
-  seoDescription       String?
+  seoTitle            String?
+  seoDescription      String?
   // Site içi arama için eş anlamlı/alternatif yazımlar — MÜŞTERİYE GÖSTERİLMEZ,
   // yalnız arama sorgusunda ad/barkod ile birlikte taranır.
-  searchKeywords       String?
+  searchKeywords      String?
   // Paket/koli içeriği, serbest metin ("50'li paket", "Koli: 12 adet") — vitrinde kartta ve detayda gösterilir, boşsa gizlenir.
   // `unit` yalnız birimin TÜRÜNÜ (Adet/Koli/Paket...) söyler; içinde kaç adet olduğu buradadır. En çok 60 karakter (src/lib/packageInfo.ts).
   packageInfo         String?
@@ -242,15 +242,15 @@ model Product {
   storefrontSortOrder Int?
   // "Öne Çıkanlar" bölümü — elle işaretlenir, Çok Satanlar'ın (otomatik/hesaplanan)
   // aksine editöryel bir seçimdir. sortOrder null ise oluşturulma sırasına düşer.
-  isFeatured           Boolean @default(false)
-  featuredSortOrder    Int?
+  isFeatured          Boolean @default(false)
+  featuredSortOrder   Int?
   // Toplu/araştırma tabanlı aktarımda (barkod/fiyat/birim/marka şüphesi vb.)
   // otomatik işaretlenir — CRM uygulama katmanı bu true iken showOnStorefront'u
   // true'ya çevirmeyi REDDEDER (bkz. online-magaza/urunler/actions.ts). Müşteriye
   // ASLA gösterilmez: storefront'un ürün detay sorgusu (lib/search.ts) bu iki
   // alanı bilerek select ETMİYOR (include değil, dar bir select kullanıyor).
-  needsReview          Boolean @default(false)
-  reviewNote           String?
+  needsReview         Boolean @default(false)
+  reviewNote          String?
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -396,22 +396,24 @@ model PriceHistoryLabelPrint {
 }
 
 model User {
-  id                  String    @id @default(cuid())
+  id                  String             @id @default(cuid())
+  firmaBilgiKararlari FirmaBilgiTalebi[] @relation("FirmaBilgiTalebiKararVeren")
+  olusturduguDavetler WebDavet[]         @relation("WebDavetOlusturan")
   name                String
-  email               String    @unique
+  email               String             @unique
   passwordHash        String
   role                Role
   // null for ADMIN (sees all stores); required for CASHIER (scoped to one store)
   storeId             String?
-  store               Store?    @relation(fields: [storeId], references: [id])
-  createdAt           DateTime  @default(now())
+  store               Store?             @relation(fields: [storeId], references: [id])
+  createdAt           DateTime           @default(now())
   // deactivated instead of deleted once they have activity history (FK-safe);
   // blocks login, hidden from active-user lists
-  active              Boolean   @default(true)
+  active              Boolean            @default(true)
   // Brute-force lockout state — kept in the DB (not in-memory) because the
   // app runs as serverless functions in production, where in-memory counters
   // wouldn't be shared across invocations.
-  failedLoginAttempts Int       @default(0)
+  failedLoginAttempts Int                @default(0)
   lockedUntil         DateTime?
   // Marks everything up to this moment as "seen" in the change-notification
   // bell (fiyat/yeni ürün bildirimleri) — null means nothing's been seen yet.
@@ -566,6 +568,9 @@ model WebCustomer {
   membershipApplications  MembershipApplication[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  addresses               WebCustomerAddress[]
+  firmaBilgiTalepleri     FirmaBilgiTalebi[]
+  davet                   WebDavet?
 
   @@index([firmaId])
 }
@@ -602,10 +607,17 @@ model MembershipApplication {
   reviewedBy   User?     @relation("MembershipApplicationReviewedBy", fields: [reviewedById], references: [id])
   reviewedAt   DateTime?
 
+  // Davet bağlantısıyla gelen başvuru (2026-09-23): OTOMATİK ONAYLANMAZ (kullanıcı kararı — bağlantı
+  // WhatsApp'tan iletilip başkasına geçebilir, iskonto onay anında belirlenir). CRM onay ekranında
+  // "Davetle geldi — <firma>" işareti ve hazır firma eşleştirmesi için kullanılır.
+  davetId String?
+  davet   WebDavet? @relation(fields: [davetId], references: [id])
+
   createdAt DateTime @default(now())
 
   @@index([webCustomerId])
   @@index([status])
+  @@index([davetId])
 }
 
 enum WebOrderStatus {
@@ -655,6 +667,17 @@ model WebOrder {
   shippingIl        String
   shippingIlce      String
   shippingPostaKodu String?
+
+  // Fatura adresi kopyası (2026-09-23): sipariş anındaki fatura adresi. billingSameAsShipping=true ise
+  // aşağıdakiler boş kalır ve fatura teslimat adresine kesilir. Onaylı kurumsal üyede fatura firma
+  // kartından (Firma) gelir, bu alanlar kullanılmaz.
+  billingSameAsShipping Boolean @default(true)
+  billingName           String?
+  billingLine1          String?
+  billingLine2          String?
+  billingIl             String?
+  billingIlce           String?
+  billingPostaKodu      String?
 
   items WebOrderItem[]
 
@@ -1103,6 +1126,8 @@ model Firma {
   tedarikciFaturaTaslaklari TedarikciFaturaTaslagi[]
   webCustomers              WebCustomer[]
   degisiklikler             FirmaDegisiklik[]
+  bilgiTalepleri            FirmaBilgiTalebi[]
+  davetler                  WebDavet[]
 }
 
 enum CariHareketTipi {
@@ -1853,6 +1878,10 @@ model EmailVerificationToken {
   webCustomerId String
   webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id], onDelete: Cascade)
 
+  // Doluysa bu token bir E-POSTA DEĞİŞİKLİĞİ onayıdır (2026-09-23): bağlantıya tıklanınca WebCustomer.email
+  // bu adres olur. Boşsa klasik "mevcut adresi doğrula" token'ıdır.
+  newEmail String?
+
   tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
@@ -1860,4 +1889,104 @@ model EmailVerificationToken {
 
   @@index([webCustomerId])
   @@index([expiresAt])
+}
+
+// Hesabım › Adreslerim (2026-09-23): müşterinin kayıtlı teslimat/fatura adresleri. Ödemede listeden seçilir;
+// siparişe adresin O ANKİ hali kopyalanır (WebOrder.shipping*/billing*), buradaki kayıt sonradan değişse de
+// eski sipariş değişmez. Varsayılan tekilliği uygulama katmanında (transaction) korunur.
+model WebCustomerAddress {
+  id            String      @id @default(cuid())
+  webCustomerId String
+  webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id], onDelete: Cascade)
+
+  label         String? // ör. "Ofis", "Depo"
+  recipientName String
+  phone         String?
+  line1         String
+  line2         String?
+  il            String
+  ilce          String
+  postaKodu     String?
+
+  isDefaultShipping Boolean @default(false)
+  isDefaultBilling  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([webCustomerId])
+}
+
+enum FirmaTalepDurumu {
+  BEKLIYOR
+  ONAYLANDI
+  REDDEDILDI
+}
+
+// Hesabım › Firma Bilgilerim › düzenleme talebi (2026-09-23): onaylı kurumsal üye firma kartını doğrudan
+// değiştiremez (fatura riski). Talep CRM'de onaylanınca Firma'ya işlenir ve FirmaDegisiklik'e yazılır.
+model FirmaBilgiTalebi {
+  id            String      @id @default(cuid())
+  firmaId       String
+  firma         Firma       @relation(fields: [firmaId], references: [id])
+  webCustomerId String
+  webCustomer   WebCustomer @relation(fields: [webCustomerId], references: [id])
+
+  // { unvan?, vkn?, vergiDairesi?, faturaAdresi? } — yalnız değişmesi istenen alanlar
+  istenen     Json
+  // Talep anındaki mevcut değerler (karşılaştırma ekranı için)
+  mevcut      Json
+  musteriNotu String?
+
+  durum        FirmaTalepDurumu @default(BEKLIYOR)
+  kararVerenId String?
+  kararVeren   User?            @relation("FirmaBilgiTalebiKararVeren", fields: [kararVerenId], references: [id])
+  kararTarihi  DateTime?
+  kararNotu    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([durum, createdAt])
+  @@index([firmaId])
+}
+
+enum DavetDurumu {
+  OLUSTURULDU
+  GONDERILDI
+  ACILDI
+  KAYIT_OLDU
+  SURESI_DOLDU
+  IPTAL
+}
+
+// Geçiş / davet sistemi (2026-09-23): pazarlamanın mevcut cariyi siteye davet etmesi. Bağlantı (token) veya
+// kısa kodla kayıt olunur; başvuru normal şekilde CRM'e düşer, pazarlama onaylar (otomatik onay YOK).
+// Ham token saklanmaz, SHA-256 özeti tutulur (PasswordResetToken ile aynı desen).
+model WebDavet {
+  id      String @id @default(cuid())
+  firmaId String
+  firma   Firma  @relation(fields: [firmaId], references: [id])
+
+  email     String?
+  tokenHash String  @unique
+  kod       String  @unique // pazarlamacının telefonda/WhatsApp'ta verebileceği kısa kod
+
+  durum       DavetDurumu @default(OLUSTURULDU)
+  olusturanId String
+  olusturan   User        @relation("WebDavetOlusturan", fields: [olusturanId], references: [id])
+
+  gonderildiAt DateTime?
+  acildiAt     DateTime?
+  kayitAt      DateTime?
+  expiresAt    DateTime
+
+  webCustomerId String?                 @unique
+  webCustomer   WebCustomer?            @relation(fields: [webCustomerId], references: [id])
+  basvurular    MembershipApplication[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firmaId])
+  @@index([durum])
 }
