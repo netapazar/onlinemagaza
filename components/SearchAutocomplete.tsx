@@ -7,6 +7,7 @@ import { Search, Loader2 } from "lucide-react";
 import { getSearchSuggestions } from "@/lib/storefrontActions";
 import type { SearchSuggestion } from "@/lib/search";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -108,8 +109,10 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
                       className="flex items-center gap-3 px-4 py-2 hover:bg-neutral-50"
                     >
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-neutral-100">
-                        {s.coverImageUrl && (
+                        {s.coverImageUrl ? (
                           <StoreImage src={s.coverImageUrl} alt="" sizes="40px" eager className="object-cover" />
+                        ) : (
+                          <ProductPlaceholder name={s.name} variant="icon" />
                         )}
                       </div>
                       <div className="min-w-0">

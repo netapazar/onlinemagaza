@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Check, Heart, ShoppingCart } from "lucide-react";
 import CorporatePriceHint from "@/components/MemberHint";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -33,7 +34,7 @@ export default function ProductListRow({
         {product.coverImageUrl ? (
           <StoreImage src={product.coverImageUrl} alt={product.name} sizes="96px" className="object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">Görsel yok</div>
+          <ProductPlaceholder name={product.name} brandName={product.brandName} variant="compact" />
         )}
       </Link>
 

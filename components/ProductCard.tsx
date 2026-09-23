@@ -11,6 +11,7 @@ import { QuantityStepper } from "@/components/QuantityStepper";
 import CorporatePriceHint from "@/components/MemberHint";
 import { unitLabel } from "@/lib/units";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
@@ -63,9 +64,7 @@ export default function ProductCard({
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-              Görsel yok
-            </div>
+            <ProductPlaceholder name={product.name} brandName={product.brandName} />
           )}
 
           {price.discounted && price.discountPercent && (

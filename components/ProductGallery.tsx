@@ -2,21 +2,24 @@
 
 import { useState } from "react";
 import StoreImage from "@/components/StoreImage";
+import ProductPlaceholder from "@/components/ProductPlaceholder";
 
 export default function ProductGallery({
   images,
   name,
+  brandName,
 }: {
   images: { id: string; url: string; altText: string | null }[];
   name: string;
+  brandName?: string | null;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = images[activeIndex];
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-square w-full items-center justify-center rounded-xl bg-neutral-100 text-sm text-neutral-400">
-        Görsel yok
+      <div className="aspect-square w-full overflow-hidden rounded-xl">
+        <ProductPlaceholder name={name} brandName={brandName} />
       </div>
     );
   }
