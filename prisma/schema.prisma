@@ -153,11 +153,22 @@ model Brand {
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
+  id       String  @id @default(cuid())
+  name     String
+  // Self-reference for a two-level tree (online storefront kategori ağacı).
+  // null = ana kategori. Uniqueness is scoped to the parent (app layer also
+  // Turkish-aware-checks this, same pattern as Brand — Postgres NULL isn't
+  // equal to NULL so top-level name collisions aren't DB-enforced).
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
   createdAt DateTime @default(now())
 
   products Product[]
+
+  @@unique([parentId, name])
+  @@index([parentId])
 }
 
 model Product {
@@ -199,7 +210,23 @@ model Product {
   // Online storefront fields — all independent of the retail catalog fields
   // above, only ever meaningful on the isOnlineStore Product row for a given
   // barcode. Null/false means "not on the storefront."
+  // Kısa açıklama (1-2 cümle) — kartta ve detay sayfası üstünde gösterilir.
+  shortDescription    String?
+  // Uzun açıklama — detay sayfası "Açıklama" sekmesi.
   description         String?
+  // Teknik özellikler, [{ad, deger}] dizisi — detay sayfası "Özellikler" sekmesinde
+  // tablo olarak gösterilir. Ayrı bir tabloya çıkarılmadı: özellikler hiçbir zaman
+  // ürünlerden bağımsız sorgulanmıyor (her zaman kendi ürünüyle birlikte okunuyor),
+  // aramada da düz metin olarak yeterli (bkz. searchKeywords ile aynı mantık) — bu
+  // yüzden JSON, ekstra join/CRUD karmaşası getiren ayrı bir tablodan daha basit.
+  features             Json?
+  // Null ise storefront ürün adı + shortDescription'dan otomatik üretir (aynı
+  // nullable-override kuralı: sayfada asla boş görünmez, sadece elle girilmemiş olur).
+  seoTitle             String?
+  seoDescription       String?
+  // Site içi arama için eş anlamlı/alternatif yazımlar — MÜŞTERİYE GÖSTERİLMEZ,
+  // yalnız arama sorgusunda ad/barkod ile birlikte taranır.
+  searchKeywords       String?
   // Paket/koli içeriği, serbest metin ("50'li paket", "Koli: 12 adet") — vitrinde kartta ve detayda gösterilir, boşsa gizlenir.
   // `unit` yalnız birimin TÜRÜNÜ (Adet/Koli/Paket...) söyler; içinde kaç adet olduğu buradadır. En çok 60 karakter (src/lib/packageInfo.ts).
   packageInfo         String?
@@ -209,6 +236,10 @@ model Product {
   showOnStorefront    Boolean @default(false)
   slug                String? @unique
   storefrontSortOrder Int?
+  // "Öne Çıkanlar" bölümü — elle işaretlenir, Çok Satanlar'ın (otomatik/hesaplanan)
+  // aksine editöryel bir seçimdir. sortOrder null ise oluşturulma sırasına düşer.
+  isFeatured           Boolean @default(false)
+  featuredSortOrder    Int?
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

@@ -18,7 +18,9 @@ import ProductRow from "@/components/ProductRow";
 type Product = {
   id: string;
   name: string;
+  shortDescription?: string | null;
   description: string | null;
+  features?: unknown;
   salePriceCents: number;
   onlinePriceCents: number | null;
   stock: number;
@@ -55,7 +57,16 @@ export default async function ProductDetail({ product }: { product: Product }) {
     product.packageInfo ? { label: "Paket içeriği", value: product.packageInfo } : null,
   ].filter((m): m is { label: string; value: string } => m !== null);
 
+  // CRM'de girilen serbest özellikler (Gramaj, Ebat vb.) — sabit alanlardan önce
+  // gösterilir, ürüne özel bilgiler jenerik olanlardan önce gelsin diye.
+  const customFeatures: { label: string; value: string }[] = Array.isArray(product.features)
+    ? (product.features as { ad?: unknown; deger?: unknown }[])
+        .filter((f) => typeof f.ad === "string" && typeof f.deger === "string")
+        .map((f) => ({ label: f.ad as string, value: f.deger as string }))
+    : [];
+
   const specs = [
+    ...customFeatures,
     product.brand ? { label: "Marka", value: product.brand.name } : null,
     product.category ? { label: "Kategori", value: trTitle(product.category.name) } : null,
     product.productCode ? { label: "Ürün Kodu", value: product.productCode } : null,
@@ -73,6 +84,9 @@ export default async function ProductDetail({ product }: { product: Product }) {
         <div>
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
           <h1 className="mb-2 text-2xl font-bold text-neutral-900">{product.name}</h1>
+          {product.shortDescription && (
+            <p className="mb-2 text-sm text-neutral-600">{product.shortDescription}</p>
+          )}
           <p className="mb-3 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-neutral-500">
             {meta.map((m) => (
               <span key={m.label}>

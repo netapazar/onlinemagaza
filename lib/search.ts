@@ -27,6 +27,7 @@ export type StorefrontProductSummary = {
   // üye indiriminden ÖNCE) — bkz. lib/pricing.ts computeListPriceCents. resolvePrice
   // bunu doğrudan kullanır, salePriceCents/onlinePriceCents'i tekrar hesaplamaz.
   listPriceCents: number;
+  shortDescription: string | null;
   stock: number;
   unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
   packageInfo: string | null; // serbest metin paket/koli içeriği ("50'li paket"); boşsa vitrinde gösterilmez
@@ -43,6 +44,7 @@ export const BASE_SELECT = {
   name: true,
   salePriceCents: true,
   onlinePriceCents: true,
+  shortDescription: true,
   stock: true,
   unit: true,
   packageInfo: true,
@@ -59,6 +61,7 @@ export function toSummary(
     name: string;
     salePriceCents: number;
     onlinePriceCents: number | null;
+    shortDescription: string | null;
     stock: number;
     unit: string;
     packageInfo: string | null;
@@ -76,6 +79,7 @@ export function toSummary(
     salePriceCents: p.salePriceCents,
     onlinePriceCents: p.onlinePriceCents,
     listPriceCents: computeListPriceCents(p, markupPercent),
+    shortDescription: p.shortDescription,
     stock: p.stock,
     unit: p.unit,
     packageInfo: p.packageInfo?.trim() || null,
@@ -139,6 +143,11 @@ async function fuzzyMatchProductIds(
       Prisma.sql`p.description ILIKE ${"%" + v + "%"}`,
       Prisma.sql`b.name ILIKE ${"%" + v + "%"}`,
       Prisma.sql`c.name ILIKE ${"%" + v + "%"}`,
+      // Müşteriye gösterilmeyen eş anlamlı/alternatif yazımlar (ör. "a4 kağıt"
+      // "fotokopi kağıdı" adında geçmese de aramada bulunsun diye) + CRM'de
+      // girilen serbest özellik değerleri (ör. "Gramaj: 80 gr" araması "80 gr" ile bulunsun).
+      Prisma.sql`p."searchKeywords" ILIKE ${"%" + v + "%"}`,
+      Prisma.sql`p.features::text ILIKE ${"%" + v + "%"}`,
       Prisma.sql`word_similarity(${v}, p.name) > 0.4`,
     ]);
     return Prisma.sql`(${Prisma.join(fragments, " OR ")})`;

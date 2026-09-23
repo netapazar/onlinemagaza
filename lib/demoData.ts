@@ -119,6 +119,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = DEMO_CATEGORIES.flatMap((cat, catInd
       // Demo veri gerçek Store.onlineFiyatArtisOrani'yi okumuyor (statik, DB'siz
       // önizleme) — burada sabit %20 varsayılıyor, sadece görünüm amaçlı.
       listPriceCents: hasOnlineOverride ? Math.round(basePrice * 0.92) : round50(basePrice * 1.2),
+      shortDescription: null,
       stock,
       storefrontSortOrder: globalIndex,
       coverImageUrl: placeholderImage(name.slice(0, 2).toUpperCase(), cat.id),
