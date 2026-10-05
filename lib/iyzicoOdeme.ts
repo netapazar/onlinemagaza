@@ -494,7 +494,7 @@ export async function siparisOdemesiniIadeEt(orderId: string, ip: string): Promi
         return { ok: false, hata: `iyzico iptali başarısız: ${hata} Sipariş iptal edilmedi.` };
       }
       const ref = String(y.paymentId ?? deneme.iyzicoPaymentId);
-      await prisma.webOrderOdemeDenemesi.update({ where: { id: deneme.id }, data: { iadeTuru: "IPTAL", iadeRef: ref, iadeAt: new Date() } });
+      await prisma.webOrderOdemeDenemesi.update({ where: { id: deneme.id }, data: { iadeTuru: "IPTAL", iadeRef: ref, iadeAt: new Date(), hataMesaji: null } });
       return { ok: true, tur: "IPTAL", ref };
     }
 
@@ -528,7 +528,8 @@ export async function siparisOdemesiniIadeEt(orderId: string, ip: string): Promi
     const ref = kalemler.map((k) => k.iadeRef).filter(Boolean).join(",");
     await prisma.webOrderOdemeDenemesi.update({
       where: { id: deneme.id },
-      data: { kalemIslemleri: kalemler as unknown as Prisma.InputJsonValue, iadeTuru: "IADE", iadeRef: kisalt(ref), iadeAt: new Date() },
+      // Önceki yarım kalmış denemenin hata metni temizlenir (iade tamamlandı).
+      data: { kalemIslemleri: kalemler as unknown as Prisma.InputJsonValue, iadeTuru: "IADE", iadeRef: kisalt(ref), iadeAt: new Date(), hataMesaji: null },
     });
     return { ok: true, tur: "IADE", ref };
   } catch (e) {
