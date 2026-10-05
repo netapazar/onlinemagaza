@@ -30,6 +30,7 @@ export default function CheckoutPage() {
     canUseCariHesap: boolean;
     addresses: CheckoutAddress[];
     corporateUnvan: string | null;
+    kartOdemeAktif: boolean;
   } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("KART");
   const [sozlesmeOnay, setSozlesmeOnay] = useState(false);
@@ -43,7 +44,11 @@ export default function CheckoutPage() {
   }, [items]);
 
   useEffect(() => {
-    getCheckoutEligibility().then(setEligibility);
+    getCheckoutEligibility().then((e) => {
+      setEligibility(e);
+      // iyzico yapılandırılmamış ortamda (önizleme) kart seçili başlamasın.
+      if (!e.kartOdemeAktif) setPaymentMethod("HAVALE");
+    });
   }, []);
 
   if (lines === null || eligibility === null) {
@@ -123,10 +128,12 @@ export default function CheckoutPage() {
               name="paymentMethod"
               value="KART"
               checked={paymentMethod === "KART"}
+              disabled={!eligibility.kartOdemeAktif}
               onChange={() => setPaymentMethod("KART")}
               className="accent-[var(--color-brand)]"
             />
             Kredi/Banka Kartı
+            {!eligibility.kartOdemeAktif && <span className="text-xs text-neutral-400">(şu an kullanılamıyor)</span>}
             {/* eslint-disable-next-line @next/next/no-img-element -- küçük statik SVG logo */}
             <img src="/odeme/iyzico-ile-ode.svg" alt="iyzico ile Öde" width={105} height={16} className="ml-auto h-4 w-auto" />
           </label>

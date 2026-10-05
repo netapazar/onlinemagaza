@@ -89,9 +89,18 @@ export default async function SiparisDetayPage({ params }: { params: Promise<{ i
 
         {order.status === "ODEME_BEKLIYOR" && (
           <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            {order.paymentMethod === "CARI_HESAP"
-              ? "Siparişiniz onaylandığında cari hesabınıza işlenecek."
-              : "Ödeme onayı için ekibimiz sizinle iletişime geçecek."}
+            {order.paymentMethod === "CARI_HESAP" ? (
+              "Siparişiniz onaylandığında cari hesabınıza işlenecek."
+            ) : order.paymentMethod === "KART" ? (
+              <>
+                Kart ödemeniz tamamlanmadı.{" "}
+                <Link href={`/odeme/${order.id}`} className="font-medium underline">
+                  Ödemeyi tamamla
+                </Link>
+              </>
+            ) : (
+              "Ödeme onayı için ekibimiz sizinle iletişime geçecek."
+            )}
           </p>
         )}
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { miktarMetni } from "@/lib/satisBirimleri";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { centsToTl } from "@/lib/pricing";
 import ClearCartOnMount from "@/components/ClearCartOnMount";
@@ -22,6 +22,8 @@ export default async function SiparisAlindiPage({
     include: { items: true },
   });
   if (!order) notFound();
+  // Kart siparişi ödenmeden bu sayfa gösterilmez — ödeme durumu ve "Tekrar Dene" /odeme/[id]'de.
+  if (order.paymentMethod === "KART" && order.status === "ODEME_BEKLIYOR" && !order.paidAt) redirect(`/odeme/${order.id}`);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10">
@@ -61,7 +63,12 @@ export default async function SiparisAlindiPage({
         </p>
       </div>
 
-      {(order.paymentMethod === "KART" || order.paymentMethod === "HAVALE") && (
+      {order.paymentMethod === "KART" && order.paidAt && (
+        <p className="mb-6 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Ödemeniz kartınızdan alındı. Siparişiniz hazırlanmaya başlanacak.
+        </p>
+      )}
+      {order.paymentMethod === "HAVALE" && (
         <p className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Ödeme onayı için ekibimiz sizinle iletişime geçecek.
         </p>
