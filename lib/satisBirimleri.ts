@@ -19,7 +19,17 @@ export const SABIT_ICERIK: Partial<Record<SatisBirimiKodu, number>> = { ADET: 1,
 export const MIN_BIRIM_ICERIGI = 2;
 export const MAX_BIRIM_ICERIGI = 100_000;
 
-export type SatisBirimi = { birim: SatisBirimiKodu; adet: number };
+// barkod: birimin kendi barkodu (kutu/koli/düzine/paket ambalajındaki) — isteğe bağlı; Adet'in barkodu ürünün kendi barkodudur.
+export type SatisBirimi = { birim: SatisBirimiKodu; adet: number; barkod?: string };
+
+export const BIRIM_BARKODU_MAX = 32;
+
+// Boşsa null; geçersizse undefined (harf, rakam ve tire; en çok 32 karakter).
+function temizBarkod(raw: unknown): string | null | undefined {
+  const v = String(raw ?? "").replace(/\s+/g, "");
+  if (!v) return null;
+  return /^[0-9A-Za-z-]+$/.test(v) && v.length <= BIRIM_BARKODU_MAX ? v : undefined;
+}
 
 function isKod(v: unknown): v is SatisBirimiKodu {
   return typeof v === "string" && (SATIS_BIRIMLERI as readonly string[]).includes(v);
@@ -43,7 +53,8 @@ export function parseSatisBirimleri(raw: unknown): SatisBirimi[] {
     if (!isKod(birim) || out.some((o) => o.birim === birim)) continue;
     const adet = gecerliIcerik(birim, (r as { adet?: unknown }).adet);
     if (adet === null) continue;
-    out.push({ birim, adet });
+    const barkod = birim === "ADET" ? null : temizBarkod((r as { barkod?: unknown }).barkod);
+    out.push(barkod ? { birim, adet, barkod } : { birim, adet });
   }
   return out.sort((a, b) => a.adet - b.adet || SATIS_BIRIMLERI.indexOf(a.birim) - SATIS_BIRIMLERI.indexOf(b.birim));
 }
@@ -80,9 +91,9 @@ export function miktarMetni(birim: string | null, icerik: number | null, toplamA
   return `${Math.round(toplamAdet / icerik)} ${ad} (${toplamAdet} adet)`;
 }
 
-export type SatisBirimiGirdisi = { birim: string; acik: boolean; adet?: string | number | null };
+export type SatisBirimiGirdisi = { birim: string; acik: boolean; adet?: string | number | null; barkod?: string | null };
 
-// CRM ürün formu doğrulaması: en az bir birim açık olmalı; Paket/Kutu/Koli içeriği 2-100.000 arası tam sayı.
+// CRM ürün formu doğrulaması: en az bir birim açık olmalı; Paket/Kutu/Koli içeriği 2-100.000 arası tam sayı; birim barkodu isteğe bağlı.
 export function validateSatisBirimleri(
   girdiler: SatisBirimiGirdisi[]
 ): { ok: true; value: SatisBirimi[] } | { ok: false; error: string } {
@@ -96,7 +107,17 @@ export function validateSatisBirimleri(
         error: `${SATIS_BIRIMI_ETIKET[g.birim]} içeriği ${MIN_BIRIM_ICERIGI}-${MAX_BIRIM_ICERIGI.toLocaleString("tr-TR")} arası tam sayı olmalı.`,
       };
     }
-    value.push({ birim: g.birim, adet });
+    const barkod = g.birim === "ADET" ? null : temizBarkod(g.barkod);
+    if (barkod === undefined) {
+      return {
+        ok: false,
+        error: `${SATIS_BIRIMI_ETIKET[g.birim]} barkodu yalnız harf, rakam ve tire içerebilir (en çok ${BIRIM_BARKODU_MAX} karakter).`,
+      };
+    }
+    if (barkod && value.some((v) => v.barkod === barkod)) {
+      return { ok: false, error: `${barkod} barkodu birden fazla birimde girilmiş.` };
+    }
+    value.push(barkod ? { birim: g.birim, adet, barkod } : { birim: g.birim, adet });
   }
   if (value.length === 0) return { ok: false, error: "Paketli satış açıkken en az bir satış birimi seçilmeli." };
   return { ok: true, value: parseSatisBirimleri(value) };

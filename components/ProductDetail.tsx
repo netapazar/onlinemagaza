@@ -8,7 +8,7 @@ import { getRelatedProducts } from "@/lib/search";
 import { isBeforeShippingCutoff } from "@/lib/shipping";
 import { trTitle } from "@/lib/text";
 import { unitLabel } from "@/lib/units";
-import { birimEtiketi, urunSatisBirimleri } from "@/lib/satisBirimleri";
+import { birimEtiketi, SATIS_BIRIMI_ETIKET, urunSatisBirimleri } from "@/lib/satisBirimleri";
 import ProductGallery from "@/components/ProductGallery";
 import ProductMembershipBox from "@/components/ProductMembershipBox";
 import CorporatePriceHint from "@/components/MemberHint";
@@ -86,6 +86,10 @@ export default async function ProductDetail({ product }: { product: Product }) {
     { label: "Satış Birimi", value: satisBirimiMetni },
     product.packageInfo ? { label: "Paket İçeriği", value: product.packageInfo } : null,
     { label: "Barkod", value: product.barcode },
+    // Paketli satış: birimlerin kendi barkodları (kutu/koli ambalajı), girildiyse.
+    ...(satisBirimleri ?? [])
+      .filter((b) => b.barkod)
+      .map((b) => ({ label: `${SATIS_BIRIMI_ETIKET[b.birim]} Barkodu`, value: b.barkod as string })),
   ].filter((s): s is { label: string; value: string } => s !== null);
 
   return (
