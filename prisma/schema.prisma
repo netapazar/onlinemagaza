@@ -234,6 +234,11 @@ model Product {
   // Paket/koli içeriği, serbest metin ("50'li paket", "Koli: 12 adet") — vitrinde kartta ve detayda gösterilir, boşsa gizlenir.
   // `unit` yalnız birimin TÜRÜNÜ (Adet/Koli/Paket...) söyler; içinde kaç adet olduğu buradadır. En çok 60 karakter (src/lib/packageInfo.ts).
   packageInfo         String?
+  // Paketli satış (2026-10-05, bkz. lib/satisBirimleri.ts): true ise online fiyat ADET fiyatıdır ve müşteri yalnız
+  // satisBirimleri'ndeki birimlerin katları kadar alabilir. satisBirimleri: [{birim: "KUTU", adet: 50}, ...] — yalnız
+  // AÇIK birimler. false/boşsa ürün bugünkü gibi adet adet satılır.
+  paketliSatis        Boolean @default(false)
+  satisBirimleri      Json?
   // Null falls back to salePriceCents in the storefront's own price-resolve
   // helper — same nullable-override convention as marketingPriceCents.
   onlinePriceCents    Int?
@@ -741,7 +746,11 @@ model WebOrderItem {
   unitPriceCents Int
   unitCostCents  Int
   vatRate        Int    @default(20)
+  // Paketli satışta quantity TOPLAM ADETtir (irsaliye/fatura/stok bununla çalışır); müşterinin seçtiği birim ve o anki
+  // içeriği ayrıca saklanır ("2 Kutu (100 adet)" gösterimi için). Normal satışta ikisi de null.
   quantity       Int
+  satisBirimi    ProductUnit?
+  birimIcerigi   Int?
   lineTotalCents Int
 
   @@index([webOrderId])

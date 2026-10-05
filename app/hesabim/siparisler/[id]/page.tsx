@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { miktarMetni } from "@/lib/satisBirimleri";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getWebSession } from "@/lib/webSession";
@@ -39,7 +40,7 @@ export default async function SiparisDetayPage({ params }: { params: Promise<{ i
       shippingIlce: true,
       kargoFirmasi: true,
       kargoTakipNo: true,
-      items: { select: { id: true, name: true, quantity: true, unitPriceCents: true, lineTotalCents: true } },
+      items: { select: { id: true, name: true, quantity: true, satisBirimi: true, birimIcerigi: true, unitPriceCents: true, lineTotalCents: true } },
     },
   });
   if (!order) notFound();
@@ -110,7 +111,7 @@ export default async function SiparisDetayPage({ params }: { params: Promise<{ i
             <div key={item.id} className="flex items-start justify-between gap-3 py-2 text-sm">
               <span className="text-neutral-800">
                 {item.name}
-                <span className="text-neutral-500"> × {item.quantity}</span>
+                <span className="text-neutral-500"> × {miktarMetni(item.satisBirimi, item.birimIcerigi, item.quantity)}</span>
               </span>
               <span className="shrink-0 font-medium">{centsToTl(item.lineTotalCents)} ₺</span>
             </div>

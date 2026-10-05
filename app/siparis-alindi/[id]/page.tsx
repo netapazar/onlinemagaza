@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { miktarMetni } from "@/lib/satisBirimleri";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { centsToTl } from "@/lib/pricing";
@@ -38,7 +39,7 @@ export default async function SiparisAlindiPage({
           {order.items.map((item) => (
             <div key={item.id} className="flex justify-between py-2 text-sm">
               <span>
-                {item.name} × {item.quantity}
+                {item.name} × {miktarMetni(item.satisBirimi, item.birimIcerigi, item.quantity)}
               </span>
               <span className="font-medium">{centsToTl(item.lineTotalCents)} ₺</span>
             </div>

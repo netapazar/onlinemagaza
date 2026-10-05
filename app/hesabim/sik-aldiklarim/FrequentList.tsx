@@ -8,6 +8,7 @@ import ProductPlaceholder from "@/components/ProductPlaceholder";
 import { useCart } from "@/components/CartProvider";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { unitLabel } from "@/lib/units";
+import { birimEtiketi } from "@/lib/satisBirimleri";
 import type { StorefrontProductSummary } from "@/lib/search";
 
 export type FrequentRow = {
@@ -27,10 +28,12 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
   const [added, setAdded] = useState(false);
   const price = resolvePrice(product, memberDiscountPercent);
   const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
-  const inStock = product.stock > 0;
+  // Paketli satış: miktar en küçük açık birimden kaç tane (ör. 2 Kutu); fiyat adet fiyatı.
+  const enKucukBirim = product.satisBirimleri?.[0] ?? null;
+  const inStock = product.stock >= (enKucukBirim?.adet ?? 1);
   // Son alımın birimi sitedeki satış birimiyle aynıysa miktar doğrudan doldurulabilir; farklıysa (ör. mağazadan
   // adet alınmış, sitede paket satılıyor) yalnız bilgi gösterilir — yanlış miktar doldurulmasın.
-  const sameUnit = row.lastUnit === product.unit;
+  const sameUnit = !enKucukBirim && row.lastUnit === product.unit;
   const lastLabel = `${row.lastQuantity} ${unitLabel(row.lastUnit).toLocaleLowerCase("tr-TR")}`;
   const lastDate = new Date(row.lastAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" });
 
@@ -53,17 +56,23 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
           {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
           <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
         </Link>
-        {product.packageInfo && <p className="text-xs text-neutral-500">{product.packageInfo}</p>}
+        {enKucukBirim ? (
+          <p className="text-xs text-neutral-500">Miktar: {birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)} olarak</p>
+        ) : (
+          product.packageInfo && <p className="text-xs text-neutral-500">{product.packageInfo}</p>
+        )}
         <p className="mt-1 text-xs text-neutral-600">
           Son aldığınız: <span className="font-medium">{lastLabel}</span> · {lastDate}
           {row.purchaseCount > 1 && <span className="text-neutral-400"> · {row.purchaseCount} kez aldınız</span>}
-          {!sameUnit && (
+          {!sameUnit && !enKucukBirim && (
             <span className="text-neutral-400"> · sitede {unitLabel(product.unit).toLocaleLowerCase("tr-TR")} olarak satılıyor</span>
           )}
         </p>
         <p className="mt-0.5 text-sm font-semibold text-neutral-900">
           {centsToTl(price.displayCents)} ₺
-          <span className="ml-1 text-[10px] font-normal text-neutral-400">KDV Dahil / {unitLabel(product.unit).toLocaleLowerCase("tr-TR")}</span>
+          <span className="ml-1 text-[10px] font-normal text-neutral-400">
+            KDV Dahil / {enKucukBirim ? "adet" : unitLabel(product.unit).toLocaleLowerCase("tr-TR")}
+          </span>
         </p>
       </div>
 
@@ -97,7 +106,7 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
           <button
             type="button"
             onClick={() => {
-              addItem(product.id, qty, product.name);
+              addItem(product.id, qty, product.name, enKucukBirim?.birim ?? null);
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}

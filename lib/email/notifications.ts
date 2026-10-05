@@ -12,6 +12,7 @@
 // `runAfterResponse` içinden çağrılır ve her hatayı yutar — sipariş/kayıt
 // akışını asla etkilemez.
 import { after } from "next/server";
+import { miktarMetni } from "@/lib/satisBirimleri";
 import { prisma } from "@/lib/prisma";
 import { logSkippedEmail, sendEmail, type SendEmailInput } from "./send";
 import { formatTl, orderNo, renderEmail, storefrontUrl, type EmailBlock } from "./render";
@@ -77,7 +78,12 @@ export async function notifyOrderPlaced(orderId: string) {
   summary.push(["Toplam", formatTl(order.totalCents)]);
   const itemsBlock: EmailBlock = {
     kind: "items",
-    items: order.items.map((i) => ({ name: i.name, quantity: i.quantity, totalCents: i.lineTotalCents })),
+    items: order.items.map((i) => ({
+      // Paketli satışta adı "… — 2 Kutu (100 adet)" olarak; quantity her zaman toplam adet.
+      name: i.satisBirimi ? `${i.name} — ${miktarMetni(i.satisBirimi, i.birimIcerigi, i.quantity)}` : i.name,
+      quantity: i.quantity,
+      totalCents: i.lineTotalCents,
+    })),
     summary,
   };
 

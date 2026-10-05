@@ -8,6 +8,7 @@ import { getRelatedProducts } from "@/lib/search";
 import { isBeforeShippingCutoff } from "@/lib/shipping";
 import { trTitle } from "@/lib/text";
 import { unitLabel } from "@/lib/units";
+import { birimEtiketi, urunSatisBirimleri } from "@/lib/satisBirimleri";
 import ProductGallery from "@/components/ProductGallery";
 import ProductMembershipBox from "@/components/ProductMembershipBox";
 import CorporatePriceHint from "@/components/MemberHint";
@@ -28,6 +29,8 @@ type Product = {
   barcodeIsGenerated?: boolean;
   productCode?: string | null;
   packageInfo?: string | null;
+  paketliSatis?: boolean;
+  satisBirimleri?: unknown;
   unit: string;
   categoryId: string | null;
   images: { id: string; url: string; altText: string | null }[];
@@ -46,14 +49,24 @@ export default async function ProductDetail({ product }: { product: Product }) {
   ]);
   const listPriceCents = computeListPriceCents(product, markupPercent);
   const price = resolvePrice({ listPriceCents }, memberDiscountPercent);
-  const sameDayShipping = product.stock > 0 && isBeforeShippingCutoff();
+  // Paketli satış: fiyat adet fiyatı; satış birimi satırında açık birimler listelenir.
+  const satisBirimleri = urunSatisBirimleri({
+    paketliSatis: product.paketliSatis ?? false,
+    satisBirimleri: product.satisBirimleri ?? null,
+  });
+  // Paketli üründe en küçük birim kadar stok yoksa satılamaz.
+  const satilabilir = product.stock >= (satisBirimleri?.[0].adet ?? 1);
+  const sameDayShipping = satilabilir && isBeforeShippingCutoff();
+  const satisBirimiMetni = satisBirimleri
+    ? satisBirimleri.map((b) => birimEtiketi(b.birim, b.adet)).join(", ")
+    : unitLabel(product.unit);
 
   // Kurumsal alıcının hızlı bakacağı künye satırı. İç üretim (barcodeIsGenerated) barkodlar üreticiye ait olmadığı ve
   // müşteriye anlam taşımadığı için bu satırda gösterilmez (aşağıdaki "Özellikler" sekmesinde yine listelenir).
   const meta = [
     product.productCode ? { label: "Ürün kodu", value: product.productCode } : null,
     product.barcode && !product.barcodeIsGenerated ? { label: "Barkod", value: product.barcode } : null,
-    { label: "Satış birimi", value: unitLabel(product.unit) },
+    { label: "Satış birimi", value: satisBirimiMetni },
     product.packageInfo ? { label: "Paket içeriği", value: product.packageInfo } : null,
   ].filter((m): m is { label: string; value: string } => m !== null);
 
@@ -70,7 +83,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
     product.brand ? { label: "Marka", value: product.brand.name } : null,
     product.category ? { label: "Kategori", value: trTitle(product.category.name) } : null,
     product.productCode ? { label: "Ürün Kodu", value: product.productCode } : null,
-    { label: "Satış Birimi", value: unitLabel(product.unit) },
+    { label: "Satış Birimi", value: satisBirimiMetni },
     product.packageInfo ? { label: "Paket İçeriği", value: product.packageInfo } : null,
     { label: "Barkod", value: product.barcode },
   ].filter((s): s is { label: string; value: string } => s !== null);
@@ -99,7 +112,10 @@ export default async function ProductDetail({ product }: { product: Product }) {
             {price.discounted && (
               <span className="text-sm text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
-            <span className="text-2xl font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</span>
+            <span className="text-2xl font-semibold text-neutral-900">
+              {centsToTl(price.displayCents)} ₺
+              {satisBirimleri && <span className="ml-1 text-sm font-normal text-neutral-500">/ adet</span>}
+            </span>
             {price.discounted && (
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                 {`Üye fiyatı · %${price.discountPercent}`}
@@ -107,16 +123,27 @@ export default async function ProductDetail({ product }: { product: Product }) {
             )}
           </div>
           <p className="text-xs text-neutral-400">KDV Dahil</p>
+          {satisBirimleri && (
+            <p className="mt-1 text-xs text-neutral-600">
+              En az {satisBirimleri[0].adet} adet ({birimEtiketi(satisBirimleri[0].birim, satisBirimleri[0].adet)}) satılır.
+            </p>
+          )}
           <CorporatePriceHint className="mt-1" />
 
-          {product.stock > 0 ? (
+          {satilabilir ? (
             <p className="mt-3 mb-4 text-sm text-emerald-700">Stokta var</p>
           ) : (
             <p className="mt-3 mb-4 text-sm font-medium text-red-600">Stokta yok</p>
           )}
 
           <div className="mb-5">
-            <AddToCartButton productId={product.id} stock={product.stock} name={product.name} />
+            <AddToCartButton
+              productId={product.id}
+              stock={product.stock}
+              name={product.name}
+              satisBirimleri={satisBirimleri}
+              adetFiyatiCents={price.displayCents}
+            />
           </div>
 
           <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">

@@ -10,6 +10,7 @@ import { useFavorites } from "@/components/FavoritesProvider";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import CorporatePriceHint from "@/components/MemberHint";
 import { unitLabel } from "@/lib/units";
+import { birimEtiketi } from "@/lib/satisBirimleri";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 
@@ -33,7 +34,10 @@ export default function ProductCard({
   const { isFavorite, toggle } = useFavorites();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const inStock = product.stock > 0;
+  // Paketli satış: karttan hızlı eklemede en küçük açık birim kullanılır (diğer birimler ürün sayfasında).
+  const enKucukBirim = product.satisBirimleri?.[0] ?? null;
+  const icerik = enKucukBirim?.adet ?? 1;
+  const inStock = product.stock >= icerik;
   const favorite = isFavorite(product.id);
 
   return (
@@ -91,10 +95,16 @@ export default function ProductCard({
             <p className="line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
           )}
           {/* Paket içeriği varsa o ("50'li paket"); yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa hiçbir şey */}
-          {(product.packageInfo || product.unit !== "ADET") && (
+          {enKucukBirim ? (
             <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
-              {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
+              {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
             </span>
+          ) : (
+            (product.packageInfo || product.unit !== "ADET") && (
+              <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
+                {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
+              </span>
+            )
           )}
         </div>
       </Link>
@@ -105,7 +115,10 @@ export default function ProductCard({
             {price.discounted && (
               <span className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
-            <span className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</span>
+            <span className="text-sm font-semibold text-neutral-900">
+              {centsToTl(price.displayCents)} ₺
+              {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
+            </span>
           </div>
           <span className="text-[10px] text-neutral-400">KDV Dahil</span>
           <CorporatePriceHint className="mt-0.5" />
@@ -113,11 +126,12 @@ export default function ProductCard({
 
         {inStock && (
           <div className="flex items-stretch gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
-            <QuantityStepper value={quantity} max={product.stock} onChange={setQuantity} size="sm" />
+            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="sm" />
             <button
               type="button"
+              title={enKucukBirim ? `${quantity} ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}` : undefined}
               onClick={() => {
-                addItem(product.id, quantity, product.name);
+                addItem(product.id, quantity, product.name, enKucukBirim?.birim ?? null);
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}

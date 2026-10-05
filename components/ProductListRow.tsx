@@ -10,6 +10,7 @@ import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
+import { birimEtiketi } from "@/lib/satisBirimleri";
 
 // Izgara kartıyla (ProductCard) aynı veri/fiyat mantığı, sadece geniş
 // yatay satır düzeninde — listeleme sayfasının "liste görünümü" seçeneği için.
@@ -25,7 +26,9 @@ export default function ProductListRow({
   const { addItem } = useCart();
   const { isFavorite, toggle } = useFavorites();
   const [added, setAdded] = useState(false);
-  const inStock = product.stock > 0;
+  // Paketli satış: hızlı eklemede en küçük açık birim (1 tane).
+  const enKucukBirim = product.satisBirimleri?.[0] ?? null;
+  const inStock = product.stock >= (enKucukBirim?.adet ?? 1);
   const favorite = isFavorite(product.id);
 
   return (
@@ -46,7 +49,11 @@ export default function ProductListRow({
         {product.shortDescription && (
           <p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
         )}
-        {product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>}
+        {enKucukBirim ? (
+          <p className="mt-0.5 text-xs text-neutral-500">En az {birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}</p>
+        ) : (
+          product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>
+        )}
         <p className="mt-1 text-xs font-medium">
           {inStock ? <span className="text-emerald-700">Bugün Kargoda</span> : <span className="text-red-600">Stokta Yok</span>}
         </p>
@@ -54,7 +61,9 @@ export default function ProductListRow({
 
       <div className="shrink-0 text-right">
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
-        <p className="text-sm font-semibold text-neutral-900">{centsToTl(price.displayCents)} ₺</p>
+        <p className="text-sm font-semibold text-neutral-900">
+          {centsToTl(price.displayCents)} ₺{enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
+        </p>
         <p className="text-[10px] text-neutral-400">KDV Dahil</p>
         <CorporatePriceHint className="mt-0.5 justify-end" />
       </div>
@@ -76,7 +85,7 @@ export default function ProductListRow({
           <button
             type="button"
             onClick={() => {
-              addItem(product.id, 1, product.name);
+              addItem(product.id, 1, product.name, enKucukBirim?.birim ?? null);
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}

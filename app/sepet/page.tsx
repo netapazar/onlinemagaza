@@ -11,9 +11,10 @@ import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 
-const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
+const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> = {
   STOCK: "Stokta yok",
   NOT_FOR_SALE: "Bu ürün artık satışta değil",
+  BIRIM: "Satış birimi değişti — kaldırıp yeniden ekleyin",
 };
 
 export default function SepetPage() {
@@ -56,7 +57,7 @@ export default function SepetPage() {
 
       <div className="mb-6 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white shadow-sm">
         {lines.map((line) => (
-          <div key={line.productId} className={`flex items-center gap-3 p-4 ${!line.available ? "opacity-60" : ""}`}>
+          <div key={`${line.productId}|${line.birim ?? ""}`} className={`flex items-center gap-3 p-4 ${!line.available ? "opacity-60" : ""}`}>
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
               {line.coverImageUrl ? (
                 <StoreImage src={line.coverImageUrl} alt="" sizes="64px" eager className="object-cover" />
@@ -66,13 +67,20 @@ export default function SepetPage() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-neutral-900">{line.name}</p>
-              <p className="text-sm text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
+              <p className="text-sm text-neutral-500">
+                {centsToTl(line.unitPriceCents)} ₺{line.birim && " / adet"}
+              </p>
+              {line.birimEtiketi && (
+                <p className="text-xs text-neutral-500">
+                  {line.birimEtiketi} × {line.quantity} = <span className="font-medium">{line.adet} adet</span>
+                </p>
+              )}
               {line.unavailableReason ? (
                 <p className="text-xs font-medium text-red-600">
                   {UNAVAILABLE_MESSAGES[line.unavailableReason]} — siparişe dahil edilmeyecek
                 </p>
               ) : (
-                line.quantity > line.stock && (
+                line.adet > line.stock && (
                   <p className="text-xs font-medium text-red-600">Stokta sadece {line.stock} adet var</p>
                 )
               )}
@@ -80,18 +88,18 @@ export default function SepetPage() {
             {line.available ? (
               <QuantityStepper
                 value={line.quantity}
-                max={line.stock}
-                onChange={(next) => updateQuantity(line.productId, next)}
+                max={line.maxQuantity}
+                onChange={(next) => updateQuantity(line.productId, next, line.birim)}
               />
             ) : (
-              <span className="px-2 text-sm text-neutral-400">{line.quantity} adet</span>
+              <span className="px-2 text-sm text-neutral-400">{line.birim ? `${line.quantity} ${line.birimEtiketi ?? line.birim}` : `${line.quantity} adet`}</span>
             )}
             <p className="w-20 shrink-0 text-right text-sm font-semibold">
               {line.available ? `${centsToTl(line.lineTotalCents)} ₺` : "—"}
             </p>
             <button
               type="button"
-              onClick={() => removeItem(line.productId)}
+              onClick={() => removeItem(line.productId, line.birim)}
               className={`text-xs text-red-500 hover:underline ${!line.available ? "font-medium" : ""}`}
             >
               {line.available ? "Kaldır" : "Sepetten kaldır"}
