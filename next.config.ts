@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Eski "Cayma Hakkı ve İade" sayfası "Teslimat ve İade Şartları"na taşındı (iyzico başvurusu, 2026-10-05).
+  async redirects() {
+    return [{ source: "/hukuki/cayma-hakki", destination: "/hukuki/teslimat-ve-iade", permanent: true }];
+  },
   images: {
     // Ürün görselleri CRM'den yüklenirken zaten en çok 1200 px WebP'ye küçültülüp Supabase'e konuyor; next/image bunu
     // ekrandaki gerçek boyuta (kart ~200-400 px) indirir. Yalnız bu bucket'a izin verilir (bkz. components/StoreImage.tsx).

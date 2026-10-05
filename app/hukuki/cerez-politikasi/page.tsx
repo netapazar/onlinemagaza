@@ -1,4 +1,5 @@
 import LegalPage from "@/components/LegalPage";
+import { SIRKET } from "@/lib/sirket";
 
 export const metadata = { title: "Çerez Politikası" };
 
@@ -60,7 +61,7 @@ export default function CerezPolitikasiPage() {
 
       <h2 className={h2}>İletişim</h2>
       <p>
-        Çerez politikamız hakkında sorularınız için [e-posta] adresinden bize ulaşabilirsiniz.
+        Çerez politikamız hakkında sorularınız için {SIRKET.email} adresinden bize ulaşabilirsiniz.
       </p>
     </LegalPage>
   );

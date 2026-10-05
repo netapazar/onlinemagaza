@@ -26,12 +26,12 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Kargo ücreti ne kadar?",
     answer:
-      "Kargo ücretlendirmesi şu anda geçerli değildir, tüm siparişler ücretsiz kargo ile gönderilmektedir. [Kargo firması ve olası ücret politikası netleştiğinde bu bölüm güncellenecektir.]",
+      "Siparişlerimiz Sürat Kargo ile gönderilir. Şu anda tüm siparişlerde kargo ücretsizdir.",
   },
   {
     question: "Siparişimi nasıl iade edebilirim?",
     answer:
-      "Ürünü teslim aldıktan sonra 14 gün içinde, kullanılmamış ve orijinal ambalajında olmak koşuluyla iade edebilirsiniz. Detaylar için Cayma Hakkı ve İade Koşulları sayfamızı inceleyebilirsiniz.",
+      "Ürünü teslim aldıktan sonra 14 gün içinde, kullanılmamış ve orijinal ambalajında olmak koşuluyla iade edebilirsiniz. İade kargo ücreti alıcıya aittir; ayıplı veya hatalı gönderilen ürünlerde kargo ücretini biz karşılarız. Detaylar için Teslimat ve İade Şartları sayfamızı inceleyebilirsiniz.",
   },
   {
     question: "Hangi ödeme yöntemlerini kullanabilirim?",

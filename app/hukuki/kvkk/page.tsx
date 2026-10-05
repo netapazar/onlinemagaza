@@ -1,4 +1,5 @@
 import LegalPage from "@/components/LegalPage";
+import { SIRKET } from "@/lib/sirket";
 
 export const metadata = { title: "KVKK Aydınlatma Metni" };
 
@@ -10,7 +11,7 @@ export default function KvkkPage() {
     <LegalPage title="Kişisel Verilerin Korunması Kanunu Aydınlatma Metni" updatedNote="6698 sayılı Kişisel Verilerin Korunması Kanunu'na uygun hazırlanmıştır.">
       <h2 className={h2}>Veri Sorumlusu</h2>
       <p>
-        [Şirket Unvanı] (&quot;Şirket&quot;) olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu
+        {SIRKET.unvan} ({SIRKET.marka}, &quot;Şirket&quot;; {SIRKET.adres}) olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu
         (&quot;KVKK&quot;) uyarınca veri sorumlusu sıfatıyla, kişisel verilerinizi aşağıda açıklanan
         kapsamda işlemekteyiz.
       </p>
@@ -61,7 +62,7 @@ export default function KvkkPage() {
         <li>Otomatik sistemlerle analiz edilerek aleyhinize bir sonucun ortaya çıkmasına itiraz etme,</li>
         <li>Kanuna aykırı işlenmesi sebebiyle zarara uğramanız halinde zararın giderilmesini talep etme,</li>
       </ul>
-      <p>haklarına sahiptir. Bu haklarınızı kullanmak için [e-posta] adresine yazılı olarak başvurabilirsiniz.</p>
+      <p>haklarına sahiptir. Bu haklarınızı kullanmak için {SIRKET.email} adresine yazılı olarak başvurabilirsiniz.</p>
     </LegalPage>
   );
 }
