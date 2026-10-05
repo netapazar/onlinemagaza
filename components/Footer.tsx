@@ -1,19 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, CreditCard, Landmark, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import { getSiteInfo } from "@/lib/siteInfo";
+import { SIRKET } from "@/lib/sirket";
 import SocialIcon from "@/components/SocialIcons";
 
-// wa.me numarasıyla aynı hat (bkz. AnnouncementBar/WhatsAppButton) — ayrı bir
-// sabit hat/e-posta adresi tanımlı değil, uydurulmadı.
-const PHONE_DISPLAY = "0551 487 21 74";
-const PHONE_HREF = "tel:+905514872174";
+// WhatsApp hattı (bkz. AnnouncementBar/WhatsAppButton); işletme telefonu/e-posta/adres lib/sirket.ts'ten.
+const WHATSAPP_DISPLAY = "0551 487 21 74";
+const WHATSAPP_HREF = "https://wa.me/905514872174";
 
 export default async function Footer() {
   const categories = await getStorefrontCategoriesWithCounts();
   // Adres / e-posta / çalışma saatleri / sosyal medya ortam değişkenlerinden gelir (bkz. lib/siteInfo.ts); tanımsızsa GİZLİ.
   const info = getSiteInfo();
+  // Ortam değişkeni tanımlı değilse işletme bilgisine düşülür (iyzico başvurusu: iletişim bilgileri sitede görünmeli).
+  const email = info.email ?? SIRKET.email;
+  const address = info.address ?? [SIRKET.adres];
 
   return (
     <footer className="border-t border-neutral-200 bg-neutral-50">
@@ -25,24 +28,33 @@ export default async function Footer() {
           </p>
           <ul className="space-y-2 text-sm text-neutral-600">
             <li>
-              <a href={PHONE_HREF} className="flex items-center gap-1.5 hover:text-[var(--color-brand)]">
+              <a href={SIRKET.telefonHref} className="flex items-center gap-1.5 hover:text-[var(--color-brand)]">
                 <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
-                {PHONE_DISPLAY}
+                {SIRKET.telefonGorunen}
               </a>
             </li>
-            {info.email && (
-              <li>
-                <a href={`mailto:${info.email}`} className="flex items-center gap-1.5 break-all hover:text-[var(--color-brand)]">
-                  <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  {info.email}
-                </a>
-              </li>
-            )}
-            {info.address && (
+            <li>
+              <a
+                href={WHATSAPP_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-[var(--color-brand)]"
+              >
+                <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                WhatsApp: {WHATSAPP_DISPLAY}
+              </a>
+            </li>
+            <li>
+              <a href={`mailto:${email}`} className="flex items-center gap-1.5 break-all hover:text-[var(--color-brand)]">
+                <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {email}
+              </a>
+            </li>
+            {address && (
               <li className="flex items-start gap-1.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>
-                  {info.address.map((line, i) => (
+                  {address.map((line, i) => (
                     <span key={i} className="block">
                       {line}
                     </span>
@@ -85,6 +97,11 @@ export default async function Footer() {
           <h3 className="mb-3 text-sm font-semibold text-neutral-900">Kurumsal</h3>
           <ul className="space-y-2 text-sm text-neutral-500">
             <li>
+              <Link href="/hakkimizda" className="hover:text-[var(--color-brand)]">
+                Hakkımızda
+              </Link>
+            </li>
+            <li>
               <Link href="/hesabim/uyelik-basvurusu" className="hover:text-[var(--color-brand)]">
                 Kurumsal Üyelik
               </Link>
@@ -116,8 +133,13 @@ export default async function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/hukuki/cayma-hakki" className="hover:text-[var(--color-brand)]">
-                Cayma Hakkı ve İade
+              <Link href="/hukuki/teslimat-ve-iade" className="hover:text-[var(--color-brand)]">
+                Teslimat ve İade Şartları
+              </Link>
+            </li>
+            <li>
+              <Link href="/hukuki/gizlilik-politikasi" className="hover:text-[var(--color-brand)]">
+                Gizlilik Politikası
               </Link>
             </li>
             <li>
@@ -152,16 +174,14 @@ export default async function Footer() {
       <div className="border-t border-neutral-200">
         <div className="mx-auto flex max-w-content flex-col items-center gap-3 px-4 py-4 text-xs text-neutral-400 sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} Tedarikhane. Tüm hakları saklıdır.</p>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2 py-1">
-              <CreditCard className="h-3.5 w-3.5" aria-hidden="true" />
-              Kredi/Banka Kartı
-            </span>
-            <span className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2 py-1">
-              <Landmark className="h-3.5 w-3.5" aria-hidden="true" />
-              Havale/EFT
-            </span>
-          </div>
+          {/* iyzico logo paketi (footer bandı): iyzico ile Öde, Mastercard, Visa, American Express, Troy */}
+          <Image
+            src="/odeme/iyzico-logo-bandi.svg"
+            alt="iyzico ile Öde — Mastercard, Visa, American Express, Troy"
+            width={429}
+            height={32}
+            className="h-6 w-auto max-w-full sm:h-7"
+          />
         </div>
       </div>
     </footer>

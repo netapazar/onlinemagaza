@@ -1,4 +1,5 @@
 import LegalPage from "@/components/LegalPage";
+import { SIRKET } from "@/lib/sirket";
 
 export const metadata = { title: "Mesafeli Satış Sözleşmesi" };
 
@@ -10,7 +11,8 @@ export default function MesafeliSatisPage() {
     <LegalPage title="Mesafeli Satış Sözleşmesi" updatedNote="6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği'ne uygun hazırlanmıştır.">
       <h2 className={h2}>1. Taraflar</h2>
       <p>
-        <strong>SATICI:</strong> [Şirket Unvanı], [Adres], [Vergi Dairesi/No], [Mersis No], [E-posta], [Telefon]
+        <strong>SATICI:</strong> {SIRKET.unvan} ({SIRKET.marka}), Adres: {SIRKET.adres}, VKN/TCKN: {SIRKET.vkn}, E-posta:{" "}
+        {SIRKET.email}, Telefon: {SIRKET.telefonGorunen}, İnternet sitesi: {SIRKET.site}{" "}
         (bundan sonra &quot;SATICI&quot; olarak anılacaktır).
       </p>
       <p>
@@ -60,10 +62,10 @@ export default function MesafeliSatisPage() {
         ALICI; sözleşme konusu ürünün kendisine veya gösterdiği adresteki kişi/kuruluşa tesliminden itibaren
         <strong> 14 (on dört) gün</strong> içinde, hiçbir hukuki ve cezai sorumluluk üstlenmeksizin ve hiçbir
         gerekçe göstermeksizin malı reddederek sözleşmeden cayma hakkına sahiptir. Cayma hakkının kullanılması
-        için bu süre içinde SATICI&apos;ya [e-posta] veya [telefon] üzerinden yazılı bildirimde bulunulması
+        için bu süre içinde SATICI&apos;ya {SIRKET.email} adresinden veya {SIRKET.telefonGorunen} numaralı telefondan bildirimde bulunulması
         gerekmektedir. Detaylı bilgi ve istisnalar için{" "}
-        <a href="/hukuki/cayma-hakki" className="underline">
-          Cayma Hakkı ve İade Koşulları
+        <a href="/hukuki/teslimat-ve-iade" className="underline">
+          Teslimat ve İade Şartları
         </a>{" "}
         sayfasını inceleyiniz.
       </p>

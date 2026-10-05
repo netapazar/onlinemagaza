@@ -127,6 +127,8 @@ export default function CheckoutPage() {
               className="accent-[var(--color-brand)]"
             />
             Kredi/Banka Kartı
+            {/* eslint-disable-next-line @next/next/no-img-element -- küçük statik SVG logo */}
+            <img src="/odeme/iyzico-ile-ode.svg" alt="iyzico ile Öde" width={105} height={16} className="ml-auto h-4 w-auto" />
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -181,8 +183,8 @@ export default function CheckoutPage() {
               Mesafeli Satış Sözleşmesi
             </Link>
             &apos;ni ve{" "}
-            <Link href="/hukuki/cayma-hakki" target="_blank" className="underline">
-              Cayma Hakkı ve İade Koşulları
+            <Link href="/hukuki/teslimat-ve-iade" target="_blank" className="underline">
+              Teslimat ve İade Şartları
             </Link>
             &apos;nı okudum, kabul ediyorum.
           </span>
