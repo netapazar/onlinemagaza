@@ -12,6 +12,9 @@ import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
 import { formatAddress, parseAddress } from "@/lib/addressCore";
 import { birimCoz, birimEtiketi } from "@/lib/satisBirimleri";
+import { iyzicoYapilandirildi } from "@/lib/iyzico";
+import { odemeOturumuBaslat } from "@/lib/iyzicoOdeme";
+import { istekBilgisi } from "@/lib/odemeIstek";
 
 // birim: paketli satış ürününde seçilen birim; quantity o birimden kaç tane (bkz. CartProvider). Normal üründe quantity adettir.
 export type CartItemInput = { productId: string; quantity: number; birim?: string | null };
@@ -151,7 +154,7 @@ export type CheckoutAddress = {
 export async function getCheckoutEligibility() {
   const session = await getWebSession();
   if (!session) {
-    return { loggedIn: false, name: "", email: "", phone: "", canUseCariHesap: false, addresses: [] as CheckoutAddress[], corporateUnvan: null as string | null };
+    return { loggedIn: false, name: "", email: "", phone: "", canUseCariHesap: false, addresses: [] as CheckoutAddress[], corporateUnvan: null as string | null, kartOdemeAktif: iyzicoYapilandirildi() };
   }
   const customer = await prisma.webCustomer.findUnique({
     where: { id: session.webCustomerId },
@@ -179,6 +182,8 @@ export async function getCheckoutEligibility() {
     // Grup 3: cari hesapla ödeme artık ayrı bir yetki (onlineCariHesapAktif) —
     // üyelik erişimi (iskonto) açık olsa bile bu kapalı olabilir.
     canUseCariHesap: Boolean(customer?.firma?.onlineErisimAktif && customer.firma.onlineCariHesapAktif),
+    // iyzico anahtarı olmayan ortamda (önizleme) kart seçeneği kapalı gösterilir.
+    kartOdemeAktif: iyzicoYapilandirildi(),
   };
 }
 
@@ -209,6 +214,9 @@ export async function createOrder(
   const paymentMethodRaw = String(formData.get("paymentMethod") ?? "KART");
   const paymentMethod =
     paymentMethodRaw === "HAVALE" ? "HAVALE" : paymentMethodRaw === "CARI_HESAP" ? "CARI_HESAP" : "KART";
+  if (paymentMethod === "KART" && !iyzicoYapilandirildi()) {
+    return { error: "Kartla ödeme şu an kullanılamıyor. Lütfen başka bir ödeme yöntemi seçin." };
+  }
 
   const guestName = String(formData.get("guestName") ?? "").trim();
   const guestEmail = String(formData.get("guestEmail") ?? "").trim();
@@ -407,6 +415,13 @@ export async function createOrder(
     } catch (error) {
       console.error("[checkout] adres kaydedilemedi:", error);
     }
+  }
+
+  // Kart: sipariş "Ödeme Bekliyor" kalır, müşteri iyzico ödeme sayfasına gider. "Sipariş alındı" e-postaları ÖDEME
+  // DOĞRULANINCA gider (bkz. app/odeme/sonuc). Oturum açılamazsa sipariş sayfasında hata + "Tekrar Dene" görünür.
+  if (paymentMethod === "KART") {
+    const odeme = await odemeOturumuBaslat(order.id, await istekBilgisi());
+    redirect(odeme.ok ? odeme.url : `/odeme/${order.id}`);
   }
 
   runAfterResponse("ORDER_PLACED", () => notifyOrderPlaced(order.id));

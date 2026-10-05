@@ -700,6 +700,12 @@ model WebOrder {
   paymentMethod   WebOrderPaymentMethod
   paymentProvider String?
   paymentRef      String?
+  // Kartla ödeme (iyzico, 2026-10): paidAt — ödeme iyzico'dan SUNUCUDA doğrulandığı an (status ODENDI ile birlikte yazılır);
+  // iyzicoToken — siparişin şu anki ödeme oturumu (Checkout Form token). paymentProvider "IYZICO", paymentRef iyzico paymentId.
+  // Ayrıntı ve deneme geçmişi: WebOrderOdemeDenemesi (bkz. lib/iyzicoOdeme.ts).
+  paidAt          DateTime?
+  iyzicoToken     String?
+  odemeDenemeleri WebOrderOdemeDenemesi[]
 
   kargoFirmasi String?
   kargoTakipNo String?
@@ -732,6 +738,48 @@ model WebOrder {
   @@index([webCustomerId])
 }
 
+// Kart ödeme denemesi (iyzico Checkout Form oturumu) — her oturum bir satır. Çift ödeme koruması, "Tekrar Dene",
+// takılı ödeme kontrolü, tutar uyuşmazlığı kaydı ve iptal/iade izi bu tabloya dayanır (bkz. lib/iyzicoOdeme.ts).
+// referans: iyzico'ya giden tekil conversationId ("<siparişId>-<denemeNo>"). Kart bilgisi ve iyzico yanıtının tamamı SAKLANMAZ.
+enum OdemeDenemeDurumu {
+  BASLATILDI
+  BASARILI
+  BASARISIZ
+  TUTAR_UYUSMAZ
+}
+
+model WebOrderOdemeDenemesi {
+  id                     String            @id @default(cuid())
+  webOrderId             String
+  webOrder               WebOrder          @relation(fields: [webOrderId], references: [id])
+  denemeNo               Int
+  referans               String            @unique
+  token                  String?           @unique
+  odemeSayfasiUrl        String?
+  tokenSonGecerlilik     DateTime?
+  durum                  OdemeDenemeDurumu @default(BASLATILDI)
+  // Oturum açılırken sunucuda hesaplanan tutar (kuruş) — dönüşte iyzico'nun bildirdiği tutar buna eşit olmalı.
+  beklenenTutarCents     Int
+  odenenTutarCents       Int?
+  iyzicoPaymentId        String?
+  // [{ paymentTransactionId, paidPriceCents, iadeEdildi?, iadeRef? }] — kalem bazında iade için.
+  kalemIslemleri         Json?
+  hataKodu               String?
+  hataMesaji             String?
+  // Tutar uyuşmazlığı yönetici e-postası bir kez gitsin.
+  uyusmazlikBildirildiAt DateTime?
+  // İptal/iade: tur "IPTAL" (aynı gün) | "IADE"; ref iyzico'nun döndüğü referans(lar).
+  iadeTuru               String?
+  iadeRef                String?
+  iadeAt                 DateTime?
+  sonuclananAt           DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@unique([webOrderId, denemeNo])
+  @@index([durum, createdAt])
+}
+
 model WebOrderItem {
   id         String   @id @default(cuid())
   webOrderId String
@@ -745,7 +793,7 @@ model WebOrderItem {
   name           String
   unitPriceCents Int
   unitCostCents  Int
-  vatRate        Int    @default(20)
+  vatRate        Int          @default(20)
   // Paketli satışta quantity TOPLAM ADETtir (irsaliye/fatura/stok bununla çalışır); müşterinin seçtiği birim ve o anki
   // içeriği ayrıca saklanır ("2 Kutu (100 adet)" gösterimi için). Normal satışta ikisi de null.
   quantity       Int
