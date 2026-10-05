@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { urunSatisBirimleri, type SatisBirimi } from "@/lib/satisBirimleri";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
@@ -32,6 +33,8 @@ export type StorefrontProductSummary = {
   stock: number;
   unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
   packageInfo: string | null; // serbest metin paket/koli içeriği ("50'li paket"); boşsa vitrinde gösterilmez
+  // Paketli satış: açık birimler (içeriğe göre artan); null = normal adet satışı. Fiyatlar bu durumda ADET fiyatı.
+  satisBirimleri: SatisBirimi[] | null;
   storefrontSortOrder: number | null;
   coverImageUrl: string | null;
   brandId: string | null;
@@ -49,6 +52,8 @@ export const BASE_SELECT = {
   stock: true,
   unit: true,
   packageInfo: true,
+  paketliSatis: true,
+  satisBirimleri: true,
   storefrontSortOrder: true,
   categoryId: true,
   brand: { select: { id: true, name: true } },
@@ -66,6 +71,8 @@ export function toSummary(
     stock: number;
     unit: string;
     packageInfo: string | null;
+    paketliSatis: boolean;
+    satisBirimleri: unknown;
     storefrontSortOrder: number | null;
     categoryId: string | null;
     brand: { id: string; name: string } | null;
@@ -84,6 +91,7 @@ export function toSummary(
     stock: p.stock,
     unit: p.unit,
     packageInfo: p.packageInfo?.trim() || null,
+    satisBirimleri: urunSatisBirimleri(p),
     storefrontSortOrder: p.storefrontSortOrder,
     coverImageUrl: p.images[0]?.url ?? null,
     brandId: p.brand?.id ?? null,
@@ -389,6 +397,8 @@ const DETAIL_SELECT = {
   barcodeIsGenerated: true,
   productCode: true,
   packageInfo: true,
+  paketliSatis: true,
+  satisBirimleri: true,
   unit: true,
   categoryId: true,
   images: { orderBy: { sortOrder: "asc" as const }, select: { id: true, url: true, altText: true } },

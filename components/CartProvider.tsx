@@ -2,15 +2,21 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type CartItem = { productId: string; quantity: number };
+// birim: paketli satış ürününde seçilen birim ("KUTU"); quantity o birimden KAÇ TANE (adet değil). Normal üründe birim yok
+// ve quantity adettir. Aynı ürünün farklı birimleri ayrı satırdır (bkz. lib/satisBirimleri.ts).
+export type CartItem = { productId: string; quantity: number; birim?: string };
+
+function sameLine(i: CartItem, productId: string, birim?: string | null) {
+  return i.productId === productId && (i.birim ?? null) === (birim ?? null);
+}
 export type CartToast = { id: number; message: string };
 
 type CartContextValue = {
   items: CartItem[];
   itemCount: number;
-  addItem: (productId: string, quantity: number, productName?: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  addItem: (productId: string, quantity: number, productName?: string, birim?: string | null) => void;
+  updateQuantity: (productId: string, quantity: number, birim?: string | null) => void;
+  removeItem: (productId: string, birim?: string | null) => void;
   clear: () => void;
   drawerOpen: boolean;
   closeDrawer: () => void;
@@ -54,15 +60,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, hydrated]);
 
-  const addItem = useCallback((productId: string, quantity: number, productName?: string) => {
+  const addItem = useCallback((productId: string, quantity: number, productName?: string, birim?: string | null) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === productId);
+      const existing = prev.find((i) => sameLine(i, productId, birim));
       if (existing) {
-        return prev.map((i) =>
-          i.productId === productId ? { ...i, quantity: i.quantity + quantity } : i
-        );
+        return prev.map((i) => (sameLine(i, productId, birim) ? { ...i, quantity: i.quantity + quantity } : i));
       }
-      return [...prev, { productId, quantity }];
+      return [...prev, birim ? { productId, quantity, birim } : { productId, quantity }];
     });
     // Sepete ekleme geri bildirimi: sağdan kayan mini-sepet çekmecesi +
     // kısa süreli toast — bkz. tasarım kısıtı, çağıran taraflar (ürün kartı,
@@ -75,16 +79,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, birim?: string | null) => {
     setItems((prev) =>
       quantity <= 0
-        ? prev.filter((i) => i.productId !== productId)
-        : prev.map((i) => (i.productId === productId ? { ...i, quantity } : i))
+        ? prev.filter((i) => !sameLine(i, productId, birim))
+        : prev.map((i) => (sameLine(i, productId, birim) ? { ...i, quantity } : i))
     );
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = useCallback((productId: string, birim?: string | null) => {
+    setItems((prev) => prev.filter((i) => !sameLine(i, productId, birim)));
   }, []);
 
   const clear = useCallback(() => setItems([]), []);

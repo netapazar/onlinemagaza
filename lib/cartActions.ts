@@ -11,8 +11,10 @@ import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
 import { formatAddress, parseAddress } from "@/lib/addressCore";
+import { birimCoz, birimEtiketi } from "@/lib/satisBirimleri";
 
-export type CartItemInput = { productId: string; quantity: number };
+// birim: paketli satış ürününde seçilen birim; quantity o birimden kaç tane (bkz. CartProvider). Normal üründe quantity adettir.
+export type CartItemInput = { productId: string; quantity: number; birim?: string | null };
 
 export type MembershipKind = "guest" | "approved" | "pending" | "rejected" | "no_application";
 
@@ -21,14 +23,25 @@ export type MembershipKind = "guest" | "approved" | "pending" | "rejected" | "no
 // veya arşivlenmiş (kalıcı bir kaldırma, stok durumundan bağımsız). İkisi
 // birden geçerliyse NOT_FOR_SALE önceliklidir — "yayından kaldırıldı" daha
 // kesin/kalıcı bir durumu ifade eder.
-export type CartUnavailableReason = "STOCK" | "NOT_FOR_SALE" | null;
+// "BIRIM" — sepetteki satış birimi artık bu üründe açık değil (CRM'de paketli satış ayarı değişti); ürün yeniden eklenmeli.
+export type CartUnavailableReason = "STOCK" | "NOT_FOR_SALE" | "BIRIM" | null;
 
 export type CartLine = {
   productId: string;
   name: string;
   coverImageUrl: string | null;
+  // Normal üründe adet; paketli üründe seçilen birimden kaç tane.
   quantity: number;
+  // Paketli satış: birim kodu ve etiketi ("Kutu (50 adet)"); normal üründe null. birimIcerigi normal üründe 1.
+  birim: string | null;
+  birimEtiketi: string | null;
+  birimIcerigi: number;
+  // Toplam adet (quantity × birimIcerigi) — fiyat ve stok bununla.
+  adet: number;
+  // Stoğa göre bu satırda seçilebilecek en çok birim sayısı.
+  maxQuantity: number;
   stock: number;
+  // ADET fiyatı.
   unitPriceCents: number;
   lineTotalCents: number;
   // false — ürün bu store'da bulunuyor ama şu an satın alınamaz. Satır
@@ -82,16 +95,30 @@ export async function getCartDetails(items: CartItemInput[]) {
     if (!product) continue;
     const price = resolvePrice({ listPriceCents: computeListPriceCents(product, markupPercent) }, memberDiscountPercent);
     const notForSale = !product.showOnStorefront || Boolean(product.archivedAt);
-    const outOfStock = product.stock <= 0;
-    const unavailableReason: CartUnavailableReason = notForSale ? "NOT_FOR_SALE" : outOfStock ? "STOCK" : null;
+    const birim = birimCoz(product, item.birim);
+    const icerik = birim?.icerik ?? 1;
+    const outOfStock = product.stock < icerik;
+    const unavailableReason: CartUnavailableReason = notForSale
+      ? "NOT_FOR_SALE"
+      : !birim
+        ? "BIRIM"
+        : outOfStock
+          ? "STOCK"
+          : null;
+    const adet = item.quantity * icerik;
     lines.push({
       productId: product.id,
       name: product.name,
       coverImageUrl: product.images[0]?.url ?? null,
       quantity: item.quantity,
+      birim: birim?.birim ?? (item.birim || null),
+      birimEtiketi: birim?.birim ? birimEtiketi(birim.birim, icerik) : null,
+      birimIcerigi: icerik,
+      adet,
+      maxQuantity: Math.floor(product.stock / icerik),
       stock: product.stock,
       unitPriceCents: price.displayCents,
-      lineTotalCents: price.displayCents * item.quantity,
+      lineTotalCents: price.displayCents * adet,
       available: unavailableReason === null,
       unavailableReason,
     });
@@ -265,23 +292,37 @@ export async function createOrder(
     unitCostCents: number;
     vatRate: number;
     quantity: number;
+    satisBirimi: "ADET" | "DUZINE" | "PAKET" | "KUTU" | "KOLI" | null;
+    birimIcerigi: number | null;
     lineTotalCents: number;
   }[] = [];
   let subtotalCents = 0;
+  const invalidUnit: string[] = [];
+  // Aynı ürün farklı birimlerle (ör. 1 kutu + 1 koli) iki satırda olabilir — stok TOPLAM adetle kontrol edilir.
+  const adetByProduct = new Map<string, number>();
 
   for (const item of items) {
     const product = products.find((p) => p.id === item.productId);
     if (!product) continue;
-    if (item.quantity <= 0) continue;
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) continue;
+    // Paketli satış: birim sunucuda ürünün GÜNCEL ayarından çözülür (istemcinin gönderdiği içeriğe güvenilmez).
+    const birim = birimCoz(product, item.birim);
+    if (!birim) {
+      invalidUnit.push(product.name);
+      continue;
+    }
+    const adet = item.quantity * birim.icerik;
+    const toplamAdet = (adetByProduct.get(product.id) ?? 0) + adet;
+    adetByProduct.set(product.id, toplamAdet);
     // Plan kararı: stok biterse satış engellenir (mağaza panelinin aksine) —
     // burada online sipariş, gerçek para/cari borcu doğuracağı için sessizce
     // taşırılmıyor.
-    if (item.quantity > product.stock) {
+    if (toplamAdet > product.stock) {
       outOfStock.push(product.name);
       continue;
     }
     const price = resolvePrice({ listPriceCents: computeListPriceCents(product, markupPercent) }, memberDiscountPercent);
-    const lineTotalCents = price.displayCents * item.quantity;
+    const lineTotalCents = price.displayCents * adet;
     subtotalCents += lineTotalCents;
     orderItemsData.push({
       productId: product.id,
@@ -290,11 +331,16 @@ export async function createOrder(
       unitPriceCents: price.displayCents,
       unitCostCents: product.costPriceCents,
       vatRate: product.vatRate,
-      quantity: item.quantity,
+      quantity: adet,
+      satisBirimi: birim.birim,
+      birimIcerigi: birim.birim ? birim.icerik : null,
       lineTotalCents,
     });
   }
 
+  if (invalidUnit.length > 0) {
+    return { error: `Şu ürünlerin satış birimi değişti, lütfen sepetten kaldırıp yeniden ekleyin: ${invalidUnit.join(", ")}` };
+  }
   if (outOfStock.length > 0) {
     return { error: `Şu ürünler stokta yok: ${outOfStock.join(", ")}` };
   }

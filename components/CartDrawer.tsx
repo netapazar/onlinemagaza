@@ -11,9 +11,10 @@ import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 
-const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE", string> = {
+const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> = {
   STOCK: "Stokta yok",
   NOT_FOR_SALE: "Artık satışta değil",
+  BIRIM: "Satış birimi değişti — kaldırıp yeniden ekleyin",
 };
 
 // Sepete ürün eklendiğinde CartProvider.addItem otomatik olarak
@@ -79,7 +80,7 @@ export default function CartDrawer() {
           ) : (
             <div className="space-y-4">
               {lines.map((line) => (
-                <div key={line.productId} className={`flex items-center gap-3 ${!line.available ? "opacity-60" : ""}`}>
+                <div key={`${line.productId}|${line.birim ?? ""}`} className={`flex items-center gap-3 ${!line.available ? "opacity-60" : ""}`}>
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                     {line.coverImageUrl ? (
                       <StoreImage src={line.coverImageUrl} alt="" sizes="56px" eager className="object-cover" />
@@ -92,18 +93,21 @@ export default function CartDrawer() {
                     {line.unavailableReason ? (
                       <p className="text-xs font-medium text-red-600">{UNAVAILABLE_MESSAGES[line.unavailableReason]}</p>
                     ) : (
-                      <p className="text-xs text-neutral-500">{centsToTl(line.unitPriceCents)} ₺</p>
+                      <p className="text-xs text-neutral-500">
+                        {centsToTl(line.unitPriceCents)} ₺
+                        {line.birimEtiketi && ` / adet · ${line.birimEtiketi} × ${line.quantity} = ${line.adet} adet`}
+                      </p>
                     )}
                     <div className="mt-1">
                       {line.available ? (
                         <QuantityStepper
                           value={line.quantity}
-                          max={line.stock}
-                          onChange={(next) => updateQuantity(line.productId, next)}
+                          max={line.maxQuantity}
+                          onChange={(next) => updateQuantity(line.productId, next, line.birim)}
                           size="sm"
                         />
                       ) : (
-                        <span className="text-xs text-neutral-400">{line.quantity} adet</span>
+                        <span className="text-xs text-neutral-400">{line.birim ? `${line.quantity} ${line.birimEtiketi ?? line.birim}` : `${line.quantity} adet`}</span>
                       )}
                     </div>
                   </div>
@@ -113,7 +117,7 @@ export default function CartDrawer() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => removeItem(line.productId)}
+                      onClick={() => removeItem(line.productId, line.birim)}
                       className={`mt-1 text-xs text-red-500 hover:underline ${!line.available ? "font-medium" : ""}`}
                     >
                       {line.available ? "Kaldır" : "Sepetten kaldır"}

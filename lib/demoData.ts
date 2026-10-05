@@ -132,6 +132,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = DEMO_CATEGORIES.flatMap((cat, catInd
       // Önizleme için: koli/paket satılan ürünlerin bir kısmında paket içeriği var, bir kısmında boş (gizli görünüm de görülsün)
       packageInfo:
         UNITS[globalIndex % UNITS.length] === "KOLI" ? (globalIndex % 2 === 0 ? "Koli: 12 adet" : null) : UNITS[globalIndex % UNITS.length] === "PAKET" ? "50'li paket" : null,
+      satisBirimleri: null,
     } satisfies DemoProduct;
   });
 });
@@ -222,6 +223,8 @@ export function demoProductBySlugOrId(slugOrId: string) {
     productCode: `TDR-${product.barcode.slice(-5)}`,
     unit: product.unit,
     packageInfo: product.packageInfo,
+    paketliSatis: false,
+    satisBirimleri: null,
     categoryId: product.categoryId,
     images: [{ id: `${product.id}-img`, url: product.coverImageUrl ?? "", altText: product.name }],
     brand: product.brandName ? { name: product.brandName } : null,
