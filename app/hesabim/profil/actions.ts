@@ -42,7 +42,7 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   await prisma.$transaction([
     prisma.webCustomer.update({
       where: { id: customer.id },
-      data: { passwordHash, passwordChangedAt: new Date(), failedLoginAttempts: 0, lockedUntil: null },
+      data: { passwordHash, passwordChangedAt: new Date(), failedLoginAttempts: 0, lockedUntil: null, mustChangePassword: false },
     }),
     // Bekleyen sıfırlama bağlantıları artık anlamsız (eski şifreye göre istenmişti) — kullanılamasın.
     prisma.passwordResetToken.deleteMany({ where: { webCustomerId: customer.id } }),

@@ -23,7 +23,7 @@ export default async function HesabimPage() {
   const [customer, status, recentOrders, orderCount] = await Promise.all([
     prisma.webCustomer.findUnique({
       where: { id: session.webCustomerId },
-      select: { name: true, email: true, phone: true, emailVerifiedAt: true },
+      select: { name: true, email: true, phone: true, emailVerifiedAt: true, mustChangePassword: true },
     }),
     getMembershipStatus(),
     prisma.webOrder.findMany({
@@ -35,6 +35,8 @@ export default async function HesabimPage() {
     prisma.webOrder.count({ where: { webCustomerId: session.webCustomerId } }),
   ]);
   if (!customer) redirect("/uyelik/giris");
+  // CRM'den geçici şifre verildi: önce kendi şifresini belirlesin.
+  if (customer.mustChangePassword) redirect("/hesabim/sifre?zorunlu=1");
 
   const approved = status.kind === "approved";
   const shortcuts: Shortcut[] = [

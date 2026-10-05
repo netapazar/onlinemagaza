@@ -562,6 +562,11 @@ model WebCustomer {
   // sıfırlama bağlantısını kullanınca dolar. Siparişi/girişi ENGELLEMEZ; yalnız CRM üyelik onay ekranında rozet olarak görünür.
   emailVerifiedAt DateTime?
 
+  // CRM'den geçici şifre verildi (2026-10-05): müşteri girişte şifre değiştirme ekranına yönlendirilir; şifresini
+  // değiştirince ya da sıfırlama bağlantısını kullanınca false olur. Şifreler geri çevrilemez özet (bcrypt) olarak
+  // saklandığı için CRM şifreyi GÖSTEREMEZ — yerine geçici şifre veya sıfırlama bağlantısı üretir.
+  mustChangePassword Boolean @default(false)
+
   createdAt DateTime @default(now())
 
   orders                  WebOrder[]
