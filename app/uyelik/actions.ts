@@ -168,6 +168,8 @@ export async function login(
   }
 
   await createWebSession({ webCustomerId: customer.id, name: customer.name, email: customer.email });
+  // CRM'den geçici şifre verildiyse önce yeni şifre belirlensin (WebCustomer.mustChangePassword).
+  if (customer.mustChangePassword) redirect("/hesabim/sifre?zorunlu=1");
   redirect("/hesabim");
 }
 
@@ -257,7 +259,7 @@ export async function resetPassword(
     await tx.webCustomer.update({
       where: { id: row.webCustomerId },
       // passwordChangedAt: bundan ÖNCE açılmış tüm oturumlar geçersiz olur (bkz. webSession.ts). Kilit de sıfırlanır.
-      data: { passwordHash, passwordChangedAt: now, failedLoginAttempts: 0, lockedUntil: null },
+      data: { passwordHash, passwordChangedAt: now, failedLoginAttempts: 0, lockedUntil: null, mustChangePassword: false },
     });
     await tx.passwordResetToken.deleteMany({ where: { webCustomerId: row.webCustomerId, id: { not: row.id } } });
     // Sıfırlama bağlantısı e-posta kutusuna erişimi kanıtlar: henüz doğrulanmamışsa adres doğrulanmış sayılır.
