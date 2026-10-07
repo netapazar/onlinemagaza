@@ -13,12 +13,13 @@ import {
   TrendingUp,
   Sparkles,
   CircleHelp,
+  ChevronDown,
 } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
-import { getCategoryIcon } from "@/lib/categoryIcons";
+import { CategoryIcon } from "@/lib/categoryIcons";
 
-type CategoryWithCount = { id: string; name: string; count: number };
+type CategoryWithCount = { id: string; name: string; count: number; children?: { id: string; name: string; count: number }[] };
 
 // "Genel" bölümündeki mobil alt navigasyon: Ana Sayfa / Kategoriler / Sepet
 // / Hesabım — sadece küçük ekranlarda görünür (bkz. layout.tsx'teki sm:hidden
@@ -92,26 +93,10 @@ function MobileDrawer({
           </button>
         </div>
 
-        <div className="mb-4 space-y-1">
-          {categories.map((c) => {
-            const Icon = getCategoryIcon(c.name);
-            return (
-              <Link
-                key={c.id}
-                href={`/urunler?kategori=${c.id}`}
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
-                  <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
-                </span>
-                <span>
-                  <span className="block text-sm font-medium text-neutral-800">{c.name}</span>
-                  <span className="block text-xs text-neutral-400">{c.count} ürün</span>
-                </span>
-              </Link>
-            );
-          })}
+        <div className="mb-4 space-y-1.5">
+          {categories.map((c) => (
+            <MobilKategori key={c.id} c={c} onClose={onClose} />
+          ))}
         </div>
 
         <div className="space-y-1 border-t border-neutral-100 pt-3">
@@ -143,6 +128,59 @@ function MobileDrawer({
           </Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Ana kategori satırı: adı o kategorinin tüm ürünlerine gider; ok tuşu alt kategorileri açar/kapatır.
+function MobilKategori({ c, onClose }: { c: CategoryWithCount; onClose: () => void }) {
+  const [acik, setAcik] = useState(false);
+  const children = c.children ?? [];
+  return (
+    <div className={`rounded-xl border transition-colors ${acik ? "border-[var(--color-brand-200)] bg-[var(--color-brand-50)]" : "border-neutral-100"}`}>
+      <div className="flex items-center">
+        <Link href={`/urunler?kategori=${c.id}`} onClick={onClose} className="flex min-w-0 flex-1 items-center gap-3 p-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
+            <CategoryIcon name={c.name} className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium text-neutral-800">{c.name}</span>
+            <span className="block text-xs text-neutral-400">{c.count} ürün</span>
+          </span>
+        </Link>
+        {children.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setAcik((v) => !v)}
+            aria-expanded={acik}
+            aria-label={`${c.name} alt kategorileri`}
+            className="mr-1.5 rounded-lg p-2.5 text-neutral-500 hover:bg-white"
+          >
+            <ChevronDown className={`h-4 w-4 transition-transform ${acik ? "rotate-180 text-[var(--color-brand)]" : ""}`} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      {acik && (
+        <div className="flex flex-wrap gap-1.5 px-3 pb-3">
+          <Link
+            href={`/urunler?kategori=${c.id}`}
+            onClick={onClose}
+            className="rounded-full bg-[var(--color-brand)] px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            Tümü
+          </Link>
+          {children.map((a) => (
+            <Link
+              key={a.id}
+              href={`/urunler?kategori=${a.id}`}
+              onClick={onClose}
+              className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700"
+            >
+              {a.name} <span className="text-neutral-400">{a.count}</span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

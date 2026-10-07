@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import {
   FileText,
   PenLine,
@@ -49,4 +50,10 @@ export function getCategoryIcon(name: string): LucideIcon {
   const normalized = name.toLocaleLowerCase("tr-TR");
   const match = ICON_RULES.find((rule) => rule.keywords.some((kw) => normalized.includes(kw)));
   return match?.icon ?? DEFAULT_ICON;
+}
+
+// Bileşen gövdesinde `const Icon = getCategoryIcon(...)` + `<Icon />` her çizimde yeni bileşen sayılır (lint: static-components);
+// map dışında ikon gerektiğinde bu sarmalayıcı kullanılır.
+export function CategoryIcon({ name, className }: { name: string; className?: string }) {
+  return createElement(getCategoryIcon(name), { className, "aria-hidden": true });
 }

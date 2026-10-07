@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
-import { listStorefrontProducts, getStorefrontCategories, getStorefrontBrands, type StorefrontSort } from "@/lib/search";
+import {
+  listStorefrontProducts,
+  getStorefrontCategories,
+  getStorefrontCategoriesWithCounts,
+  getStorefrontBrands,
+  type StorefrontSort,
+} from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
 import ProductListRow from "@/components/ProductListRow";
@@ -35,7 +41,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
   const view = sp.gorunum === "liste" ? "liste" : "izgara";
   const requestedPage = Math.max(1, Number(sp.sayfa) || 1);
 
-  const [allProducts, categories, brands, memberDiscountPercent] = await Promise.all([
+  const [allProducts, categories, brands, memberDiscountPercent, groups] = await Promise.all([
     listStorefrontProducts({
       query: q,
       categoryId: kategori,
@@ -47,7 +53,10 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
     getStorefrontCategories(),
     getStorefrontBrands(),
     getMemberDiscountPercent(),
+    getStorefrontCategoriesWithCounts(),
   ]);
+  // Seçili kategorinin ana kategorisi (ana kategori seçiliyse kendisi) — konum satırı ve alt kategori etiketleri için.
+  const activeGroup = kategori ? groups.find((g) => g.id === kategori || g.children.some((c) => c.id === kategori)) : undefined;
 
   const total = allProducts.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -104,6 +113,14 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
         <Link href="/" className="hover:text-[var(--color-brand)]">
           Ana Sayfa
         </Link>
+        {activeGroup && !q && activeGroup.id !== kategori && (
+          <>
+            <span className="mx-1.5">/</span>
+            <Link href={buildHref({ kategori: activeGroup.id, sayfa: undefined })} className="hover:text-[var(--color-brand)]">
+              {activeGroup.name}
+            </Link>
+          </>
+        )}
         <span className="mx-1.5">/</span>
         <span className="text-neutral-700">{heading}</span>
       </nav>
@@ -118,6 +135,28 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
           <ViewToggle />
         </div>
       </div>
+
+      {activeGroup && activeGroup.children.length > 0 && (
+        <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          {[{ id: activeGroup.id, name: "Tümü", count: activeGroup.count }, ...activeGroup.children].map((c) => {
+            const secili = c.id === kategori;
+            return (
+              <Link
+                key={c.id}
+                href={buildHref({ kategori: c.id, sayfa: undefined })}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                  secili
+                    ? "border-[var(--color-brand)] bg-[var(--color-brand)] font-semibold text-white"
+                    : "border-neutral-200 bg-white text-neutral-700 hover:border-[var(--color-brand)] hover:text-[var(--color-brand)]"
+                }`}
+              >
+                {c.name}
+                <span className={`text-xs tabular-nums ${secili ? "text-white/80" : "text-neutral-400"}`}>{c.count}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <details className="mb-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm lg:hidden">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-neutral-900">
