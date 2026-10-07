@@ -183,3 +183,11 @@ a.member-hint:hover {
 span.member-hint {
   color: var(--color-neutral-500, #737373);
 }
+
+/* Yatay kaydırmalı satırlarda (components/ScrollRow.tsx) kaydırma çubuğu gizli — oklar/parmak/teker ile kaydırılır. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
