@@ -8,8 +8,8 @@ import { Tags } from "lucide-react";
 // veriyle yarım/anlamsız görünen bölümler gizlenmeli). Çağıran taraf (anasayfa) kartı da aynı eşikle gizler.
 export const MIN_BRANDS = 6;
 
-// Tek satır, yatay kaydırmalı; her marka o markanın ürünlerine gider. Çağıran taraf yalnız en çok ürünlü markaları verir
-// (getTopStorefrontBrands — tüm markalar ürün listesinin filtresinde).
+// Tek satır, yatay kaydırmalı; her marka o markanın ürünlerine gider. Çağıran taraf yalnız vitrin markalarını verir
+// (getVitrinMarkalari — elle sıralı 20 marka; tüm markalar ürün listesinin filtresinde).
 export default function BrandStrip({ brands }: { brands: { id: string; name: string }[] }) {
   if (brands.length < MIN_BRANDS) return null;
 

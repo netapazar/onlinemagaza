@@ -421,21 +421,28 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
     .map((p) => toSummary(p, markupPercent));
 }
 
-// Anasayfa marka şeridi (kullanıcı kararı 2026-10): yalnız en az 3 yayında ürünü olan markalar, ürün sayısına göre
-// çoktan aza, ilk 20. Tüm markalar ürün listesinin marka filtresinde (getStorefrontBrands) kalır.
-export async function getTopStorefrontBrands(limit = 20, minUrun = 3): Promise<{ id: string; name: string }[]> {
-  if (isDemoMode()) return DEMO_BRANDS.slice(0, limit);
+// Anasayfa marka şeridi (kullanıcı kararı 2026-10-07): ELLE tanımlı, tanınırlığa göre sabit 20 markalık sıra — üstte ofis
+// sarf markaları, lüks/teknik kalem altta. Gösterilen ad bu listedeki yazım; eşleştirme veritabanındaki marka adıyla
+// büyük/küçük harf, boşluk ve tire farkı gözetmeden yapılır. Yayında ürünü olmayan marka sessizce atlanır.
+// Tüm markalar ürün listesinin marka filtresinde (getStorefrontBrands) kalır.
+export const VITRIN_MARKALARI = [
+  "Faber-Castell", "Bic", "Pensan", "Gıpta", "Schneider", "Casio", "Mas", "Edding", "Pritt", "Uni-ball",
+  "Noki", "Mikro", "Pelikan", "Adel", "Scrikss", "Monami", "Rotring", "Waterman", "Duracell", "Varta",
+];
+const markaAnahtari = (ad: string) => ad.toLocaleLowerCase("tr-TR").replace(/ı/g, "i").replace(/[^a-z0-9çğöşü]/g, "");
+
+export async function getVitrinMarkalari(): Promise<{ id: string; name: string }[]> {
+  if (isDemoMode()) return DEMO_BRANDS.slice(0, VITRIN_MARKALARI.length);
   const storeId = await getOnlineStoreId();
-  const yayinda = { storeId, showOnStorefront: true, archivedAt: null };
   const brands = await prisma.brand.findMany({
-    where: { products: { some: yayinda } },
-    select: { id: true, name: true, _count: { select: { products: { where: yayinda } } } },
+    where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
+    select: { id: true, name: true },
   });
-  return brands
-    .filter((b) => b._count.products >= minUrun)
-    .sort((a, b) => b._count.products - a._count.products || a.name.localeCompare(b.name, "tr"))
-    .slice(0, limit)
-    .map((b) => ({ id: b.id, name: b.name }));
+  const byKey = new Map(brands.map((b) => [markaAnahtari(b.name), b.id]));
+  return VITRIN_MARKALARI.flatMap((ad) => {
+    const id = byKey.get(markaAnahtari(ad));
+    return id ? [{ id, name: ad }] : [];
+  });
 }
 
 // Ürün listesinin marka filtresi — storefront'ta ürünü olan TÜM markalar, uydurma bir liste değil.
