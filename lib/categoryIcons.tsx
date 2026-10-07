@@ -9,6 +9,13 @@ import {
   Scissors,
   Package,
   Tag,
+  NotebookPen,
+  Backpack,
+  BookOpen,
+  Puzzle,
+  Calculator,
+  Palette,
+  House,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,6 +24,14 @@ import {
 // kullanılır (bkz. proje kısıtı: "kategori kartları isme uygun bir ikon
 // kullanmalı, eşleşme yoksa varsayılan ikona düşmeli").
 const ICON_RULES: { keywords: string[]; icon: LucideIcon }[] = [
+  // sanaldepom ana kategorileri (2026-10-07) — genel kurallardan ÖNCE (ör. "Okul Kırtasiye" ataç değil çanta ikonu alsın)
+  { keywords: ["defter", "ajanda"], icon: NotebookPen },
+  { keywords: ["okul"], icon: Backpack },
+  { keywords: ["kitap"], icon: BookOpen },
+  { keywords: ["oyuncak"], icon: Puzzle },
+  { keywords: ["elektronik", "hesap makine"], icon: Calculator },
+  { keywords: ["sanatsal", "boya"], icon: Palette },
+  { keywords: ["yaşam", "yasam"], icon: House },
   { keywords: ["kağıt", "kagit", "fotokopi", " a4", "a4 "], icon: FileText },
   { keywords: ["kalem", "pen", "tükenmez", "tukenmez"], icon: PenLine },
   { keywords: ["dosya", "klasör", "klasor", "arşiv", "arsiv", "defter"], icon: Folder },
