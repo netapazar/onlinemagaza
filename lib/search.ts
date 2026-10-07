@@ -246,7 +246,7 @@ export async function listStorefrontProducts(options: {
 
 // Kategori ağacı iki seviyeli (ana kategori > alt kategori, 2026-10-07 sanaldepom ağacı). Vitrinde ana kategoriler
 // gruplanır: menü/anasayfa/alt bilgi ana kategorileri, mega menü ve filtre alt kategorileri de gösterir.
-export type StorefrontSubCategory = { id: string; name: string; count: number };
+export type StorefrontSubCategory = { id: string; name: string; count: number; imageUrl: string | null };
 export type StorefrontCategoryGroup = {
   id: string;
   name: string;
@@ -308,7 +308,7 @@ export const getStorefrontCategoriesWithCounts = cache(async (): Promise<Storefr
     const g = c.parent ? grup(c.parent.id, c.parent.name) : grup(c.id, c.name);
     g.count += c._count.products;
     g.imageUrl ??= imageUrl;
-    if (c.parent) g.children.push({ id: c.id, name: trTitle(c.name), count: c._count.products });
+    if (c.parent) g.children.push({ id: c.id, name: trTitle(c.name), count: c._count.products, imageUrl });
   }
   return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name, "tr"));
 });

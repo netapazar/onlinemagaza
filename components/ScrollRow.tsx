@@ -10,12 +10,18 @@ export default function ScrollRow({
   label,
   className = "",
   fadeFrom = "from-white",
+  innerClassName = "items-center gap-2",
+  okKonum = "top-1/2",
 }: {
   children: ReactNode;
   label: string;
   className?: string;
   /** Kenar solmasının rengi — satırın arka planıyla aynı olmalı (ör. "from-neutral-50"). */
   fadeFrom?: string;
+  /** İç satırın hizalama/aralık sınıfları. */
+  innerClassName?: string;
+  /** Okların dikey konumu (varsayılan ortada); ör. görsel+yazı kartlarında görselin hizası. */
+  okKonum?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [sol, setSol] = useState(false);
@@ -43,7 +49,7 @@ export default function ScrollRow({
 
   const kaydir = (yon: 1 | -1) => ref.current?.scrollBy({ left: yon * ref.current.clientWidth * 0.75, behavior: "smooth" });
 
-  const ok = "absolute top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-md transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] [@media(hover:hover)]:flex";
+  const ok = `absolute ${okKonum} z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-md transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] [@media(hover:hover)]:flex`;
 
   return (
     <div className={`relative min-w-0 ${className}`}>
@@ -55,7 +61,7 @@ export default function ScrollRow({
           </button>
         </>
       )}
-      <div ref={ref} role="group" aria-label={label} className="scrollbar-none flex items-center gap-2 overflow-x-auto scroll-smooth">
+      <div ref={ref} role="group" aria-label={label} className={`scrollbar-none flex overflow-x-auto scroll-smooth ${innerClassName}`}>
         {children}
       </div>
       {sag && (
