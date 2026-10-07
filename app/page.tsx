@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
@@ -59,7 +59,7 @@ export default async function Home() {
         />
       ) : (
         <>
-          <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-4 sm:p-5">
             <TrustBar />
           </div>
 
@@ -80,6 +80,7 @@ export default async function Home() {
               <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Çok Satanlar"
+                  icon={TrendingUp}
                   products={bestSellers}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler"
@@ -93,6 +94,7 @@ export default async function Home() {
               <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Yeni Eklenenler"
+                  icon={Sparkles}
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"

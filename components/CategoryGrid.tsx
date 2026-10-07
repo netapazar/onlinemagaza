@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import StoreImage from "@/components/StoreImage";
 import ScrollRow from "@/components/ScrollRow";
+import SectionHeading from "@/components/SectionHeading";
+import { LayoutGrid } from "lucide-react";
 
 type Sub = { id: string; name: string; count: number; imageUrl: string | null };
 type Category = Sub & { children?: Sub[] };
@@ -14,7 +16,7 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
   return (
     <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold text-neutral-900">Kategoriler</h2>
+        <SectionHeading title="Kategoriler" icon={LayoutGrid} />
         {altlar.length > 0 && (
           <span className="text-xs text-neutral-400">
             {categories.length} ana · {altlar.length} alt kategori

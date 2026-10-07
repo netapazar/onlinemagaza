@@ -1,5 +1,7 @@
 import Link from "next/link";
 import ScrollRow from "@/components/ScrollRow";
+import SectionHeading from "@/components/SectionHeading";
+import { Tags } from "lucide-react";
 
 // Az markayla bir "şerit" göstermenin anlamı yok — en az 6 marka olduğunda render ediliyor (bkz. proje kısıtı: az
 // veriyle yarım/anlamsız görünen bölümler gizlenmeli). Çağıran taraf (anasayfa) kartı da aynı eşikle gizler.
@@ -11,8 +13,8 @@ export default function BrandStrip({ brands }: { brands: { id: string; name: str
 
   return (
     <div>
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold text-neutral-900">Markalar</h2>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <SectionHeading title="Markalar" icon={Tags} />
         <span className="text-xs text-neutral-400">{brands.length} marka</span>
       </div>
       <ScrollRow label="Markalar">
