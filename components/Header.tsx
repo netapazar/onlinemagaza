@@ -5,8 +5,7 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import MembershipReminderBanner from "@/components/MembershipReminderBanner";
 import HeaderMain from "@/components/HeaderMain";
 import MegaMenu from "@/components/MegaMenu";
-
-const QUICK_LINK_LIMIT = 4;
+import ScrollRow from "@/components/ScrollRow";
 
 // Sadece 2-6 kategoriyle araç çubuğu boş görünmesin diye, gerçekten var
 // olan sayfalara giden sabit linkler de eklendi (olmayan bir sayfaya link
@@ -30,27 +29,28 @@ export default async function Header() {
       <div className="hidden border-t border-neutral-100 bg-neutral-50 sm:block">
         <div className="mx-auto flex max-w-content items-center gap-1 px-4 py-2">
           <MegaMenu categories={categories} />
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {categories.slice(0, QUICK_LINK_LIMIT).map((c) => (
+          {/* Tüm ana kategoriler + sabit bağlantılar tek satırda; sığmazsa sağa/sola kaydırılır (oklar ScrollRow'da). */}
+          <ScrollRow label="Kategoriler" fadeFrom="from-neutral-50" className="flex-1">
+            {categories.map((c) => (
               <Link
                 key={c.id}
                 href={`/urunler?kategori=${c.id}`}
-                className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
+                className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
               >
                 {c.name}
               </Link>
             ))}
-            <span className="mx-1 hidden h-4 w-px shrink-0 bg-neutral-300 md:block" aria-hidden="true" />
+            <span className="mx-1 h-4 w-px shrink-0 bg-neutral-300" aria-hidden="true" />
             {STATIC_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="hidden shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-white hover:text-[var(--color-brand)] md:block"
+                className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
               >
                 {link.label}
               </Link>
             ))}
-          </div>
+          </ScrollRow>
         </div>
       </div>
     </header>
