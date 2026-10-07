@@ -10,7 +10,10 @@ type Category = { id: string; name: string; count: number };
 export default function CategoryGrid({ categories }: { categories: Category[] }) {
   return (
     <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-      <SectionHeading title="Kategoriler" icon={LayoutGrid} className="mb-4" />
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <SectionHeading title="Kategoriler" icon={LayoutGrid} />
+        <span className="text-xs text-neutral-500">{categories.length} kategori</span>
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
         {categories.map((c) => (
           <Link

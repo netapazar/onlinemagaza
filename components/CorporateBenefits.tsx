@@ -56,7 +56,7 @@ function BenefitsIllustration() {
         <rect x="236" y="114" width="70" height="5" rx="2.5" fill="#cbd5d5" />
         <rect x="236" y="128" width="78" height="5" rx="2.5" fill="#cbd5d5" />
         <rect x="236" y="150" width="84" height="1.5" fill="#d9e2e2" />
-        <rect x="262" y="164" width="58" height="9" rx="4.5" fill="#f2a33a" />
+        <rect x="262" y="164" width="58" height="9" rx="4.5" fill="#71d1cb" />
         <circle cx="244" cy="186" r="8" fill="#189089" />
         <path d="M240 186l3 3 6-6.5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </g>
@@ -66,16 +66,16 @@ function BenefitsIllustration() {
         <rect x="26" y="64" width="212" height="34" rx="16" fill="#0b5555" />
         <rect x="26" y="82" width="212" height="16" fill="#0b5555" />
         <text x="42" y="86" fontSize="11" fontWeight="700" letterSpacing="1.6" fill="white">KURUMSAL ÜYE</text>
-        <rect x="42" y="114" width="30" height="24" rx="5" fill="#f2a33a" />
-        <rect x="42" y="118" width="30" height="1.5" fill="#db8620" />
-        <rect x="42" y="124" width="30" height="1.5" fill="#db8620" />
-        <rect x="42" y="130" width="30" height="1.5" fill="#db8620" />
+        <rect x="42" y="114" width="30" height="24" rx="5" fill="#3fb3ac" />
+        <rect x="42" y="118" width="30" height="1.5" fill="#189089" />
+        <rect x="42" y="124" width="30" height="1.5" fill="#189089" />
+        <rect x="42" y="130" width="30" height="1.5" fill="#189089" />
         <rect x="88" y="118" width="104" height="7" rx="3.5" fill="#cbd5d5" />
         <rect x="88" y="132" width="72" height="7" rx="3.5" fill="#dfe7e7" />
         <rect x="42" y="158" width="62" height="20" rx="10" fill="#eefbfa" stroke="#71d1cb" />
         <text x="73" y="172" fontSize="10" fontWeight="600" textAnchor="middle" fill="#0b5555">Özel fiyat</text>
-        <rect x="112" y="158" width="72" height="20" rx="10" fill="#fff8ec" stroke="#ffc04d" />
-        <text x="148" y="172" fontSize="10" fontWeight="600" textAnchor="middle" fill="#92511a">Cari hesap</text>
+        <rect x="112" y="158" width="72" height="20" rx="10" fill="#0e6b6b" />
+        <text x="148" y="172" fontSize="10" fontWeight="600" textAnchor="middle" fill="white">Cari hesap</text>
       </g>
       {/* Koli */}
       <g transform="translate(150 196)">

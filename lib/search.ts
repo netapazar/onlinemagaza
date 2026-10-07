@@ -40,6 +40,8 @@ export type StorefrontProductSummary = {
   brandId: string | null;
   brandName: string | null;
   categoryId: string | null;
+  // Kart rozeti (tasarım turu 2026-10, kullanıcı kararı: kartta yalnız "Çok Satan" rozeti): sıralamada yayındaki ilk 10 ürün.
+  cokSatan?: boolean;
 };
 
 export const BASE_SELECT = {
@@ -241,7 +243,7 @@ export async function listStorefrontProducts(options: {
     summaries = sortSummaries(summaries, options.sort);
   }
 
-  return summaries;
+  return cokSatanIsaretle(summaries);
 }
 
 // Kategori ağacı iki seviyeli (ana kategori > alt kategori, 2026-10-07 sanaldepom ağacı). Vitrinde ana kategoriler
@@ -325,7 +327,7 @@ export async function getNewArrivals(limit: number): Promise<StorefrontProductSu
     orderBy: { updatedAt: "desc" },
     take: limit,
   });
-  return products.map((p) => toSummary(p, markupPercent));
+  return cokSatanIsaretle(products.map((p) => toSummary(p, markupPercent)));
 }
 
 // Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
@@ -347,7 +349,7 @@ export async function getRelatedProducts(
     gorselli.length < limit
       ? await prisma.product.findMany({ where: { ...where, images: { none: {} } }, select: BASE_SELECT, orderBy, take: limit - gorselli.length })
       : [];
-  return [...gorselli, ...gorselsiz].map((p) => toSummary(p, markupPercent));
+  return cokSatanIsaretle([...gorselli, ...gorselsiz].map((p) => toSummary(p, markupPercent)));
 }
 
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
@@ -370,6 +372,31 @@ export type SearchSuggestion = {
 // açıldığı için bu liste gerçek sipariş birikene kadar boş dönecek; anasayfa
 // bunu zaten göstermeyerek karşılıyor (bkz. proje kısıtı: veri yoksa vitrin
 // bölümü nazikçe gizlenmeli).
+// "Çok Satan" rozeti: sıralamada (günde bir hesaplanan, bkz. bestSellerRanking.ts) yayındaki İLK 10 ürünün id'leri.
+// cache(): aynı istekte birden çok liste işaretlenirse tek sorgu.
+export const COK_SATAN_ROZET_SAYISI = 10;
+const getCokSatanIdleri = cache(async (): Promise<Set<string>> => {
+  if (isDemoMode()) return new Set();
+  const [ranking, storeId] = await Promise.all([getBestSellerRanking(), getOnlineStoreId()]);
+  if (ranking.length === 0) return new Set();
+  const products = await prisma.product.findMany({
+    where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: ranking.map((r) => r.barcode) } },
+    select: { id: true, barcode: true },
+  });
+  const byBarcode = new Map(products.map((p) => [p.barcode, p.id]));
+  return new Set(
+    ranking
+      .map((r) => byBarcode.get(r.barcode))
+      .filter((id): id is string => id !== undefined)
+      .slice(0, COK_SATAN_ROZET_SAYISI)
+  );
+});
+
+async function cokSatanIsaretle(list: StorefrontProductSummary[]): Promise<StorefrontProductSummary[]> {
+  const ids = await getCokSatanIdleri();
+  return ids.size === 0 ? list : list.map((p) => (ids.has(p.id) ? { ...p, cokSatan: true } : p));
+}
+
 export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoBestSellers(limit);
   // Sıra günde bir hesaplanır (bkz. lib/bestSellerRanking.ts — pazarlama + online, son 90 gün, belge sayısı);
@@ -386,6 +413,7 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
     select: { ...BASE_SELECT, barcode: true },
   });
   const byBarcode = new Map(products.map((p) => [p.barcode, p]));
+  // Bu listede rozet işaretlenmez: "Çok Satanlar" başlığı aynı bilgiyi zaten veriyor (her kartta rozet gürültü olurdu).
   return ranking
     .map((r) => byBarcode.get(r.barcode))
     .filter((p) => p !== undefined)
@@ -393,8 +421,24 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
     .map((p) => toSummary(p, markupPercent));
 }
 
-// Anasayfadaki marka şeridi — sadece storefront'ta ürünü olan markalar,
-// uydurma bir liste değil.
+// Anasayfa marka şeridi (kullanıcı kararı 2026-10): yalnız en az 3 yayında ürünü olan markalar, ürün sayısına göre
+// çoktan aza, ilk 20. Tüm markalar ürün listesinin marka filtresinde (getStorefrontBrands) kalır.
+export async function getTopStorefrontBrands(limit = 20, minUrun = 3): Promise<{ id: string; name: string }[]> {
+  if (isDemoMode()) return DEMO_BRANDS.slice(0, limit);
+  const storeId = await getOnlineStoreId();
+  const yayinda = { storeId, showOnStorefront: true, archivedAt: null };
+  const brands = await prisma.brand.findMany({
+    where: { products: { some: yayinda } },
+    select: { id: true, name: true, _count: { select: { products: { where: yayinda } } } },
+  });
+  return brands
+    .filter((b) => b._count.products >= minUrun)
+    .sort((a, b) => b._count.products - a._count.products || a.name.localeCompare(b.name, "tr"))
+    .slice(0, limit)
+    .map((b) => ({ id: b.id, name: b.name }));
+}
+
+// Ürün listesinin marka filtresi — storefront'ta ürünü olan TÜM markalar, uydurma bir liste değil.
 export async function getStorefrontBrands(): Promise<{ id: string; name: string }[]> {
   if (isDemoMode()) return DEMO_BRANDS;
   const storeId = await getOnlineStoreId();

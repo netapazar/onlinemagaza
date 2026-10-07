@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ShoppingCart, Check } from "lucide-react";
+import { Heart, ShoppingCart, Check, TrendingUp } from "lucide-react";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -71,19 +71,12 @@ export default function ProductCard({
             <ProductPlaceholder name={product.name} brandName={product.brandName} />
           )}
 
-          {price.discounted && price.discountPercent && (
-            <span className="absolute top-2 left-2 rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs font-semibold text-white">
-              %{price.discountPercent}
-            </span>
-          )}
-
-          {inStock ? (
-            <span className="absolute bottom-2 left-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-              Bugün Kargoda
-            </span>
-          ) : (
-            <span className="absolute bottom-2 left-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
-              Stokta Yok
+          {/* Rozet sistemi (kullanıcı kararı 2026-10): kartta yalnız ayırt edici "Çok Satan" rozeti. "Bugün Kargoda" her
+              üründe olduğu için kaldırıldı; stok durumu rozet değil, aşağıda buton yerine düz metin. */}
+          {product.cokSatan && (
+            <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
+              <TrendingUp className="h-3 w-3" aria-hidden="true" />
+              Çok Satan
             </span>
           )}
         </div>
@@ -125,7 +118,7 @@ export default function ProductCard({
           <CorporatePriceHint className="mt-0.5" />
         </div>
 
-        {inStock && (
+        {inStock ? (
           <div className="flex items-stretch gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
             <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="sm" />
             <button
@@ -148,6 +141,8 @@ export default function ProductCard({
               {added ? "✓ Eklendi" : "Sepete Ekle"}
             </button>
           </div>
+        ) : (
+          <p className="text-xs font-medium text-neutral-500">Stokta yok</p>
         )}
       </div>
     </div>

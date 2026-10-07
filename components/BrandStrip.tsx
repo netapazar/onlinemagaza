@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import ScrollRow from "@/components/ScrollRow";
 import SectionHeading from "@/components/SectionHeading";
 import { Tags } from "lucide-react";
@@ -7,7 +8,8 @@ import { Tags } from "lucide-react";
 // veriyle yarım/anlamsız görünen bölümler gizlenmeli). Çağıran taraf (anasayfa) kartı da aynı eşikle gizler.
 export const MIN_BRANDS = 6;
 
-// Tek satır, yatay kaydırmalı (çok markada sayfayı uzatmasın); her marka o markanın ürünlerine gider.
+// Tek satır, yatay kaydırmalı; her marka o markanın ürünlerine gider. Çağıran taraf yalnız en çok ürünlü markaları verir
+// (getTopStorefrontBrands — tüm markalar ürün listesinin filtresinde).
 export default function BrandStrip({ brands }: { brands: { id: string; name: string }[] }) {
   if (brands.length < MIN_BRANDS) return null;
 
@@ -15,7 +17,13 @@ export default function BrandStrip({ brands }: { brands: { id: string; name: str
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
         <SectionHeading title="Markalar" icon={Tags} />
-        <span className="text-xs text-neutral-400">{brands.length} marka</span>
+        <Link
+          href="/urunler"
+          className="group flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"
+        >
+          Tüm Ürünler
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+        </Link>
       </div>
       <ScrollRow label="Markalar">
         {brands.map((b) => (

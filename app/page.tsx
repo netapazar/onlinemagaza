@@ -4,7 +4,7 @@ import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
   getBestSellers,
-  getStorefrontBrands,
+  getTopStorefrontBrands,
 } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
@@ -31,7 +31,7 @@ export default async function Home() {
     getStorefrontCategoriesWithCounts(),
     getNewArrivals(ROW_LIMIT),
     getBestSellers(ROW_LIMIT),
-    getStorefrontBrands(),
+    getTopStorefrontBrands(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
   ]);
