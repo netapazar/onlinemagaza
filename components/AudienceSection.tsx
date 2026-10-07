@@ -13,7 +13,7 @@ const AUDIENCES = [
 
 export default function AudienceSection() {
   return (
-    <div className="mb-5 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
+    <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
       <SectionHeading title="Kimlere Hizmet Veriyoruz" icon={Users} className="mb-4" />
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {AUDIENCES.map(({ icon: Icon, title, description }) => (

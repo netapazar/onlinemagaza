@@ -338,13 +338,16 @@ export async function getRelatedProducts(
   if (!categoryId) return [];
   if (isDemoMode()) return demoRelatedProducts(categoryId, excludeId, limit);
   const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
-  const products = await prisma.product.findMany({
-    where: { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } },
-    select: BASE_SELECT,
-    orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
-    take: limit,
-  });
-  return products.map((p) => toSummary(p, markupPercent));
+  // Görselli ürünler önce; görselsiz (yer tutuculu) ürünler yalnız liste dolmazsa ve EN SONDA gösterilir —
+  // gerçek fotoğrafların yanında yer tutucu göze batıyordu (tasarım turu 2026-10).
+  const where = { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } };
+  const orderBy = [{ storefrontSortOrder: "asc" as const }, { name: "asc" as const }];
+  const gorselli = await prisma.product.findMany({ where: { ...where, images: { some: {} } }, select: BASE_SELECT, orderBy, take: limit });
+  const gorselsiz =
+    gorselli.length < limit
+      ? await prisma.product.findMany({ where: { ...where, images: { none: {} } }, select: BASE_SELECT, orderBy, take: limit - gorselli.length })
+      : [];
+  return [...gorselli, ...gorselsiz].map((p) => toSummary(p, markupPercent));
 }
 
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı

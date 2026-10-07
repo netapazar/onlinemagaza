@@ -41,7 +41,7 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
   const photo2 = photos[1]?.url ?? photos[0]?.url ?? null;
 
   return (
-    <div className="mb-4 grid gap-3 lg:grid-cols-3 lg:gap-4">
+    <div className="mb-6 grid gap-3 lg:grid-cols-3 lg:gap-4">
       <div className="lg:col-span-2">
         <HeroSlider cariHesapSlide={slideModeFor(status)} photos={photos} bannerImages={bannerImages} />
       </div>

@@ -41,7 +41,7 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand-300)] hover:shadow-md">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -89,23 +89,24 @@ export default function ProductCard({
         </div>
 
         <div className="p-2.5 pb-0">
-          {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
-          <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
-          {product.shortDescription && (
-            <p className="line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
-          )}
+          {/* Sabit satır yükseklikleri: ad 1 ya da 2 satır, açıklama/etiket olsun olmasın kartların fiyat ve buton hizası aynı kalsın */}
+          <span className="block h-4 truncate text-xs leading-4 text-neutral-400">{product.brandName ?? ""}</span>
+          <p className="line-clamp-2 h-10 text-sm leading-5 font-medium text-neutral-900">{product.name}</p>
+          <p className="line-clamp-1 h-4 text-xs leading-4 text-neutral-500">{product.shortDescription ?? ""}</p>
+          <div className="mt-1 h-[18px]">
           {/* Paket içeriği varsa o ("50'li paket"); yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa hiçbir şey */}
           {enKucukBirim ? (
-            <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
+            <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
               {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
             </span>
           ) : (
             (product.packageInfo || product.unit !== "ADET") && (
-              <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
+              <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
                 {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
               </span>
             )
           )}
+          </div>
         </div>
       </Link>
 
@@ -115,7 +116,7 @@ export default function ProductCard({
             {price.discounted && (
               <span className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
-            <span className="text-sm font-semibold text-neutral-900">
+            <span className="text-base font-extrabold text-[var(--color-brand)]">
               {centsToTl(price.displayCents)} ₺
               {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
             </span>

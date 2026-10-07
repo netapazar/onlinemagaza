@@ -95,7 +95,7 @@ function ApprovedStrip({ status }: { status: Extract<MembershipStatus, { kind: "
   if (status.cariHesap) chips.push("Cari hesapla ödeme");
   chips.push("Aynı gün kargo (13:30'a kadar)");
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-4 py-3 sm:px-5">
+    <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-4 py-3 sm:px-5">
       <span className="flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-800)]">
         <BadgeCheck className="h-5 w-5 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
         Kurumsal üyesiniz, avantajlarınız aktif
@@ -120,9 +120,9 @@ export default function CorporateBenefits({ status }: { status: MembershipStatus
   const applyHref = status.kind === "guest" ? "/uyelik/kayit" : "/hesabim/uyelik-basvurusu";
 
   return (
-    <section aria-labelledby="kurumsal-avantajlar" className="mb-5 overflow-hidden rounded-2xl border border-[var(--color-brand-100)] bg-white shadow-sm">
+    <section aria-labelledby="kurumsal-avantajlar" className="mb-6 overflow-hidden rounded-2xl border border-[var(--color-brand-100)] bg-white shadow-sm">
       <div className="grid lg:grid-cols-[1.2fr_1fr]">
-        <div className="p-5 sm:p-8">
+        <div className="p-5 sm:p-6 lg:p-8">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold text-[var(--color-brand-700)]">
             <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
             Kurumsal Üyelik

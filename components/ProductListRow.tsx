@@ -61,7 +61,7 @@ export default function ProductListRow({
 
       <div className="shrink-0 text-right">
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
-        <p className="text-sm font-semibold text-neutral-900">
+        <p className="text-base font-extrabold text-[var(--color-brand)]">
           {centsToTl(price.displayCents)} ₺{enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
         </p>
         <p className="text-[10px] text-neutral-400">KDV Dahil</p>
