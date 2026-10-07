@@ -1,60 +1,36 @@
 import Link from "next/link";
+import { LayoutGrid } from "lucide-react";
 import { CategoryIcon } from "@/lib/categoryIcons";
-import StoreImage from "@/components/StoreImage";
-import ScrollRow from "@/components/ScrollRow";
+import SectionHeading from "@/components/SectionHeading";
 
-type Sub = { id: string; name: string; count: number; imageUrl: string | null };
-type Category = Sub & { children?: Sub[] };
+type Category = { id: string; name: string; count: number };
 
-// Tek satır, yatay kaydırmalı (oklar ScrollRow'da): önce ana kategoriler (renkli çerçeveli), ardından her ana kategorinin
-// alt kategorileri kendi temsili ürün görseliyle. Az öğede ilk/son kartın otomatik kenar boşluğu satırı ORTALAR; taşınca
-// satır soldan kaydırılır. pt/pb: kartın hover'da yukarı kalkması kesilmesin.
+// Yalnız ana kategoriler, eşit boyutlu kartlarda, kaydırmasız ızgara (mobil 2, tablet 4, geniş ekran 8 sütun). Ürün fotoğrafı
+// yerine tek tip teal çizgi ikon: farklı fon/boyuttaki fotoğraflar daire içinde düzensiz duruyordu. Alt kategoriler menüde.
 export default function CategoryGrid({ categories }: { categories: Category[] }) {
-  const altlar = categories.flatMap((g) => g.children ?? []);
   return (
-    <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold text-neutral-900">Kategoriler</h2>
-        {altlar.length > 0 && (
-          <span className="text-xs text-neutral-400">
-            {categories.length} ana · {altlar.length} alt kategori
-          </span>
-        )}
+    <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <SectionHeading title="Kategoriler" icon={LayoutGrid} />
+        <span className="text-xs text-neutral-500">{categories.length} kategori</span>
       </div>
-      <ScrollRow label="Kategoriler" innerClassName="gap-4 pt-1 pb-2 sm:gap-5" okKonum="top-11">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
         {categories.map((c) => (
-          <Kart key={c.id} c={c} ana />
+          <Link
+            key={c.id}
+            href={`/urunler?kategori=${c.id}`}
+            className="group flex h-full flex-col items-center gap-2 rounded-xl sm:gap-3 border border-neutral-200 bg-white px-2 py-4 text-center sm:px-3 sm:py-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-50)] hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl sm:h-14 sm:w-14 bg-[var(--color-brand-50)] text-[var(--color-brand)] transition-colors duration-200 group-hover:bg-[var(--color-brand)] group-hover:text-white">
+              <CategoryIcon name={c.name} className="h-6 w-6 sm:h-7 sm:w-7" />
+            </span>
+            <span className="flex min-h-10 items-center text-sm leading-tight font-bold text-neutral-900 group-hover:text-[var(--color-brand)]">
+              {c.name}
+            </span>
+            <span className="-mt-1 text-xs text-neutral-500">{c.count} ürün</span>
+          </Link>
         ))}
-        {altlar.length > 0 && <span className="mx-1 h-16 w-px shrink-0 self-center bg-neutral-200" aria-hidden="true" />}
-        {altlar.map((c) => (
-          <Kart key={c.id} c={c} />
-        ))}
-      </ScrollRow>
+      </div>
     </div>
-  );
-}
-
-function Kart({ c, ana = false }: { c: Sub; ana?: boolean }) {
-  return (
-    <Link
-      href={`/urunler?kategori=${c.id}`}
-      className="group flex w-20 shrink-0 flex-col items-center gap-2 text-center first:ml-auto last:mr-auto sm:w-24"
-    >
-      <span
-        className={`relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 bg-[var(--color-brand-soft)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--color-brand)] group-hover:shadow-md ${
-          ana ? "border-[var(--color-brand-300)]" : "border-neutral-100"
-        }`}
-      >
-        {c.imageUrl ? (
-          <StoreImage src={c.imageUrl} alt="" sizes="80px" className="object-cover transition-transform duration-300 group-hover:scale-105" />
-        ) : (
-          <CategoryIcon name={c.name} className="h-8 w-8 text-[var(--color-brand)]" />
-        )}
-      </span>
-      <span className={`text-xs leading-tight transition-colors group-hover:text-[var(--color-brand)] ${ana ? "font-bold text-neutral-900" : "font-medium text-neutral-700"}`}>
-        {c.name}
-      </span>
-      <span className="text-[11px] text-neutral-400">{c.count} ürün</span>
-    </Link>
   );
 }

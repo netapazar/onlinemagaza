@@ -54,14 +54,19 @@ export default function ProductListRow({
         ) : (
           product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>
         )}
-        <p className="mt-1 text-xs font-medium">
-          {inStock ? <span className="text-emerald-700">Bugün Kargoda</span> : <span className="text-red-600">Stokta Yok</span>}
-        </p>
+        {(product.cokSatan || !inStock) && (
+          <p className="mt-1 flex items-center gap-2 text-xs font-medium">
+            {product.cokSatan && (
+              <span className="rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[11px] font-semibold text-white">Çok Satan</span>
+            )}
+            {!inStock && <span className="text-red-600">Stokta Yok</span>}
+          </p>
+        )}
       </div>
 
       <div className="shrink-0 text-right">
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
-        <p className="text-sm font-semibold text-neutral-900">
+        <p className="text-base font-extrabold text-[var(--color-brand)]">
           {centsToTl(price.displayCents)} ₺{enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
         </p>
         <p className="text-[10px] text-neutral-400">KDV Dahil</p>

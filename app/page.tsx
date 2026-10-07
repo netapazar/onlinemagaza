@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
   getBestSellers,
-  getStorefrontBrands,
+  getVitrinMarkalari,
 } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
@@ -31,7 +31,7 @@ export default async function Home() {
     getStorefrontCategoriesWithCounts(),
     getNewArrivals(ROW_LIMIT),
     getBestSellers(ROW_LIMIT),
-    getStorefrontBrands(),
+    getVitrinMarkalari(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
   ]);
@@ -59,7 +59,7 @@ export default async function Home() {
         />
       ) : (
         <>
-          <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
             <TrustBar />
           </div>
 
@@ -77,9 +77,10 @@ export default async function Home() {
 
           {bestSellers.length > 0 && (
             <Reveal>
-              <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Çok Satanlar"
+                  icon={TrendingUp}
                   products={bestSellers}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler"
@@ -90,9 +91,10 @@ export default async function Home() {
 
           {newArrivals.length > 0 && (
             <Reveal>
-              <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Yeni Eklenenler"
+                  icon={Sparkles}
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"
@@ -107,13 +109,13 @@ export default async function Home() {
 
           {brands.length >= MIN_BRANDS && (
             <Reveal>
-              <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <BrandStrip brands={brands} />
               </div>
             </Reveal>
           )}
 
-          <div className="mb-5 flex justify-center">
+          <div className="mb-6 flex justify-center">
             <Link
               href="/urunler"
               className="group inline-flex items-center gap-2 rounded-lg border border-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] transition-colors duration-200 hover:bg-[var(--color-brand-soft)]"

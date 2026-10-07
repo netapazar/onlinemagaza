@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
+import SectionHeading from "@/components/SectionHeading";
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
 
@@ -8,18 +9,20 @@ export default function ProductRow({
   products,
   memberDiscountPercent,
   viewAllHref,
+  icon,
 }: {
   title: string;
   products: StorefrontProductSummary[];
   memberDiscountPercent: number | null;
   viewAllHref?: string;
+  icon?: LucideIcon;
 }) {
   if (products.length === 0) return null;
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-neutral-900">{title}</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <SectionHeading title={title} icon={icon} />
         {viewAllHref && (
           <Link
             href={viewAllHref}

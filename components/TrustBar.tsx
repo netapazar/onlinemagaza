@@ -16,13 +16,13 @@ export default function TrustBar() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {ITEMS.map(({ icon: Icon, title, description }) => (
-        <div key={title} className="flex items-center gap-2.5 rounded-xl border border-neutral-200 p-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
-            <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+        <div key={title} className="flex items-center gap-3 rounded-xl p-2 sm:p-2.5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--color-brand)] shadow-sm ring-1 ring-[var(--color-brand-100)]">
+            <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-xs font-semibold text-neutral-900">{title}</span>
-            <span className="block truncate text-[11px] text-neutral-500">{description}</span>
+            <span className="block text-[13px] leading-tight font-bold text-[var(--color-brand-800)] sm:truncate">{title}</span>
+            <span className="mt-0.5 block text-[11px] leading-snug text-neutral-600 sm:truncate">{description}</span>
           </span>
         </div>
       ))}

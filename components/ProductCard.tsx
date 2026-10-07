@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ShoppingCart, Check } from "lucide-react";
+import { Heart, ShoppingCart, Check, TrendingUp } from "lucide-react";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -41,7 +41,7 @@ export default function ProductCard({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand-300)] hover:shadow-md">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -71,41 +71,35 @@ export default function ProductCard({
             <ProductPlaceholder name={product.name} brandName={product.brandName} />
           )}
 
-          {price.discounted && price.discountPercent && (
-            <span className="absolute top-2 left-2 rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs font-semibold text-white">
-              %{price.discountPercent}
-            </span>
-          )}
-
-          {inStock ? (
-            <span className="absolute bottom-2 left-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-              Bugün Kargoda
-            </span>
-          ) : (
-            <span className="absolute bottom-2 left-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
-              Stokta Yok
+          {/* Rozet sistemi (kullanıcı kararı 2026-10): kartta yalnız ayırt edici "Çok Satan" rozeti. "Bugün Kargoda" her
+              üründe olduğu için kaldırıldı; stok durumu rozet değil, aşağıda buton yerine düz metin. */}
+          {product.cokSatan && (
+            <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
+              <TrendingUp className="h-3 w-3" aria-hidden="true" />
+              Çok Satan
             </span>
           )}
         </div>
 
         <div className="p-2.5 pb-0">
-          {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
-          <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
-          {product.shortDescription && (
-            <p className="line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
-          )}
+          {/* Sabit satır yükseklikleri: ad 1 ya da 2 satır, açıklama/etiket olsun olmasın kartların fiyat ve buton hizası aynı kalsın */}
+          <span className="block h-4 truncate text-xs leading-4 text-neutral-400">{product.brandName ?? ""}</span>
+          <p className="line-clamp-2 h-10 text-sm leading-5 font-medium text-neutral-900">{product.name}</p>
+          <p className="line-clamp-1 h-4 text-xs leading-4 text-neutral-500">{product.shortDescription ?? ""}</p>
+          <div className="mt-1 h-[18px]">
           {/* Paket içeriği varsa o ("50'li paket"); yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa hiçbir şey */}
           {enKucukBirim ? (
-            <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
+            <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
               {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
             </span>
           ) : (
             (product.packageInfo || product.unit !== "ADET") && (
-              <span className="mt-1 inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
+              <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
                 {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
               </span>
             )
           )}
+          </div>
         </div>
       </Link>
 
@@ -115,7 +109,7 @@ export default function ProductCard({
             {price.discounted && (
               <span className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
-            <span className="text-sm font-semibold text-neutral-900">
+            <span className="text-base font-extrabold text-[var(--color-brand)]">
               {centsToTl(price.displayCents)} ₺
               {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
             </span>
@@ -124,7 +118,7 @@ export default function ProductCard({
           <CorporatePriceHint className="mt-0.5" />
         </div>
 
-        {inStock && (
+        {inStock ? (
           <div className="flex items-stretch gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
             <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="sm" />
             <button
@@ -147,6 +141,8 @@ export default function ProductCard({
               {added ? "✓ Eklendi" : "Sepete Ekle"}
             </button>
           </div>
+        ) : (
+          <p className="text-xs font-medium text-neutral-500">Stokta yok</p>
         )}
       </div>
     </div>
