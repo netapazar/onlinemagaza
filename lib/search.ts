@@ -140,7 +140,7 @@ function sortSummaries(products: StorefrontProductSummary[], sort?: StorefrontSo
 async function fuzzyMatchProductIds(
   storeId: string,
   query: string,
-  categoryId?: string
+  categoryIds?: string[]
 ): Promise<string[]> {
   const keywords = query.trim().split(/\s+/).filter(Boolean);
   if (keywords.length === 0) return [];
@@ -175,7 +175,7 @@ async function fuzzyMatchProductIds(
     WHERE p."storeId" = ${storeId}
       AND p."showOnStorefront" = true
       AND p."archivedAt" IS NULL
-      ${categoryId ? Prisma.sql`AND p."categoryId" = ${categoryId}` : Prisma.empty}
+      ${categoryIds ? Prisma.sql`AND p."categoryId" IN (${Prisma.join(categoryIds)})` : Prisma.empty}
       AND (${Prisma.join(keywordConditions, " AND ")})
     ORDER BY rank DESC
     LIMIT 50
@@ -196,9 +196,10 @@ export async function listStorefrontProducts(options: {
   const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
 
   let summaries: StorefrontProductSummary[];
+  const categoryIds = options.categoryId ? await kategoriVeAltlari(options.categoryId) : undefined;
 
   if (options.query) {
-    const orderedIds = await fuzzyMatchProductIds(storeId, options.query, options.categoryId);
+    const orderedIds = await fuzzyMatchProductIds(storeId, options.query, categoryIds);
     if (orderedIds.length === 0) return [];
     const products = await prisma.product.findMany({
       where: { id: { in: orderedIds } },
@@ -214,7 +215,7 @@ export async function listStorefrontProducts(options: {
         storeId,
         archivedAt: null,
         showOnStorefront: true,
-        ...(options.categoryId ? { categoryId: options.categoryId } : {}),
+        ...(categoryIds ? { categoryId: { in: categoryIds } } : {}),
       },
       select: BASE_SELECT,
       orderBy: options.sort === "yeni" ? { updatedAt: "desc" } : [{ storefrontSortOrder: "asc" }, { name: "asc" }],
@@ -243,50 +244,73 @@ export async function listStorefrontProducts(options: {
   return summaries;
 }
 
-export async function getStorefrontCategories(): Promise<{ id: string; name: string }[]> {
-  // Kategori adları YALNIZ gösterimde düzgün Türkçe büyük/küçük harfe çevrilir (trTitle) — veritabanına dokunulmaz.
-  if (isDemoMode()) return DEMO_CATEGORIES.map((c) => ({ ...c, name: trTitle(c.name) }));
-  const storeId = await getOnlineStoreId();
-  const categories = await prisma.category.findMany({
-    where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
-  return categories.map((c) => ({ ...c, name: trTitle(c.name) }));
+// Kategori ağacı iki seviyeli (ana kategori > alt kategori, 2026-10-07 sanaldepom ağacı). Vitrinde ana kategoriler
+// gruplanır: menü/anasayfa/alt bilgi ana kategorileri, mega menü ve filtre alt kategorileri de gösterir.
+export type StorefrontSubCategory = { id: string; name: string; count: number };
+export type StorefrontCategoryGroup = {
+  id: string;
+  name: string;
+  count: number; // ana kategori + tüm alt kategorilerindeki yayındaki ürün
+  imageUrl: string | null;
+  children: StorefrontSubCategory[];
+};
+
+// Ana kategori seçilince alt kategorilerindeki ürünler de listelenir.
+async function kategoriVeAltlari(categoryId: string): Promise<string[]> {
+  const children = await prisma.category.findMany({ where: { parentId: categoryId }, select: { id: true } });
+  return [categoryId, ...children.map((c) => c.id)];
 }
 
-// Anasayfadaki "Kategoriler" kart bölümü için — kaç ürün olduğunu da
-// göstermek üzere ayrı bir count sorgusu.
+// Filtre listesi ve başlık için: ana kategoriler ve (ayrı satırlarda) alt kategorileri, parentId ile.
+export async function getStorefrontCategories(): Promise<{ id: string; name: string; parentId: string | null }[]> {
+  // Kategori adları YALNIZ gösterimde düzgün Türkçe büyük/küçük harfe çevrilir (trTitle) — veritabanına dokunulmaz.
+  if (isDemoMode()) return DEMO_CATEGORIES.map((c) => ({ ...c, name: trTitle(c.name), parentId: null }));
+  const groups = await getStorefrontCategoriesWithCounts();
+  return groups.flatMap((g) => [
+    { id: g.id, name: g.name, parentId: null },
+    ...g.children.map((c) => ({ id: c.id, name: c.name, parentId: g.id })),
+  ]);
+}
+
+// Anasayfadaki "Kategoriler" kart bölümü, menüler ve alt bilgi için — ana kategoriler, ürün sayıları ve alt kategorileriyle.
 // cache() — Header ve layout'taki mobil alt menü aynı istek içinde ikisi de
 // çağırıyor, tekrar DB'ye gitmesin diye (bkz. getWebSession'daki aynı gerekçe).
-export const getStorefrontCategoriesWithCounts = cache(async (): Promise<
-  { id: string; name: string; count: number; imageUrl: string | null }[]
-> => {
-  if (isDemoMode()) return demoCategoriesWithCounts().map((c) => ({ ...c, name: trTitle(c.name) }));
+export const getStorefrontCategoriesWithCounts = cache(async (): Promise<StorefrontCategoryGroup[]> => {
+  if (isDemoMode()) return demoCategoriesWithCounts().map((c) => ({ ...c, name: trTitle(c.name), children: [] }));
   const storeId = await getOnlineStoreId();
+  const yayinda = { storeId, showOnStorefront: true, archivedAt: null };
   const categories = await prisma.category.findMany({
-    where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
+    where: { products: { some: yayinda } },
     orderBy: { name: "asc" },
     select: {
       id: true,
       name: true,
-      _count: { select: { products: { where: { storeId, showOnStorefront: true, archivedAt: null } } } },
+      parent: { select: { id: true, name: true } },
+      _count: { select: { products: { where: yayinda } } },
       // Anasayfadaki kategori kartında görsel için — kategorinin herhangi bir
       // kapak görselli ürününden temsili bir görsel (uydurma değil).
       products: {
-        where: { storeId, showOnStorefront: true, archivedAt: null, images: { some: { isCover: true } } },
+        where: { ...yayinda, images: { some: { isCover: true } } },
         take: 1,
         orderBy: [{ storefrontSortOrder: "asc" }, { name: "asc" }],
         select: { images: { where: { isCover: true }, take: 1, select: { url: true } } },
       },
     },
   });
-  return categories.map((c) => ({
-    id: c.id,
-    name: trTitle(c.name),
-    count: c._count.products,
-    imageUrl: c.products[0]?.images[0]?.url ?? null,
-  }));
+  const groups = new Map<string, StorefrontCategoryGroup>();
+  const grup = (id: string, name: string) => {
+    let g = groups.get(id);
+    if (!g) groups.set(id, (g = { id, name: trTitle(name), count: 0, imageUrl: null, children: [] }));
+    return g;
+  };
+  for (const c of categories) {
+    const imageUrl = c.products[0]?.images[0]?.url ?? null;
+    const g = c.parent ? grup(c.parent.id, c.parent.name) : grup(c.id, c.name);
+    g.count += c._count.products;
+    g.imageUrl ??= imageUrl;
+    if (c.parent) g.children.push({ id: c.id, name: trTitle(c.name), count: c._count.products });
+  }
+  return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name, "tr"));
 });
 
 // Anasayfadaki "Yeni Eklenen Ürünler" bölümü — storefrontSortOrder'dan

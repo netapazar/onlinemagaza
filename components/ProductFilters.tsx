@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; parentId?: string | null };
 type Brand = { id: string; name: string };
 
 export default function ProductFilters({
@@ -38,16 +38,37 @@ export default function ProductFilters({
               Tümü
             </Link>
           </li>
-          {categories.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={buildHref({ kategori: c.id })}
-                className={activeCategoryId === c.id ? "font-semibold text-[var(--color-brand)]" : "text-neutral-600 hover:text-[var(--color-brand)]"}
-              >
-                {c.name}
-              </Link>
-            </li>
-          ))}
+          {categories
+            .filter((c) => !c.parentId)
+            .map((g) => {
+              const children = categories.filter((c) => c.parentId === g.id);
+              // Seçili ana kategorinin (ya da seçili alt kategorinin ana kategorisinin) alt kategorileri açılır.
+              const acik = activeCategoryId === g.id || children.some((c) => c.id === activeCategoryId);
+              return (
+                <li key={g.id}>
+                  <Link
+                    href={buildHref({ kategori: g.id })}
+                    className={activeCategoryId === g.id ? "font-semibold text-[var(--color-brand)]" : "text-neutral-600 hover:text-[var(--color-brand)]"}
+                  >
+                    {g.name}
+                  </Link>
+                  {acik && children.length > 0 && (
+                    <ul className="mt-1 mb-1 ml-3 space-y-1 border-l border-neutral-200 pl-3">
+                      {children.map((c) => (
+                        <li key={c.id}>
+                          <Link
+                            href={buildHref({ kategori: c.id })}
+                            className={activeCategoryId === c.id ? "font-semibold text-[var(--color-brand)]" : "text-neutral-500 hover:text-[var(--color-brand)]"}
+                          >
+                            {c.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
         </ul>
       </div>
 

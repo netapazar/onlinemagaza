@@ -4,14 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import { getCategoryIcon } from "@/lib/categoryIcons";
+import type { StorefrontCategoryGroup } from "@/lib/search";
 
-type CategoryWithCount = { id: string; name: string; count: number };
-
-// Şu an sadece 2 kategori var — grid tek satıra sığıyor, sade bir açılır
-// panel gibi görünüyor. Kategori sayısı arttıkça aynı grid (sm:grid-cols-3)
-// kendiliğinden çok sütunlu bir mega menüye dönüşecek; iki ayrı bileşen/kod
-// yolu yok, tek bir yapı her iki durumda da doğru görünüyor.
-export default function MegaMenu({ categories }: { categories: CategoryWithCount[] }) {
+// Ana kategoriler sütunlar hâlinde; her birinin altında alt kategorileri. Çok alt kategorili gruplarda panel kendi içinde
+// kayar (sayfa uzamaz). Ana kategori başlığı o kategorinin TÜM ürünlerine (alt kategoriler dahil) gider.
+export default function MegaMenu({ categories }: { categories: StorefrontCategoryGroup[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -41,27 +38,40 @@ export default function MegaMenu({ categories }: { categories: CategoryWithCount
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-30 mt-2 w-[min(90vw,640px)] rounded-xl border border-neutral-200 bg-white p-3 shadow-lg">
-          <div className="grid grid-cols-2 gap-1 sm:grid-cols-3">
-            {categories.map((c) => {
-              const Icon = getCategoryIcon(c.name);
+        <div className="absolute top-full left-0 z-30 mt-2 max-h-[70vh] w-[min(94vw,1000px)] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-4 shadow-lg">
+          <div className="columns-2 gap-6 md:columns-3 lg:columns-4">
+            {categories.map((g) => {
+              const Icon = getCategoryIcon(g.name);
               return (
-                <Link
-                  key={c.id}
-                  href={`/urunler?kategori=${c.id}`}
-                  onClick={() => setOpen(false)}
-                  className="group flex items-center gap-3 rounded-lg p-2.5 hover:bg-[var(--color-brand-soft)]"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand)] group-hover:bg-white">
-                    <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-neutral-800 group-hover:text-[var(--color-brand)]">
-                      {c.name}
+                <div key={g.id} className="mb-4 break-inside-avoid">
+                  <Link
+                    href={`/urunler?kategori=${g.id}`}
+                    onClick={() => setOpen(false)}
+                    className="group mb-1 flex items-center gap-2 rounded-lg p-1.5 hover:bg-[var(--color-brand-soft)]"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--color-brand-soft)] text-[var(--color-brand)] group-hover:bg-white">
+                      <Icon className="h-4 w-4" aria-hidden="true" />
                     </span>
-                    <span className="block text-xs text-neutral-400">{c.count} ürün</span>
-                  </span>
-                </Link>
+                    <span className="min-w-0 text-sm font-semibold text-neutral-900 group-hover:text-[var(--color-brand)]">
+                      {g.name} <span className="font-normal text-neutral-400">({g.count})</span>
+                    </span>
+                  </Link>
+                  {g.children.length > 0 && (
+                    <ul className="ml-10 space-y-0.5">
+                      {g.children.map((c) => (
+                        <li key={c.id}>
+                          <Link
+                            href={`/urunler?kategori=${c.id}`}
+                            onClick={() => setOpen(false)}
+                            className="block truncate text-[13px] text-neutral-600 hover:text-[var(--color-brand)]"
+                          >
+                            {c.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               );
             })}
           </div>
