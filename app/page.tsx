@@ -36,6 +36,21 @@ export default async function Home() {
     getMembershipStatus(),
   ]);
 
+  const approved = membershipStatus.kind === "approved";
+  const bestSellersRow = bestSellers.length > 0 && (
+    <Reveal>
+      <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+        <ProductRow
+          title="Çok Satanlar"
+          icon={TrendUpIcon}
+          products={bestSellers}
+          memberDiscountPercent={memberDiscountPercent}
+          viewAllHref="/urunler"
+        />
+      </div>
+    </Reveal>
+  );
+
   const catalogIsEmpty = categories.length === 0 && newArrivals.length === 0;
 
   // Banner kompozisyonu için gerçek ürün fotoğrafları (aynı fotoğraf iki kez girmesin).
@@ -62,7 +77,8 @@ export default async function Home() {
           {/* Renk ritmi (2026-10): açık teal ve beyaz bölümler sırayla gelir, iki teal bölüm yan yana düşmez —
               bilgi şeridi (teal) · kurumsal avantajlar (beyaz) · kategoriler (teal) · çok satanlar (beyaz) ·
               kimlere hizmet (teal) · yeni eklenenler (beyaz) · markalar (teal). Ürün satırları beyaz: fotoğraflar beyazda iyi durur.
-              Onaylı üyede büyük avantaj bölümü yok; üye durum çubuğu bilgi şeridiyle aynı teal bandın alt satırı. */}
+              Onaylı üyede: büyük avantaj bölümü ve "Kimlere Hizmet" yok, üye durum çubuğu bilgi şeridiyle aynı teal bandın alt
+              satırı, Çok Satanlar kategorilerin üstünde → bilgi şeridi · çok satanlar · kategoriler · yeni eklenenler · markalar. */}
           <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
             <TrustBar />
             {membershipStatus.kind === "approved" && <ApprovedStrip status={membershipStatus} />}
@@ -74,29 +90,22 @@ export default async function Home() {
             <CorporateBenefits status={membershipStatus} />
           </Reveal>
 
+          {/* Onaylı üyede kurumsal avantaj bölümü (beyaz) yok → Çok Satanlar kategorilerin ÜSTÜNE çıkar ki bilgi şeridi (teal)
+              ile kategoriler (teal) yan yana düşmesin. */}
+          {approved && bestSellersRow}
           {categories.length > 0 && (
             <Reveal>
               <CategoryGrid categories={categories} />
             </Reveal>
           )}
+          {!approved && bestSellersRow}
 
-          {bestSellers.length > 0 && (
+          {/* Kimlere Hizmet yalnız üyeliğe yönlendiriyor — onaylı üyede işlevi yok, gösterilmez. */}
+          {!approved && (
             <Reveal>
-              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-                <ProductRow
-                  title="Çok Satanlar"
-                  icon={TrendUpIcon}
-                  products={bestSellers}
-                  memberDiscountPercent={memberDiscountPercent}
-                  viewAllHref="/urunler"
-                />
-              </div>
+              <AudienceSection />
             </Reveal>
           )}
-
-          <Reveal>
-            <AudienceSection />
-          </Reveal>
 
           {newArrivals.length > 0 && (
             <Reveal>
