@@ -191,3 +191,19 @@ span.member-hint {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Kategori kartı ve bilgi şeridi illüstrasyonları — her biri TEK sprite dosyası (12 ayrı istek yerine 2; yavaş mobil ağda
+   istek başına gecikme sayfa yüklemesini uzatıyordu). Hücreler tek satırda yan yana; konum satır içi style'da (yüzde).
+   Bilgi şeridi sayfayla birlikte yüklenir. Kategori sprite'ı sayfa yüklemesi bittikten SONRA istenir
+   (components/LateAssets.tsx <html data-gec-yukleme> ekler) — mobilde kategoriler ilk ekranın altında, kaydırana kadar gelmiş olur. */
+.serit-sprite {
+  background: url("/gorseller/serit-sprite.webp") no-repeat;
+  background-size: 400% 100%;
+}
+.kategori-sprite {
+  background-repeat: no-repeat;
+  background-size: 800% 100%;
+}
+html[data-gec-yukleme] .kategori-sprite {
+  background-image: url("/gorseller/kategori-sprite.webp");
+}
