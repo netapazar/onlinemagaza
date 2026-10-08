@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ClockIcon, MailIcon, MapPinIcon, ChatIcon, PhoneIcon } from "@/components/icons";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import { getSiteInfo } from "@/lib/siteInfo";
 import { SIRKET } from "@/lib/sirket";
@@ -29,7 +29,7 @@ export default async function Footer() {
           <ul className="space-y-2 text-sm text-neutral-600">
             <li>
               <a href={SIRKET.telefonHref} className="flex items-center gap-1.5 hover:text-[var(--color-brand)]">
-                <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <PhoneIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {SIRKET.telefonGorunen}
               </a>
             </li>
@@ -40,19 +40,19 @@ export default async function Footer() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 hover:text-[var(--color-brand)]"
               >
-                <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <ChatIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 WhatsApp: {WHATSAPP_DISPLAY}
               </a>
             </li>
             <li>
               <a href={`mailto:${email}`} className="flex items-center gap-1.5 break-all hover:text-[var(--color-brand)]">
-                <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <MailIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {email}
               </a>
             </li>
             {address && (
               <li className="flex items-start gap-1.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>
                   {address.map((line, i) => (
                     <span key={i} className="block">
@@ -64,7 +64,7 @@ export default async function Footer() {
             )}
             {info.hours && (
               <li className="flex items-start gap-1.5">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <ClockIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>
                   {info.hours.map((line, i) => (
                     <span key={i} className="block">

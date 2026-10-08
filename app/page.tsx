@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRightIcon, SparkleIcon, TrendUpIcon } from "@/components/icons";
 import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
@@ -13,7 +13,7 @@ import TrustBar from "@/components/TrustBar";
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductRow from "@/components/ProductRow";
 import AudienceSection from "@/components/AudienceSection";
-import CorporateBenefits from "@/components/CorporateBenefits";
+import CorporateBenefits, { ApprovedStrip } from "@/components/CorporateBenefits";
 import BrandStrip, { MIN_BRANDS } from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 import Reveal from "@/components/Reveal";
@@ -35,6 +35,21 @@ export default async function Home() {
     getMemberDiscountPercent(),
     getMembershipStatus(),
   ]);
+
+  const approved = membershipStatus.kind === "approved";
+  const bestSellersRow = bestSellers.length > 0 && (
+    <Reveal>
+      <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+        <ProductRow
+          title="Çok Satanlar"
+          icon={TrendUpIcon}
+          products={bestSellers}
+          memberDiscountPercent={memberDiscountPercent}
+          viewAllHref="/urunler"
+        />
+      </div>
+    </Reveal>
+  );
 
   const catalogIsEmpty = categories.length === 0 && newArrivals.length === 0;
 
@@ -59,33 +74,36 @@ export default async function Home() {
         />
       ) : (
         <>
+          {/* Renk ritmi (2026-10): açık teal ve beyaz bölümler sırayla gelir, iki teal bölüm yan yana düşmez —
+              bilgi şeridi (teal) · kurumsal avantajlar (beyaz) · kategoriler (teal) · çok satanlar (beyaz) ·
+              kimlere hizmet (teal) · yeni eklenenler (beyaz) · markalar (teal). Ürün satırları beyaz: fotoğraflar beyazda iyi durur.
+              Onaylı üyede: büyük avantaj bölümü ve "Kimlere Hizmet" yok, üye durum çubuğu bilgi şeridiyle aynı teal bandın alt
+              satırı, Çok Satanlar kategorilerin üstünde → bilgi şeridi · çok satanlar · kategoriler · yeni eklenenler · markalar. */}
           <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
             <TrustBar />
+            {membershipStatus.kind === "approved" && <ApprovedStrip status={membershipStatus} />}
           </div>
 
-          {/* Kurumsal üyelik avantajları: onaylı üyede kısa "avantajlarınız aktif" şeridi, diğerlerinde
-              görselli avantaj bölümü + "Hemen Başvur" (bkz. components/CorporateBenefits.tsx) */}
+          {/* Kurumsal üyelik avantajları: onaylı üye dışındakilere görselli avantaj bölümü + "Hemen Başvur"
+              (bkz. components/CorporateBenefits.tsx) */}
           <Reveal>
             <CorporateBenefits status={membershipStatus} />
           </Reveal>
 
+          {/* Onaylı üyede kurumsal avantaj bölümü (beyaz) yok → Çok Satanlar kategorilerin ÜSTÜNE çıkar ki bilgi şeridi (teal)
+              ile kategoriler (teal) yan yana düşmesin. */}
+          {approved && bestSellersRow}
           {categories.length > 0 && (
             <Reveal>
               <CategoryGrid categories={categories} />
             </Reveal>
           )}
+          {!approved && bestSellersRow}
 
-          {bestSellers.length > 0 && (
+          {/* Kimlere Hizmet yalnız üyeliğe yönlendiriyor — onaylı üyede işlevi yok, gösterilmez. */}
+          {!approved && (
             <Reveal>
-              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-                <ProductRow
-                  title="Çok Satanlar"
-                  icon={TrendingUp}
-                  products={bestSellers}
-                  memberDiscountPercent={memberDiscountPercent}
-                  viewAllHref="/urunler"
-                />
-              </div>
+              <AudienceSection />
             </Reveal>
           )}
 
@@ -94,7 +112,7 @@ export default async function Home() {
               <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Yeni Eklenenler"
-                  icon={Sparkles}
+                  icon={SparkleIcon}
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"
@@ -103,13 +121,9 @@ export default async function Home() {
             </Reveal>
           )}
 
-          <Reveal>
-            <AudienceSection />
-          </Reveal>
-
           {brands.length >= MIN_BRANDS && (
             <Reveal>
-              <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
                 <BrandStrip brands={brands} />
               </div>
             </Reveal>
@@ -121,7 +135,7 @@ export default async function Home() {
               className="group inline-flex items-center gap-2 rounded-lg border border-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] transition-colors duration-200 hover:bg-[var(--color-brand-soft)]"
             >
               Tüm Ürünleri İncele
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+              <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           </div>
         </>

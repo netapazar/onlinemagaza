@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, type LucideIcon } from "lucide-react";
+import { ArrowRightIcon, type Icon } from "@/components/icons";
 import StoreImage from "@/components/StoreImage";
 
 // Sağdaki kampanya banner'ı. Görsel önceliği: (1) public/banners dosyası ya da (2) ürün fotoğrafı (küçük, hafif eğimli,
@@ -13,7 +13,7 @@ export default function PromoBanner({
   image = null,
   imageIsPhoto = false,
 }: {
-  icon: LucideIcon;
+  icon: Icon;
   title: string;
   description: string;
   href: string;
@@ -33,7 +33,7 @@ export default function PromoBanner({
         <p className="mb-2 hidden text-xs leading-snug text-white/85 sm:block">{description}</p>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-white">
           İncele
-          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+          <ArrowRightIcon className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
         </span>
       </div>
 

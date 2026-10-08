@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Check, RotateCcw } from "lucide-react";
+import { CheckIcon, ReorderIcon } from "@/components/icons";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 import { useCart } from "@/components/CartProvider";
@@ -114,7 +114,7 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
               added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
             }`}
           >
-            {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />}
+            {added ? <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" /> : <ReorderIcon className="h-3.5 w-3.5" aria-hidden="true" />}
             {added ? "Sepete eklendi" : "Tekrar Sipariş Et"}
           </button>
         </div>

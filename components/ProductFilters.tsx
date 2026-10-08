@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { CheckIcon } from "@/components/icons";
 
 type Category = { id: string; name: string; parentId?: string | null };
 type Brand = { id: string; name: string };
@@ -90,7 +90,7 @@ export default function ProductFilters({
                         checked ? "border-[var(--color-brand)] bg-[var(--color-brand)]" : "border-neutral-300"
                       }`}
                     >
-                      {checked && <Check className="h-3 w-3 text-white" aria-hidden="true" />}
+                      {checked && <CheckIcon className="h-3 w-3 text-white" aria-hidden="true" />}
                     </span>
                     {b.name}
                   </Link>

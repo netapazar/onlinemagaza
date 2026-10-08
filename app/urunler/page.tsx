@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SlidersHorizontal } from "lucide-react";
+import { FiltersIcon } from "@/components/icons";
 import {
   listStorefrontProducts,
   getStorefrontCategories,
@@ -160,7 +160,7 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
 
       <details className="mb-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm lg:hidden">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-neutral-900">
-          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          <FiltersIcon className="h-4 w-4" aria-hidden="true" />
           Filtrele
         </summary>
         <div className="mt-4">

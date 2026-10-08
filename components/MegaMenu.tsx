@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
+import { ArrowRightIcon, ChevronDownIcon, ChevronRightIcon, GridIcon } from "@/components/icons";
 import { getCategoryIcon, CategoryIcon } from "@/lib/categoryIcons";
 import StoreImage from "@/components/StoreImage";
 import type { StorefrontCategoryGroup } from "@/lib/search";
@@ -43,9 +43,9 @@ export default function MegaMenu({ categories }: { categories: StorefrontCategor
           open ? "bg-[var(--color-brand-hover)] text-white" : "bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand-hover)]"
         }`}
       >
-        <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+        <GridIcon className="h-4 w-4" aria-hidden="true" />
         Tüm Kategoriler
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+        <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
       {open && (
@@ -77,7 +77,7 @@ export default function MegaMenu({ categories }: { categories: StorefrontCategor
                       <span className={`block truncate text-sm ${secili ? "font-semibold" : "font-medium"}`}>{g.name}</span>
                       <span className="block text-[11px] text-neutral-400">{g.count} ürün</span>
                     </span>
-                    <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${secili ? "translate-x-0.5" : "text-neutral-300"}`} aria-hidden="true" />
+                    <ChevronRightIcon className={`h-4 w-4 shrink-0 transition-transform ${secili ? "translate-x-0.5" : "text-neutral-300"}`} aria-hidden="true" />
                   </Link>
                 </li>
               );
@@ -106,7 +106,7 @@ export default function MegaMenu({ categories }: { categories: StorefrontCategor
                   className="flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-brand)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--color-brand-hover)]"
                 >
                   Tümünü Gör
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
 
@@ -143,7 +143,7 @@ export default function MegaMenu({ categories }: { categories: StorefrontCategor
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-brand-800)]/90 to-transparent p-4 pt-12">
                   <span className="block text-sm font-semibold text-white">{aktif.name}</span>
                   <span className="mt-0.5 flex items-center gap-1 text-xs text-white/80">
-                    Alışverişe başla <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                    Alışverişe başla <ArrowRightIcon className="h-3 w-3" aria-hidden="true" />
                   </span>
                 </span>
               </Link>

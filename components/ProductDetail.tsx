@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Truck, Clock } from "lucide-react";
+import { TruckIcon, ClockIcon, SimilarIcon } from "@/components/icons";
 import { resolvePrice, computeListPriceCents, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
@@ -152,12 +152,12 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
           <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">
             <div className="flex items-center gap-2 text-neutral-700">
-              <Truck className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+              <TruckIcon className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
               Tüm siparişlerde ücretsiz kargo
             </div>
             {sameDayShipping && (
               <div className="flex items-center gap-2 text-neutral-700">
-                <Clock className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+                <ClockIcon className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
                 Bugün 13:30&apos;a kadar verilen siparişler bugün kargoya çıkar
               </div>
             )}
@@ -173,7 +173,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
       {relatedProducts.length > 0 && (
         <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-          <ProductRow title="Benzer Ürünler" products={relatedProducts} memberDiscountPercent={memberDiscountPercent} />
+          <ProductRow title="Benzer Ürünler" icon={SimilarIcon} products={relatedProducts} memberDiscountPercent={memberDiscountPercent} />
         </div>
       )}
     </div>

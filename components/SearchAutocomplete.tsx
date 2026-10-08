@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Loader2 } from "lucide-react";
+import { SearchIcon, SpinnerIcon } from "@/components/icons";
 import { getSearchSuggestions } from "@/lib/storefrontActions";
 import type { SearchSuggestion } from "@/lib/search";
 import StoreImage from "@/components/StoreImage";
@@ -66,7 +66,7 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
         className="flex w-full"
       >
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
           <input
             value={value}
             onChange={(e) => {
@@ -93,7 +93,7 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
         <div className="absolute top-full right-0 left-0 z-30 mt-1 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
           {pending ? (
             <div className="flex items-center gap-2 px-4 py-3 text-sm text-neutral-400">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              <SpinnerIcon className="h-4 w-4 animate-spin" aria-hidden="true" />
               Aranıyor...
             </div>
           ) : suggestions.length === 0 ? (

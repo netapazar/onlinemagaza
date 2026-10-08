@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon, TagIcon } from "@/components/icons";
 import ScrollRow from "@/components/ScrollRow";
 import SectionHeading from "@/components/SectionHeading";
-import { Tags } from "lucide-react";
 
 // Az markayla bir "şerit" göstermenin anlamı yok — en az 6 marka olduğunda render ediliyor (bkz. proje kısıtı: az
 // veriyle yarım/anlamsız görünen bölümler gizlenmeli). Çağıran taraf (anasayfa) kartı da aynı eşikle gizler.
@@ -16,13 +15,13 @@ export default function BrandStrip({ brands }: { brands: { id: string; name: str
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <SectionHeading title="Markalar" icon={Tags} />
+        <SectionHeading title="Markalar" icon={TagIcon} />
         <Link
           href="/urunler"
           className="group flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"
         >
           Tüm Ürünler
-          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+          <ArrowRightIcon className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
         </Link>
       </div>
       <ScrollRow label="Markalar">

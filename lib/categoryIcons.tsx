@@ -1,52 +1,54 @@
 import { createElement } from "react";
 import {
-  FileText,
-  PenLine,
-  Folder,
-  Paperclip,
-  Droplets,
-  Coffee,
-  Printer,
-  Scissors,
-  Package,
-  Tag,
-  NotebookPen,
-  Backpack,
-  BookOpen,
-  Puzzle,
-  Calculator,
-  Palette,
-  House,
-  type LucideIcon,
-} from "lucide-react";
+  PaperReamIcon,
+  PenIcon,
+  FolderIcon,
+  PaperclipIcon,
+  SprayBottleIcon,
+  MugIcon,
+  PrinterIcon,
+  ScissorsIcon,
+  BoxIcon,
+  TagIcon,
+  SpiralNotebookIcon,
+  BackpackIcon,
+  OpenBookIcon,
+  PuzzleIcon,
+  CalculatorIcon,
+  PaletteBrushIcon,
+  BindersIcon,
+  type Icon,
+} from "@/components/icons";
 
 // İsimden ikon eşleştirme — kategori sayısı arttıkça yeni satırlar eklenir.
 // Eşleşme bulunamazsa DEFAULT_ICON'a düşülür, harf-avatarı yerine bu
 // kullanılır (bkz. proje kısıtı: "kategori kartları isme uygun bir ikon
 // kullanmalı, eşleşme yoksa varsayılan ikona düşmeli").
-const ICON_RULES: { keywords: string[]; icon: LucideIcon }[] = [
+const ICON_RULES: { keywords: string[]; icon: Icon }[] = [
   // sanaldepom ana kategorileri (2026-10-07) — genel kurallardan ÖNCE (ör. "Okul Kırtasiye" ataç değil çanta ikonu alsın)
-  { keywords: ["defter", "ajanda"], icon: NotebookPen },
-  { keywords: ["okul"], icon: Backpack },
-  { keywords: ["kitap"], icon: BookOpen },
-  { keywords: ["oyuncak"], icon: Puzzle },
-  { keywords: ["elektronik", "hesap makine"], icon: Calculator },
-  { keywords: ["sanatsal", "boya"], icon: Palette },
-  { keywords: ["yaşam", "yasam"], icon: House },
-  { keywords: ["kağıt", "kagit", "fotokopi", " a4", "a4 "], icon: FileText },
-  { keywords: ["kalem", "pen", "tükenmez", "tukenmez"], icon: PenLine },
-  { keywords: ["dosya", "klasör", "klasor", "arşiv", "arsiv", "defter"], icon: Folder },
-  { keywords: ["kırtasiye", "kirtasiye", "ofis", "büro", "buro"], icon: Paperclip },
-  { keywords: ["temizlik", "hijyen", "deterjan"], icon: Droplets },
-  { keywords: ["mutfak", "gıda", "gida", "çay", "kahve"], icon: Coffee },
-  { keywords: ["yazıcı", "yazici", "toner", "kartuş", "kartus", "termal", "rulo"], icon: Printer },
-  { keywords: ["makas", "kesici", "maket"], icon: Scissors },
-  { keywords: ["ambalaj", "paketleme", "koli"], icon: Package },
+  { keywords: ["defter", "ajanda"], icon: SpiralNotebookIcon },
+  { keywords: ["okul"], icon: BackpackIcon },
+  { keywords: ["ofis kırtasiye", "ofis kirtasiye"], icon: BindersIcon },
+  { keywords: ["kitap"], icon: OpenBookIcon },
+  { keywords: ["oyuncak"], icon: PuzzleIcon },
+  { keywords: ["elektronik", "hesap makine"], icon: CalculatorIcon },
+  { keywords: ["sanatsal", "boya"], icon: PaletteBrushIcon },
+  { keywords: ["yaşam", "yasam"], icon: MugIcon },
+  { keywords: ["kağıt", "kagit", "fotokopi", " a4", "a4 "], icon: PaperReamIcon },
+  { keywords: ["kalem", "pen", "tükenmez", "tukenmez"], icon: PenIcon },
+  { keywords: ["klasör", "klasor"], icon: BindersIcon },
+  { keywords: ["dosya", "arşiv", "arsiv", "defter"], icon: FolderIcon },
+  { keywords: ["kırtasiye", "kirtasiye", "ofis", "büro", "buro"], icon: PaperclipIcon },
+  { keywords: ["temizlik", "hijyen", "deterjan"], icon: SprayBottleIcon },
+  { keywords: ["mutfak", "gıda", "gida", "çay", "kahve"], icon: MugIcon },
+  { keywords: ["yazıcı", "yazici", "toner", "kartuş", "kartus", "termal", "rulo"], icon: PrinterIcon },
+  { keywords: ["makas", "kesici", "maket"], icon: ScissorsIcon },
+  { keywords: ["ambalaj", "paketleme", "koli"], icon: BoxIcon },
 ];
 
-const DEFAULT_ICON: LucideIcon = Tag;
+const DEFAULT_ICON: Icon = TagIcon;
 
-export function getCategoryIcon(name: string): LucideIcon {
+export function getCategoryIcon(name: string): Icon {
   const normalized = name.toLocaleLowerCase("tr-TR");
   const match = ICON_RULES.find((rule) => rule.keywords.some((kw) => normalized.includes(kw)));
   return match?.icon ?? DEFAULT_ICON;

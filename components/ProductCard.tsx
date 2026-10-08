@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ShoppingCart, Check, TrendingUp } from "lucide-react";
+import { HeartIcon, CartIcon, CheckIcon, TrendUpIcon } from "@/components/icons";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
@@ -51,7 +51,7 @@ export default function ProductCard({
           favorite ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
         }`}
       >
-        <Heart
+        <HeartIcon
           className={`h-4 w-4 ${favorite ? "fill-[var(--color-brand)] text-[var(--color-brand)]" : "text-neutral-500"}`}
           aria-hidden="true"
         />
@@ -75,7 +75,7 @@ export default function ProductCard({
               üründe olduğu için kaldırıldı; stok durumu rozet değil, aşağıda buton yerine düz metin. */}
           {product.cokSatan && (
             <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
-              <TrendingUp className="h-3 w-3" aria-hidden="true" />
+              <TrendUpIcon className="h-3 w-3" aria-hidden="true" />
               Çok Satan
             </span>
           )}
@@ -134,9 +134,9 @@ export default function ProductCard({
               }`}
             >
               {added ? (
-                <Check className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
+                <CheckIcon className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
               ) : (
-                <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+                <CartIcon className="h-3.5 w-3.5" aria-hidden="true" />
               )}
               {added ? "✓ Eklendi" : "Sepete Ekle"}
             </button>

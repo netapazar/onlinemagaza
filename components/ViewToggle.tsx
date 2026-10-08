@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { LayoutGrid, List } from "lucide-react";
+import { GridIcon, ListIcon } from "@/components/icons";
 
 export default function ViewToggle() {
   const pathname = usePathname();
@@ -23,14 +23,14 @@ export default function ViewToggle() {
         aria-label="Izgara görünümü"
         className={`rounded-md p-1.5 ${current === "izgara" ? "bg-[var(--color-brand)] text-white" : "text-neutral-500 hover:text-neutral-800"}`}
       >
-        <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+        <GridIcon className="h-4 w-4" aria-hidden="true" />
       </Link>
       <Link
         href={hrefFor("liste")}
         aria-label="Liste görünümü"
         className={`rounded-md p-1.5 ${current === "liste" ? "bg-[var(--color-brand)] text-white" : "text-neutral-500 hover:text-neutral-800"}`}
       >
-        <List className="h-4 w-4" aria-hidden="true" />
+        <ListIcon className="h-4 w-4" aria-hidden="true" />
       </Link>
     </div>
   );

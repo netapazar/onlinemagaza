@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Briefcase, Truck, Boxes, Landmark, type LucideIcon } from "lucide-react";
+import { ArrowRightIcon, BriefcaseIcon, TruckIcon, BoxesIcon, BankIcon, type Icon } from "@/components/icons";
 import ProductCollage, { type CollagePhoto } from "@/components/ProductCollage";
 
 type Slide = {
-  icon: LucideIcon;
+  icon: Icon;
   title: string;
   description: string;
   // Banner görsel anahtarı (public/banners/<anahtar>.<uzantı>, bkz. lib/bannerImages.ts).
@@ -20,7 +20,7 @@ type Slide = {
 // (3) ikonlu yedek (ilk hâl).
 const SLIDES: Slide[] = [
   {
-    icon: Briefcase,
+    icon: BriefcaseIcon,
     imageKey: "hero-1",
     title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",
     description: "Kurumsal üyelik başvurusu yaparak size özel indirimli fiyatlardan yararlanın.",
@@ -28,7 +28,7 @@ const SLIDES: Slide[] = [
     ctaHref: "/hesabim/uyelik-basvurusu",
   },
   {
-    icon: Truck,
+    icon: TruckIcon,
     imageKey: "hero-2",
     title: "Aynı Gün Kargo İmkanı",
     description: "13:30'a kadar verdiğiniz siparişler aynı gün kargoya teslim edilir.",
@@ -36,7 +36,7 @@ const SLIDES: Slide[] = [
     ctaHref: "/urunler",
   },
   {
-    icon: Boxes,
+    icon: BoxesIcon,
     imageKey: "hero-3",
     title: "Toplu Alımda Avantajlı Tedarik",
     description: "İşletmenizin ofis/kırtasiye ihtiyacını tek seferde, tek adresten karşılayın.",
@@ -57,13 +57,13 @@ function buildSlides(mode: CariHesapSlideMode): Slide[] {
   const cariSlide: Slide =
     mode === "pending"
       ? {
-          icon: Landmark,
+          icon: BankIcon,
           imageKey: "hero-cari",
           title: "Şimdi alın, cari hesabınızla ödeyin",
           description: "Başvurunuz inceleniyor. Cari hesap yalnızca yetki tanımlanan kurumsal üyelerimize açıktır.",
         }
       : {
-          icon: Landmark,
+          icon: BankIcon,
           imageKey: "hero-cari",
           title: "Şimdi alın, cari hesabınızla ödeyin",
           description:
@@ -139,7 +139,7 @@ export default function HeroSlider({
             className="group inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] transition-all duration-200 hover:bg-white/90 hover:shadow-md active:scale-[0.98]"
           >
             {slide.ctaText}
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+            <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         )}
       </div>

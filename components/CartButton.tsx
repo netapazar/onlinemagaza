@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { CartIcon } from "@/components/icons";
 import { useCart } from "@/components/CartProvider";
 
 export default function CartButton() {
@@ -9,7 +9,7 @@ export default function CartButton() {
 
   return (
     <Link href="/sepet" className="relative flex items-center gap-1.5 font-medium text-neutral-700 hover:text-[var(--color-brand)]">
-      <ShoppingCart className="h-[18px] w-[18px]" aria-hidden="true" />
+      <CartIcon className="h-[18px] w-[18px]" aria-hidden="true" />
       <span className="hidden sm:inline">Sepet</span>
       {itemCount > 0 && (
         // key={addTick}: her sepete eklemede rozet yeniden oluşup kısa bir "zıplama" oynatır; sayfa açılışında

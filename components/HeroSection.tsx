@@ -1,4 +1,4 @@
-import { Percent, Boxes } from "lucide-react";
+import { PercentIcon, BoxesIcon } from "@/components/icons";
 import HeroSlider from "@/components/HeroSlider";
 import PromoBanner from "@/components/PromoBanner";
 import type { MembershipStatus } from "@/lib/membershipStatus";
@@ -47,7 +47,7 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
       </div>
       <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-col lg:gap-4">
         <PromoBanner
-          icon={Percent}
+          icon={PercentIcon}
           title="Firmanıza Özel Fiyatlar"
           description="Üyelik başvurusu yapın, size özel iskontolu fiyatlarla alışveriş yapın"
           href="/hesabim/uyelik-basvurusu"
@@ -56,7 +56,7 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
           imageIsPhoto={!promo1 && Boolean(photo1)}
         />
         <PromoBanner
-          icon={Boxes}
+          icon={BoxesIcon}
           title="Toplu Alım Avantajı"
           description="İşletmeniz için avantajlı toplu tedarik"
           href="/hesabim/uyelik-basvurusu"

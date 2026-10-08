@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 
 // Yatay kaydırmalı tek satır: içerik taşınca kenarlarda solma + (dokunmatik olmayan ekranda) sol/sağ ok düğmeleri belirir;
 // taşmıyorsa düz bir satır gibi durur. Kaydırma çubuğu gizli (parmakla/tekerle/oklarla kaydırılır).
@@ -57,7 +57,7 @@ export default function ScrollRow({
         <>
           <span className={`pointer-events-none absolute inset-y-0 left-0 z-[5] w-10 bg-gradient-to-r ${fadeFrom} to-transparent`} aria-hidden="true" />
           <button type="button" onClick={() => kaydir(-1)} aria-label={`${label}: sola kaydır`} className={`${ok} left-0`}>
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
           </button>
         </>
       )}
@@ -68,7 +68,7 @@ export default function ScrollRow({
         <>
           <span className={`pointer-events-none absolute inset-y-0 right-0 z-[5] w-10 bg-gradient-to-l ${fadeFrom} to-transparent`} aria-hidden="true" />
           <button type="button" onClick={() => kaydir(1)} aria-label={`${label}: sağa kaydır`} className={`${ok} right-0`}>
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
           </button>
         </>
       )}
