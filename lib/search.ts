@@ -522,7 +522,11 @@ const DETAIL_SELECT = {
   satisBirimleri: true,
   unit: true,
   categoryId: true,
-  images: { orderBy: { sortOrder: "asc" as const }, select: { id: true, url: true, altText: true } },
+  // Kapak önce (vitrin kartıyla aynı görselle başlasın), sonra CRM'de sürükle-bırakla verilen sıra.
+  images: {
+    orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }] as Prisma.ProductImageOrderByWithRelationInput[],
+    select: { id: true, url: true, altText: true },
+  },
   brand: { select: { name: true } },
   category: { select: { name: true } },
 } as const;
