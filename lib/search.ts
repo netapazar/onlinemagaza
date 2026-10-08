@@ -185,6 +185,45 @@ async function fuzzyMatchProductIds(
   return rows.map((r) => r.id);
 }
 
+// Barkod / ürün kodu araması (2026-10, kullanıcı: "barkod araması yok"). Sorgu TEK parça (boşluksuz) ve kod gibi
+// görünüyorsa (harf/rakam/tire, 3-32 karakter) tam eşleşme aranır:
+//   * ürün barkodu, paketli satış birim barkodları (Product.satisBirimleri) ve kutu/koli barkodları
+//     (ProductBarcodeVariant — hangi mağaza satırına girildiyse, aynı barkodlu online ürüne bağlanır);
+//     baştaki sıfırlar yok sayılır (03086129626663 = 3086129626663, GTIN-14/EAN-13 farkı);
+//   * ürün kodu: büyük/küçük harf ve İ/I/ı farkı yok sayılır (COPİERA4 = copiera4).
+// Bulunanlar fuzzy sonuçların ÖNÜNE konur (öneri kutusunda da ilk sırada).
+async function exactCodeMatchProductIds(storeId: string, query: string, categoryIds?: string[]): Promise<string[]> {
+  const q = query.trim();
+  if (!/^[0-9A-Za-zÇĞİÖŞÜçğıöşü-]{3,32}$/.test(q)) return [];
+  const sifirsiz = q.replace(/^0+/, "");
+  if (!sifirsiz) return [];
+  const rows = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+    SELECT p.id
+    FROM "Product" p
+    WHERE p."storeId" = ${storeId}
+      AND p."showOnStorefront" = true
+      AND p."archivedAt" IS NULL
+      ${categoryIds ? Prisma.sql`AND p."categoryId" IN (${Prisma.join(categoryIds)})` : Prisma.empty}
+      AND (
+        ltrim(p.barcode, '0') = ${sifirsiz}
+        OR lower(translate(coalesce(p."productCode", ''), 'İIı', 'iii')) = lower(translate(${q}, 'İIı', 'iii'))
+        OR EXISTS (
+          SELECT 1 FROM jsonb_array_elements(
+            CASE WHEN jsonb_typeof(p."satisBirimleri") = 'array' THEN p."satisBirimleri" ELSE '[]'::jsonb END
+          ) AS b
+          WHERE ltrim(b->>'barkod', '0') = ${sifirsiz}
+        )
+        OR EXISTS (
+          SELECT 1 FROM "ProductBarcodeVariant" v
+          JOIN "Product" vp ON vp.id = v."productId"
+          WHERE vp.barcode = p.barcode AND ltrim(v.barcode, '0') = ${sifirsiz}
+        )
+      )
+    LIMIT 20
+  `);
+  return rows.map((r) => r.id);
+}
+
 export async function listStorefrontProducts(options: {
   query?: string;
   categoryId?: string;
@@ -201,7 +240,11 @@ export async function listStorefrontProducts(options: {
   const categoryIds = options.categoryId ? await kategoriVeAltlari(options.categoryId) : undefined;
 
   if (options.query) {
-    const orderedIds = await fuzzyMatchProductIds(storeId, options.query, categoryIds);
+    const [exactIds, fuzzyIds] = await Promise.all([
+      exactCodeMatchProductIds(storeId, options.query, categoryIds),
+      fuzzyMatchProductIds(storeId, options.query, categoryIds),
+    ]);
+    const orderedIds = [...new Set([...exactIds, ...fuzzyIds])];
     if (orderedIds.length === 0) return [];
     const products = await prisma.product.findMany({
       where: { id: { in: orderedIds } },
