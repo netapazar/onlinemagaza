@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 
 // totalPages <= 1 iken hiç render edilmiyor (page.tsx'te kontrol ediliyor) —
 // tek sayfalık bir katalogda "1 / 1" gibi anlamsız bir sayfalama gösterip
@@ -24,7 +24,7 @@ export default function Pagination({
           currentPage === 1 ? "pointer-events-none text-neutral-300" : "text-neutral-600 hover:bg-neutral-50"
         }`}
       >
-        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
       </Link>
 
       {pages.map((p) => (
@@ -49,7 +49,7 @@ export default function Pagination({
           currentPage === totalPages ? "pointer-events-none text-neutral-300" : "text-neutral-600 hover:bg-neutral-50"
         }`}
       >
-        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
       </Link>
     </nav>
   );

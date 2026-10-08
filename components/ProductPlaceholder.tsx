@@ -1,4 +1,4 @@
-import { Package } from "lucide-react";
+import { BoxIcon } from "@/components/icons";
 
 // Görseli olmayan ürünler için yer tutucu. Veritabanına kaydedilmez: yalnız ürünün
 // kapak görseli yokken çizilir, gerçek görsel eklendiği an kendiliğinden yerini ona bırakır.
@@ -24,7 +24,7 @@ export default function ProductPlaceholder({
         aria-label={label}
         className="flex h-full w-full items-center justify-center bg-[var(--color-brand-50)] text-[var(--color-brand-400)]"
       >
-        <Package className="h-1/2 w-1/2" strokeWidth={1.5} aria-hidden="true" />
+        <BoxIcon className="h-1/2 w-1/2" aria-hidden="true" />
       </div>
     );
   }
@@ -43,7 +43,7 @@ export default function ProductPlaceholder({
           compact ? "h-8 w-8" : "h-12 w-12 sm:h-16 sm:w-16"
         }`}
       >
-        <Package className={compact ? "h-4 w-4" : "h-6 w-6 sm:h-8 sm:w-8"} strokeWidth={1.5} aria-hidden="true" />
+        <BoxIcon className={compact ? "h-4 w-4" : "h-6 w-6 sm:h-8 sm:w-8"} aria-hidden="true" />
       </span>
       {brandName && !compact && (
         <span className="text-[10px] font-semibold tracking-wider text-[var(--color-brand-600)] uppercase sm:text-xs">

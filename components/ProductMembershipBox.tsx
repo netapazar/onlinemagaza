@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, Clock, Landmark } from "lucide-react";
+import { BuildingIcon, ClockIcon, BankIcon } from "@/components/icons";
 import type { MembershipStatus } from "@/lib/membershipStatus";
 
 // Ürün detayındaki İKİ üyelik mesajının (eski "cari hesap notu" + "Firma/işletme üyeliği başvurusu" kutusu) tek, derli toplu hâli.
@@ -13,7 +13,7 @@ export default function ProductMembershipBox({ status }: { status: MembershipSta
     if (!status.cariHesap) return null;
     return (
       <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700">
-        <Landmark className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <BankIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Cari hesabınızla ödeyebilirsiniz
       </p>
     );
@@ -22,7 +22,7 @@ export default function ProductMembershipBox({ status }: { status: MembershipSta
   if (status.kind === "pending") {
     return (
       <div className="flex items-start gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3.5 text-sm text-neutral-600">
-        <Clock className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+        <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
         <p>Kurumsal üyelik başvurunuz inceleniyor. Onaylandığında firmanıza özel fiyatlar hesabınızda aktif olur.</p>
       </div>
     );
@@ -32,7 +32,7 @@ export default function ProductMembershipBox({ status }: { status: MembershipSta
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-3.5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-2.5">
-        <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+        <BuildingIcon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
         <div>
           <p className="text-sm font-semibold text-[var(--color-brand-800)]">Kurumsal üyelik</p>
           <p className="text-xs leading-relaxed text-neutral-600">

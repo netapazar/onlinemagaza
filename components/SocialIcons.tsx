@@ -1,7 +1,7 @@
 import type { SocialKey } from "@/lib/siteInfo";
 
-// lucide-react (v1) marka ikonlarını içermiyor; sade, tek renkli satır içi SVG'ler (dış istek/bağımlılık yok).
-const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+// Marka (sosyal ağ) ikonları: components/icons.tsx ailesiyle aynı çizgi dili (24x24, çizgi 1,75, yuvarlak uç), satır içi SVG.
+const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
 
 export default function SocialIcon({ name }: { name: SocialKey }) {
   switch (name) {
