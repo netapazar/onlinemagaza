@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Boxes, Building2, Clock, FileText, Landmark, Percent, Truck } from "lucide-react";
+import { ArrowRightIcon, ShieldCheckIcon, BoxesIcon, BuildingIcon, ClockIcon, InvoiceIcon, BankIcon, PercentIcon, TruckIcon } from "@/components/icons";
 import type { MembershipStatus } from "@/lib/membershipStatus";
 
 // Anasayfa "Kurumsal Üyelik Avantajları" bölümü. YALNIZCA sitede gerçekten çalışan şeyler
@@ -16,27 +16,27 @@ import type { MembershipStatus } from "@/lib/membershipStatus";
 //    firma adına fatura keser (CRM "faturasız irsaliyeler" akışı). Otomatik e-Fatura vaadi YOK.
 const BENEFITS = [
   {
-    icon: Percent,
+    icon: PercentIcon,
     title: "Firmanıza özel indirimli fiyatlar",
     description: "Onaylanan firmaya tanımlanan indirim, ürün fiyatlarına otomatik yansır.",
   },
   {
-    icon: Landmark,
+    icon: BankIcon,
     title: "Cari hesapla alışveriş",
     description: "Cari hesap yetkisi tanımlanan firmalar siparişini cari hesabına işletebilir.",
   },
   {
-    icon: Truck,
+    icon: TruckIcon,
     title: "Aynı gün kargo",
     description: "13:30'a kadar verilen siparişler aynı gün kargoya teslim edilir.",
   },
   {
-    icon: Boxes,
+    icon: BoxesIcon,
     title: "Hızlı toplu sipariş",
     description: "Adedi doğrudan yazın, ihtiyacınız olan miktarı tek adımda sepete ekleyin.",
   },
   {
-    icon: FileText,
+    icon: InvoiceIcon,
     title: "Faturalı alışveriş",
     description: "Kurumsal siparişleriniz firma bilgilerinizle faturalandırılır.",
   },
@@ -97,7 +97,7 @@ function ApprovedStrip({ status }: { status: Extract<MembershipStatus, { kind: "
   return (
     <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-4 py-3 sm:px-5">
       <span className="flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-800)]">
-        <BadgeCheck className="h-5 w-5 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+        <ShieldCheckIcon className="h-5 w-5 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
         Kurumsal üyesiniz, avantajlarınız aktif
       </span>
       <span className="hidden truncate text-xs text-neutral-500 sm:inline">{status.firmaUnvan}</span>
@@ -124,7 +124,7 @@ export default function CorporateBenefits({ status }: { status: MembershipStatus
       <div className="grid lg:grid-cols-[1.2fr_1fr]">
         <div className="p-5 sm:p-6 lg:p-8">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold text-[var(--color-brand-700)]">
-            <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <BuildingIcon className="h-3.5 w-3.5" aria-hidden="true" />
             Kurumsal Üyelik
           </span>
           <h2 id="kurumsal-avantajlar" className="mb-2 text-2xl font-extrabold text-neutral-900 sm:text-3xl">
@@ -151,7 +151,7 @@ export default function CorporateBenefits({ status }: { status: MembershipStatus
 
           {status.kind === "pending" ? (
             <div className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent-50)] px-4 py-3 text-sm font-medium text-[var(--color-accent-800)] ring-1 ring-[var(--color-accent-200)]">
-              <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <ClockIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
               Başvurunuz inceleniyor — onaylandığında avantajlarınız aktif olacak.
               <Link href="/hesabim" className="ml-1 underline underline-offset-2">
                 Hesabım
@@ -163,7 +163,7 @@ export default function CorporateBenefits({ status }: { status: MembershipStatus
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-brand-hover)]"
             >
               Hemen Başvur
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
             </Link>
           )}
         </div>

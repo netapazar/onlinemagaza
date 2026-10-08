@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@/components/icons";
 
 // Anasayfa bölüm başlıkları için tek görünüm: solda teal aksan çubuğu + (varsa) teal ikon + kalın başlık.
 // Bölümler aynı beyaz kart içinde dursa da başlıklar marka rengiyle birbirinden ayrışsın diye (tasarım turu 2026-10).
@@ -9,7 +9,7 @@ export default function SectionHeading({
   className = "",
 }: {
   title: string;
-  icon?: LucideIcon;
+  icon?: Icon;
   as?: "h2" | "h3";
   className?: string;
 }) {

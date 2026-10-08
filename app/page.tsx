@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRightIcon, SparkleIcon, TrendUpIcon } from "@/components/icons";
 import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
@@ -80,7 +80,7 @@ export default async function Home() {
               <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Çok Satanlar"
-                  icon={TrendingUp}
+                  icon={TrendUpIcon}
                   products={bestSellers}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler"
@@ -94,7 +94,7 @@ export default async function Home() {
               <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Yeni Eklenenler"
-                  icon={Sparkles}
+                  icon={SparkleIcon}
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"
@@ -121,7 +121,7 @@ export default async function Home() {
               className="group inline-flex items-center gap-2 rounded-lg border border-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-[var(--color-brand)] transition-colors duration-200 hover:bg-[var(--color-brand-soft)]"
             >
               Tüm Ürünleri İncele
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+              <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           </div>
         </>

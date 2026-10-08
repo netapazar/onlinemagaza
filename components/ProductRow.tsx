@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, type LucideIcon } from "lucide-react";
+import { ArrowRightIcon, type Icon } from "@/components/icons";
 import SectionHeading from "@/components/SectionHeading";
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
@@ -15,7 +15,7 @@ export default function ProductRow({
   products: StorefrontProductSummary[];
   memberDiscountPercent: number | null;
   viewAllHref?: string;
-  icon?: LucideIcon;
+  icon?: Icon;
 }) {
   if (products.length === 0) return null;
 
@@ -29,7 +29,7 @@ export default function ProductRow({
             className="group flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"
           >
             Tümünü Gör
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         )}
       </div>

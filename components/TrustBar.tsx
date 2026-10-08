@@ -1,4 +1,4 @@
-import { Truck, CreditCard, Package, Undo2 } from "lucide-react";
+import { TruckIcon, CreditCardIcon, BoxIcon, ReturnIcon } from "@/components/icons";
 
 // Dört madde de sitede gerçekten sunulan/mevcut olana dayanıyor — henüz otomatikleşmemiş hiçbir şey vaat edilmiyor
 // (ödeme entegrasyonu ve e-Fatura otomasyonu hâlâ ertelenenler listesinde): aynı gün kargo kesim saati lib/shipping.ts'te
@@ -6,10 +6,10 @@ import { Truck, CreditCard, Package, Undo2 } from "lucide-react";
 // Türk tüketici mevzuatının yasal tabanı. "Kurumsal Alışveriş" kutusu kaldırıldı: aynı mesaj hemen altındaki
 // "Kurumsal Üyelik Avantajları" bölümünde zaten var (tekrar) — yerine sitede gerçekten olan "Tek Adresten Tedarik" geldi.
 const ITEMS = [
-  { icon: Truck, title: "Aynı Gün Kargo", description: "13:30'a kadar verilen siparişler" },
-  { icon: CreditCard, title: "Kart ve Havale Seçenekleri", description: "Siparişte tercihinizi belirtin" },
-  { icon: Package, title: "Tek Adresten Tedarik", description: "Tüm ofis ihtiyacı bir arada" },
-  { icon: Undo2, title: "14 Gün İçinde İade", description: "Cayma hakkınızı kullanabilirsiniz" },
+  { icon: TruckIcon, title: "Aynı Gün Kargo", description: "13:30'a kadar verilen siparişler" },
+  { icon: CreditCardIcon, title: "Kart ve Havale Seçenekleri", description: "Siparişte tercihinizi belirtin" },
+  { icon: BoxIcon, title: "Tek Adresten Tedarik", description: "Tüm ofis ihtiyacı bir arada" },
+  { icon: ReturnIcon, title: "14 Gün İçinde İade", description: "Cayma hakkınızı kullanabilirsiniz" },
 ];
 
 export default function TrustBar() {

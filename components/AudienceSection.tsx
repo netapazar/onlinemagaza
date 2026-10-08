@@ -1,20 +1,20 @@
 import Link from "next/link";
-import { Building2, Factory, GraduationCap, Store, Users } from "lucide-react";
+import { BuildingIcon, FactoryIcon, GraduationCapIcon, StoreIcon, UsersIcon } from "@/components/icons";
 import SectionHeading from "@/components/SectionHeading";
 
 // Segment bazlı ayrı bir ürün kataloğu/etiketleme yok — dördü de aynı gerçek hedefe (kurumsal üyelik başvurusu)
 // yönlendiriyor, uydurma bir "bu segmentin ürünleri" listesi oluşturulmadı. Kompakt (yatay kart, tek satır) düzen.
 const AUDIENCES = [
-  { icon: Building2, title: "Ofisler", description: "Kurumsal ofis tedariki" },
-  { icon: Factory, title: "Fabrikalar", description: "Toplu üretim ihtiyaçları" },
-  { icon: GraduationCap, title: "Okullar", description: "Eğitim kurumu kırtasiyesi" },
-  { icon: Store, title: "Mağaza & İşletmeler", description: "İşletmenize özel fiyatlar" },
+  { icon: BuildingIcon, title: "Ofisler", description: "Kurumsal ofis tedariki" },
+  { icon: FactoryIcon, title: "Fabrikalar", description: "Toplu üretim ihtiyaçları" },
+  { icon: GraduationCapIcon, title: "Okullar", description: "Eğitim kurumu kırtasiyesi" },
+  { icon: StoreIcon, title: "Mağaza & İşletmeler", description: "İşletmenize özel fiyatlar" },
 ];
 
 export default function AudienceSection() {
   return (
     <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
-      <SectionHeading title="Kimlere Hizmet Veriyoruz" icon={Users} className="mb-4" />
+      <SectionHeading title="Kimlere Hizmet Veriyoruz" icon={UsersIcon} className="mb-4" />
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {AUDIENCES.map(({ icon: Icon, title, description }) => (
           <Link
