@@ -24,9 +24,12 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+// Yalnız sipariş detayındaki kargo takip numarasında (font-mono) kullanılıyor — her sayfada önceden yüklenmesin
+// (mobil tam yükleme süresine ~20 KB ekliyordu); gerektiği sayfada tarayıcı kendisi yükler.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
