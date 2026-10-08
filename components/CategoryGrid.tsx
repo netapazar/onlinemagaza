@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { GridIcon } from "@/components/icons";
 import { CategoryIcon } from "@/lib/categoryIcons";
-import { getCategoryImage } from "@/lib/categoryImages";
+import { getCategoryImage, CATEGORY_SPRITE_CELLS } from "@/lib/categoryImages";
+import LateAssets from "@/components/LateAssets";
 import SectionHeading from "@/components/SectionHeading";
 
 type Category = { id: string; name: string; count: number };
@@ -17,6 +18,7 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
         <SectionHeading title="Kategoriler" icon={GridIcon} />
         <span className="text-xs text-neutral-500">{categories.length} kategori</span>
       </div>
+      <LateAssets />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
         {categories.map((c) => {
           const image = getCategoryImage(c.name);
@@ -30,16 +32,10 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
                 <span
                   className={`flex h-14 w-14 items-center justify-center rounded-full sm:h-16 sm:w-16 ${image.circleClass} ring-0 ring-[var(--color-brand)] transition-shadow duration-200 group-hover:ring-[3px]`}
                 >
-                  {/* Küçük, önceden boyutlanmış statik WebP (112 px) — next/image optimizasyonuna gerek yok. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={image.src}
-                    alt=""
-                    width={44}
-                    height={44}
-                    loading="lazy"
-                    decoding="async"
-                    className={image.large ? "h-12 w-12 sm:h-[52px] sm:w-[52px]" : "h-10 w-10 sm:h-11 sm:w-11"}
+                  <span
+                    aria-hidden="true"
+                    className={`kategori-sprite block ${image.large ? "h-12 w-12 sm:h-[52px] sm:w-[52px]" : "h-10 w-10 sm:h-11 sm:w-11"}`}
+                    style={{ backgroundPosition: `${(image.index / (CATEGORY_SPRITE_CELLS - 1)) * 100}% 0` }}
                   />
                 </span>
               ) : (
