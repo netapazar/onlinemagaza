@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Check, Heart, ShoppingCart } from "lucide-react";
+import { CheckIcon, HeartIcon, CartIcon } from "@/components/icons";
 import CorporatePriceHint from "@/components/MemberHint";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
@@ -81,7 +81,7 @@ export default function ProductListRow({
           aria-pressed={favorite}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 hover:bg-neutral-50"
         >
-          <Heart
+          <HeartIcon
             className={`h-4 w-4 ${favorite ? "fill-[var(--color-brand)] text-[var(--color-brand)]" : "text-neutral-500"}`}
             aria-hidden="true"
           />
@@ -99,9 +99,9 @@ export default function ProductListRow({
             }`}
           >
             {added ? (
-              <Check className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
+              <CheckIcon className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
             ) : (
-              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+              <CartIcon className="h-3.5 w-3.5" aria-hidden="true" />
             )}
             {added ? "✓ Eklendi" : "Sepete Ekle"}
           </button>

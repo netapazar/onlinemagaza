@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShoppingCart } from "lucide-react";
+import { CartIcon } from "@/components/icons";
 import { useCart } from "@/components/CartProvider";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import { centsToTl } from "@/lib/pricing";
@@ -100,7 +100,7 @@ export default function AddToCartButton({
               : "border-[var(--color-brand)] text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
           }`}
         >
-          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+          <CartIcon className="h-4 w-4" aria-hidden="true" />
           {added ? "✓ Eklendi" : "Sepete Ekle"}
         </button>
       </div>

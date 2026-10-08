@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Heart, KeyRound, MapPin, Package, RotateCcw, UserRound } from "lucide-react";
+import { BuildingIcon, HeartIcon, KeyIcon, MapPinIcon, BoxIcon, ReorderIcon, UserIcon } from "@/components/icons";
 import type { ComponentType } from "react";
 import { prisma } from "@/lib/prisma";
 import { getWebSession } from "@/lib/webSession";
@@ -40,13 +40,13 @@ export default async function HesabimPage() {
 
   const approved = status.kind === "approved";
   const shortcuts: Shortcut[] = [
-    { href: "/hesabim/siparisler", label: "Siparişlerim", hint: orderCount ? `${orderCount} sipariş` : "Henüz sipariş yok", icon: Package },
-    { href: "/hesabim/adresler", label: "Adreslerim", hint: "Teslimat ve fatura adresleri", icon: MapPin },
-    { href: "/favoriler", label: "Favoriler", hint: "Beğendiğiniz ürünler", icon: Heart },
-    { href: "/hesabim/sik-aldiklarim", label: "Sık Aldıklarım", hint: "Tekrar sipariş", icon: RotateCcw },
-    { href: "/hesabim/profil", label: "Profil Bilgilerim", hint: "Ad soyad, telefon", icon: UserRound },
-    { href: "/hesabim/sifre", label: "Şifre Değiştir", hint: "Hesap güvenliği", icon: KeyRound },
-    ...(approved ? [{ href: "/hesabim/firma", label: "Firma Bilgilerim", hint: "Fatura bilgileri", icon: Building2 }] : []),
+    { href: "/hesabim/siparisler", label: "Siparişlerim", hint: orderCount ? `${orderCount} sipariş` : "Henüz sipariş yok", icon: BoxIcon },
+    { href: "/hesabim/adresler", label: "Adreslerim", hint: "Teslimat ve fatura adresleri", icon: MapPinIcon },
+    { href: "/favoriler", label: "Favoriler", hint: "Beğendiğiniz ürünler", icon: HeartIcon },
+    { href: "/hesabim/sik-aldiklarim", label: "Sık Aldıklarım", hint: "Tekrar sipariş", icon: ReorderIcon },
+    { href: "/hesabim/profil", label: "Profil Bilgilerim", hint: "Ad soyad, telefon", icon: UserIcon },
+    { href: "/hesabim/sifre", label: "Şifre Değiştir", hint: "Hesap güvenliği", icon: KeyIcon },
+    ...(approved ? [{ href: "/hesabim/firma", label: "Firma Bilgilerim", hint: "Fatura bilgileri", icon: BuildingIcon }] : []),
   ];
 
   return (

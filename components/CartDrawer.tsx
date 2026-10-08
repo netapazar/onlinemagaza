@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { CloseIcon } from "@/components/icons";
 import { useCart } from "@/components/CartProvider";
 import { getCartDetails, type CartLine } from "@/lib/cartActions";
 import { centsToTl } from "@/lib/pricing";
@@ -58,7 +58,7 @@ export default function CartDrawer() {
         <div className="flex items-center justify-between border-b border-neutral-200 p-4">
           <h2 className="text-base font-semibold text-neutral-900">Sepetim</h2>
           <button type="button" onClick={closeDrawer} aria-label="Kapat" className="rounded-full p-1.5 hover:bg-neutral-100">
-            <X className="h-5 w-5 text-neutral-500" aria-hidden="true" />
+            <CloseIcon className="h-5 w-5 text-neutral-500" aria-hidden="true" />
           </button>
         </div>
 

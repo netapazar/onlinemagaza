@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, User } from "lucide-react";
+import { HeartIcon, UserIcon } from "@/components/icons";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import CartButton from "@/components/CartButton";
 import { useFavorites } from "@/components/FavoritesProvider";
@@ -59,7 +59,7 @@ export default function HeaderMain({
           className="hidden flex-col items-start sm:flex"
         >
           <span className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-[var(--color-brand)]">
-            <User className="h-[18px] w-[18px]" aria-hidden="true" />
+            <UserIcon className="h-[18px] w-[18px]" aria-hidden="true" />
             {loggedIn ? "Hesabım" : "Giriş Yap"}
           </span>
           {STATUS_LABELS[membershipStatus] && (
@@ -76,7 +76,7 @@ export default function HeaderMain({
           href="/favoriler"
           className="relative hidden items-center gap-1.5 font-medium text-neutral-700 hover:text-[var(--color-brand)] sm:flex"
         >
-          <Heart className="h-[18px] w-[18px]" aria-hidden="true" />
+          <HeartIcon className="h-[18px] w-[18px]" aria-hidden="true" />
           Favoriler
           {favoriteCount > 0 && (
             <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand)] px-1 text-[10px] font-semibold text-white">

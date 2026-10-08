@@ -2,19 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Home,
-  LayoutGrid,
-  ShoppingCart,
-  User,
-  X,
-  Heart,
-  Briefcase,
-  TrendingUp,
-  Sparkles,
-  CircleHelp,
-  ChevronDown,
-} from "lucide-react";
+import { HomeIcon, GridIcon, CartIcon, UserIcon, CloseIcon, HeartIcon, BriefcaseIcon, TrendUpIcon, SparkleIcon, HelpIcon, ChevronDownIcon } from "@/components/icons";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 import { CategoryIcon } from "@/lib/categoryIcons";
@@ -40,7 +28,7 @@ export default function MobileBottomNav({
     <>
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-neutral-200 bg-white sm:hidden">
         <Link href="/" className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-neutral-600">
-          <Home className="h-5 w-5" aria-hidden="true" />
+          <HomeIcon className="h-5 w-5" aria-hidden="true" />
           Ana Sayfa
         </Link>
         <button
@@ -48,11 +36,11 @@ export default function MobileBottomNav({
           onClick={() => setDrawerOpen(true)}
           className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-neutral-600"
         >
-          <LayoutGrid className="h-5 w-5" aria-hidden="true" />
+          <GridIcon className="h-5 w-5" aria-hidden="true" />
           Kategoriler
         </button>
         <Link href="/sepet" className="relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-neutral-600">
-          <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+          <CartIcon className="h-5 w-5" aria-hidden="true" />
           Sepet
           {itemCount > 0 && (
             <span className="absolute top-1 right-[28%] flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand)] px-1 text-[9px] font-semibold text-white">
@@ -61,7 +49,7 @@ export default function MobileBottomNav({
           )}
         </Link>
         <Link href="/hesabim" className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-neutral-600">
-          <User className="h-5 w-5" aria-hidden="true" />
+          <UserIcon className="h-5 w-5" aria-hidden="true" />
           {loggedIn ? "Hesabım" : "Giriş"}
         </Link>
       </nav>
@@ -89,7 +77,7 @@ function MobileDrawer({
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold text-neutral-900">Kategoriler</h2>
           <button type="button" onClick={onClose} aria-label="Kapat" className="rounded-full p-1.5 hover:bg-neutral-100">
-            <X className="h-5 w-5 text-neutral-500" aria-hidden="true" />
+            <CloseIcon className="h-5 w-5 text-neutral-500" aria-hidden="true" />
           </button>
         </div>
 
@@ -101,17 +89,17 @@ function MobileDrawer({
 
         <div className="space-y-1 border-t border-neutral-100 pt-3">
           <Link href="/favoriler" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
-            <Heart className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <HeartIcon className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">
               Favorilerim{favoriteCount > 0 ? ` (${favoriteCount})` : ""}
             </span>
           </Link>
           <Link href="/cok-satanlar" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
-            <TrendingUp className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <TrendUpIcon className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Çok Satanlar</span>
           </Link>
           <Link href="/urunler?sirala=yeni" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
-            <Sparkles className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <SparkleIcon className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Yeni Ürünler</span>
           </Link>
           <Link
@@ -119,11 +107,11 @@ function MobileDrawer({
             onClick={onClose}
             className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50"
           >
-            <Briefcase className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <BriefcaseIcon className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Kurumsal Üyelik</span>
           </Link>
           <Link href="/sss" onClick={onClose} className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-neutral-50">
-            <CircleHelp className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
+            <HelpIcon className="h-[18px] w-[18px] text-neutral-500" aria-hidden="true" />
             <span className="text-sm text-neutral-700">Sıkça Sorulan Sorular</span>
           </Link>
         </div>
@@ -156,7 +144,7 @@ function MobilKategori({ c, onClose }: { c: CategoryWithCount; onClose: () => vo
             aria-label={`${c.name} alt kategorileri`}
             className="mr-1.5 rounded-lg p-2.5 text-neutral-500 hover:bg-white"
           >
-            <ChevronDown className={`h-4 w-4 transition-transform ${acik ? "rotate-180 text-[var(--color-brand)]" : ""}`} aria-hidden="true" />
+            <ChevronDownIcon className={`h-4 w-4 transition-transform ${acik ? "rotate-180 text-[var(--color-brand)]" : ""}`} aria-hidden="true" />
           </button>
         )}
       </div>
