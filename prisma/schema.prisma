@@ -210,6 +210,12 @@ model Product {
   // Below this, the product shows up on the low-stock list/widget. Null
   // means no threshold configured — the product is never flagged.
   reorderPoint        Int?
+  // Stok yenilemesi (2026-10): yalnız Ana Depo (isWarehouse) satırında anlamlı — pazarlamaya ayrılan
+  // miktar. Ayrı havuz değil, aynı stoğun üstüne konan kısıt: e-ticaret/pazaryeri yalnız (stock −
+  // pazarlamaAyrilan) kadar satabilir, pazarlama/B2B toplamdan satar. Kural: 0 <= ayrılan <= max(stock, 0)
+  // — stok her düştüğünde src/lib/depoStok.ts ayrılanı stoğa kırpar (yoksa site sonsuza dek "stokta yok"
+  // gösterirdi). Her değişiklik PazarlamaAyirmaKaydi'na yazılır.
+  pazarlamaAyrilan    Int         @default(0)
 
   // Online storefront fields — all independent of the retail catalog fields
   // above, only ever meaningful on the isOnlineStore Product row for a given
@@ -263,18 +269,20 @@ model Product {
   // archived products are hidden from lists/sales lookup but keep their history
   archivedAt DateTime?
 
-  saleItems             SaleItem[]
-  priceHistory          PriceHistory[]
-  stockAdjustments      StockAdjustment[]
-  purchaseOrderItems    PurchaseOrderItem[]
-  stockCountEntries     StockCountEntry[]
-  barcodeVariants       ProductBarcodeVariant[]
-  quoteItems            QuoteItem[]
-  pazarlamaSiparisItems PazarlamaSiparisItem[]
-  faturaKalemleri       FaturaKalemi[]
-  irsaliyeKalemleri     IrsaliyeKalemi[]
-  images                ProductImage[]
-  webOrderItems         WebOrderItem[]
+  saleItems                SaleItem[]
+  priceHistory             PriceHistory[]
+  stockAdjustments         StockAdjustment[]
+  purchaseOrderItems       PurchaseOrderItem[]
+  stockCountEntries        StockCountEntry[]
+  barcodeVariants          ProductBarcodeVariant[]
+  quoteItems               QuoteItem[]
+  pazarlamaSiparisItems    PazarlamaSiparisItem[]
+  faturaKalemleri          FaturaKalemi[]
+  irsaliyeKalemleri        IrsaliyeKalemi[]
+  images                   ProductImage[]
+  webOrderItems            WebOrderItem[]
+  pazarlamaAyirmaKayitlari PazarlamaAyirmaKaydi[]
+  malKabulKalemleri        MalKabulKalemi[]
   // name/productCode/barcode ayrıca pg_trgm GIN index'leriyle kaplı (bkz.
   // migration 20260804140000_add_product_search_trgm_indexes) — Prisma'nın
   // @@index DSL'i trigram operator class'ını temsil edemediği için burada
@@ -332,10 +340,108 @@ model StockAdjustment {
   // "Ürün Düzenleme" | "Excel İçe Aktarma" | "Satın Alma Siparişi" — source
   // of the change, so a later question about "who set this to 0" has an answer.
   source   String
+  // Stok yenilemesi (2026-10): manuel değişikliklerde zorunlu sebep/not; Ana Depo hareketlerinde
+  // hangi kanal (MAGAZA/PAZARLAMA/ETICARET/PAZARYERI) ve hangi belge (ör. "WebOrder:<id>",
+  // "Irsaliye:<id>", "MalKabul:<id>") — bkz. src/lib/depoStok.ts.
+  note     String?
+  kanal    String?
+  referans String?
+
+  // Null yalnız personelsiz hareketlerde: storefront'ta müşterinin kart ödemesi doğrulanınca düşülen
+  // stok (referans siparişi gösterir).
+  changedById String?
+  changedBy   User?    @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+// Pazarlamaya ayrılan miktarın (Product.pazarlamaAyrilan) her değişikliği — elle (CRM ürün listesi,
+// pazarlama ürünleri) ya da otomatik (pazarlama sevki ayrılandan düştü, stok düştüğü için ayrılan
+// stoğa kırpıldı). changedById otomatik değişiklikte o işlemi yapan kullanıcıdır.
+model PazarlamaAyirmaKaydi {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  eskiMiktar Int
+  yeniMiktar Int
+  // "Elle" | "Pazarlama sevki" | "Stoğa kırpıldı" | "Toplu işlem"
+  kaynak     String
+  note       String?
 
   changedById String
   changedBy   User     @relation(fields: [changedById], references: [id])
   createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([productId, createdAt])
+}
+
+// Ana Depo'ya belgeyle mal girişi — onaylanana kadar stoğa YANSIMAZ. Onaylanınca kalemler tek
+// transaction'da Ana Depo'ya eklenir (StockAdjustment kaynak "Mal Kabul", referans "MalKabul:<id>").
+// Manuel ve Excel girişleri bu tabloyu kullanmaz, doğrudan yansır.
+enum MalKabulDurumu {
+  BEKLIYOR
+  ONAYLANDI
+  REDDEDILDI
+}
+
+enum MalKabulKaynagi {
+  // EDM'den gelen tedarikçi e-faturası (TedarikciFaturaTaslagi)
+  EDM_FATURA
+  // Elle girilen kağıt irsaliye / fatura
+  BELGE
+}
+
+model MalKabul {
+  id     String          @id @default(cuid())
+  kaynak MalKabulKaynagi
+  durum  MalKabulDurumu  @default(BEKLIYOR)
+
+  firmaId      String?
+  firma        Firma?    @relation(fields: [firmaId], references: [id])
+  // Belgede yazan tedarikçi adı (firma bağlı değilse de görünsün diye kopya).
+  tedarikciAdi String?
+  // "Fatura" | "İrsaliye"
+  belgeTuru    String
+  belgeNo      String?
+  belgeTarihi  DateTime?
+  note         String?
+
+  tedarikciFaturaTaslagiId String?                 @unique
+  tedarikciFaturaTaslagi   TedarikciFaturaTaslagi? @relation(fields: [tedarikciFaturaTaslagiId], references: [id])
+
+  createdById  String
+  createdBy    User      @relation("MalKabulOlusturan", fields: [createdById], references: [id])
+  createdAt    DateTime  @default(now())
+  kararVerenId String?
+  kararVeren   User?     @relation("MalKabulKararVeren", fields: [kararVerenId], references: [id])
+  kararAt      DateTime?
+  redSebebi    String?
+
+  kalemler MalKabulKalemi[]
+
+  @@index([durum, createdAt])
+}
+
+model MalKabulKalemi {
+  id         String   @id @default(cuid())
+  malKabulId String
+  malKabul   MalKabul @relation(fields: [malKabulId], references: [id], onDelete: Cascade)
+
+  // Ana Depo ürünü. Belgedeki satır henüz eşleşmediyse null — onay, tüm kalemler eşleşmeden verilemez.
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  // Belgede yazan ad/kod (eşleştirme için, değişmez kopya)
+  belgedekiAd     String
+  belgedekiKod    String?
+  quantity        Int
+  // KDV hariç birim alış fiyatı (kuruş), belgede varsa — bilgi amaçlı, ürün maliyetini değiştirmez.
+  birimFiyatCents Int?
+
+  @@index([malKabulId])
 }
 
 // Generic audit trail for user and store management — PriceHistory/
@@ -448,6 +554,9 @@ model User {
   kasaHareketleriCreated             KasaHareket[]            @relation("KasaHareketCreatedBy")
   irsaliyelerCreated                 Irsaliye[]               @relation("IrsaliyeCreatedBy")
   tedarikciFaturaTaslaklariOnaylanan TedarikciFaturaTaslagi[]
+  pazarlamaAyirmaKayitlari           PazarlamaAyirmaKaydi[]
+  malKabulOlusturdugu                MalKabul[]               @relation("MalKabulOlusturan")
+  malKabulKararlari                  MalKabul[]               @relation("MalKabulKararVeren")
 }
 
 model Sale {
@@ -709,6 +818,15 @@ model WebOrder {
 
   kargoFirmasi String?
   kargoTakipNo String?
+
+  // Stok yenilemesi (2026-10): siparişin Ana Depo stoğu düşüldüğü an — TEK stok bayrağı. Kart: ödeme
+  // doğrulandığında, havale: personel ödemeyi onayladığında, cari hesap: sipariş oluşturulduğunda.
+  // Düşüm/geri ekleme yalnız bu alanın koşullu güncellemesiyle yapılır (null→dolu düşer, dolu→null geri
+  // ekler), bu yüzden aynı sipariş için iki kez düşülemez. İrsaliye/Sale oluşturma stoğa dokunmaz.
+  stokDusulduAt  DateTime?
+  // Kart ödemesi alındı ama o an e-ticaret satılabilir stoğu yetmedi — stok DÜŞÜLMEDİ, yöneticiye
+  // e-posta gitti, CRM sipariş ekranında kırmızı uyarı. Personel tedarik edip işler ya da iptal/iade eder.
+  stokYetersizAt DateTime?
 
   // Frozen at order-creation time from the 13:30 same-day cutoff rule, so a
   // later clock/config change never rewrites an already-placed order's
@@ -1186,6 +1304,7 @@ model Firma {
   kasaHareketleri           KasaHareket[]
   irsaliyeler               Irsaliye[]
   tedarikciFaturaTaslaklari TedarikciFaturaTaslagi[]
+  malKabuller               MalKabul[]
   webCustomers              WebCustomer[]
   degisiklikler             FirmaDegisiklik[]
   bilgiTalepleri            FirmaBilgiTalebi[]
@@ -1568,6 +1687,10 @@ model Irsaliye {
   // güncellenir (bkz. markIrsaliyePrinted), tekrar tekrar yazdırmak serbest.
   printedAt DateTime?
 
+  // Stok yenilemesi (2026-10): bu irsaliye kesilirken Ana Depo stoğu düşüldü mü — yalnız true olanın
+  // iptali stoğa geri ekler (eski irsaliyeler ve online siparişten kesilenler false kalır).
+  depoStokDustu Boolean @default(false)
+
   kalemler IrsaliyeKalemi[]
   webOrder WebOrder?
 
@@ -1743,6 +1866,8 @@ model TedarikciFaturaTaslagi {
   approvedBy   User?     @relation(fields: [approvedById], references: [id])
   approvedAt   DateTime?
   redSebebi    String?
+
+  malKabul MalKabul?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

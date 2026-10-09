@@ -12,6 +12,8 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { sendEmail, logSkippedEmail } from "@/lib/email/send";
 import { renderEmail, formatTl, orderNo } from "@/lib/email/render";
+import { satilabilirMiktar } from "@/lib/depoStok";
+import { odemeSonrasiStokDus } from "@/lib/siparisStok";
 import {
   IYZICO_YOLLARI,
   baslatmaYanitiImzasiDogru,
@@ -63,7 +65,7 @@ export async function odemeOturumuBaslat(
   const order = await prisma.webOrder.findUnique({
     where: { id: orderId },
     include: {
-      items: { include: { product: { select: { stock: true, name: true } } } },
+      items: { include: { product: { select: { barcode: true, name: true } } } },
       webCustomer: { select: { id: true, name: true, email: true, phone: true, createdAt: true } },
       odemeDenemeleri: { orderBy: { denemeNo: "desc" }, take: 1 },
     },
@@ -100,12 +102,19 @@ export async function odemeOturumuBaslat(
     }
   }
 
-  // Stok kontrolü (rezervasyon yok; yalnız ödeme başlamadan önce kontrol). Aynı ürünün birden çok satırı toplanır.
+  // Stok kontrolü (rezervasyon yok; yalnız ödeme başlamadan önce kontrol — kesin kontrol ödeme doğrulanınca stok
+  // düşülürken yapılır, bkz. lib/siparisStok.ts). Stok Ana Depo'dandır, e-ticaret kuralıyla: pazarlamaya ayrılan satılmaz.
+  // Aynı ürünün birden çok satırı toplanır.
+  const depoSatirlari = await prisma.product.findMany({
+    where: { store: { isWarehouse: true }, barcode: { in: order.items.map((i) => i.product.barcode) } },
+    select: { barcode: true, stock: true, pazarlamaAyrilan: true },
+  });
+  const depoStok = new Map(depoSatirlari.map((p) => [p.barcode, satilabilirMiktar("ETICARET", p.stock, p.pazarlamaAyrilan)]));
   const adetler = new Map<string, { ad: string; adet: number; stok: number }>();
   for (const i of order.items) {
-    const e = adetler.get(i.productId) ?? { ad: i.product.name, adet: 0, stok: i.product.stock };
+    const e = adetler.get(i.product.barcode) ?? { ad: i.product.name, adet: 0, stok: depoStok.get(i.product.barcode) ?? 0 };
     e.adet += i.quantity;
-    adetler.set(i.productId, e);
+    adetler.set(i.product.barcode, e);
   }
   const yetersiz = [...adetler.values()].filter((e) => e.adet > e.stok).map((e) => e.ad);
   if (yetersiz.length > 0) return { ok: false, kod: "STOK", hata: `Şu ürünlerde yeterli stok yok: ${yetersiz.join(", ")}` };
@@ -371,7 +380,43 @@ export async function odemeSonucuIsle(token: string): Promise<OdemeSonucu> {
     await yoneticiyeBildir(deneme.id, "Ödeme alındı ama sipariş ödenebilir durumda değil");
     return { orderId: deneme.webOrderId, durum: "SORUNLU", yeniOdendi: false, hataMesaji: "Ödemeniz alındı ancak siparişiniz işlenemedi; ekibimiz sizinle iletişime geçecek." };
   }
+  // Stok ödeme anında düşer (ayrı transaction — ödeme kaydı stoktan bağımsız kesinleşmiştir). Stok yetmezse ödeme geri
+  // alınmaz: sipariş ODENDI kalır, stokYetersizAt işaretlenir, yöneticiye e-posta gider (iade kararı personelde).
+  try {
+    const stok = await odemeSonrasiStokDus(deneme.webOrderId, null);
+    if (stok.durum === "YETERSIZ") await stokYetersizBildir(deneme.webOrderId, stok.urunler);
+  } catch (error) {
+    // Stok düşümü başarısız olsa da ödeme kaydı geçerli; "İşle" adımı bayrak boşsa stoğu yeniden dener.
+    console.error("[iyzico] ödeme sonrası stok düşülemedi:", error instanceof Error ? error.message : error);
+  }
   return { orderId: deneme.webOrderId, durum: "ODENDI", yeniOdendi: true };
+}
+
+// Kart ödemesi alındı ama Ana Depo'da e-ticarete satılabilir stok yetmedi — yöneticiye e-posta (sipariş başına bir kez:
+// stokYetersizAt yalnız ödeme anında bir kez yazılır, bu fonksiyon yalnız o anda çağrılır).
+async function stokYetersizBildir(orderId: string, urunler: string[]) {
+  try {
+    const no = orderNo(orderId);
+    const icerik = renderEmail({
+      subject: `⚠ Stok yetersiz — Sipariş #${no} ödendi ama stok düşülemedi`,
+      preheader: `Sipariş #${no}: ödeme alındı, Ana Depo'da yeterli stok yok.`,
+      heading: "Ödeme alındı, stok yetersiz",
+      blocks: [
+        { kind: "p", text: `Sipariş: #${no} (${orderId})` },
+        { kind: "p", text: `Stoğu yetmeyen ürünler: ${urunler.join(", ")}` },
+        { kind: "p", text: "Ödeme alındı ve sipariş \"ödendi\" durumunda; stok DÜŞÜLMEDİ, otomatik iade YAPILMADI. CRM › Online Mağaza › Siparişler'den: ürünü tedarik edip siparişi işleyin ya da siparişi iptal edip ödemeyi iade edin." },
+      ],
+    });
+    const to = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
+    const girdi = { type: "ADMIN_STOCK_ALERT", ...icerik, relatedOrderId: orderId };
+    if (!to) {
+      await logSkippedEmail({ ...girdi, to: "-" }, "ADMIN_NOTIFICATION_EMAIL tanımlı değil.");
+      return;
+    }
+    await sendEmail({ ...girdi, to });
+  } catch (error) {
+    console.error("[iyzico] stok uyarısı gönderilemedi:", error instanceof Error ? error.message : error);
+  }
 }
 
 async function basarisizYaz(denemeId: string, y: IyzicoYanit, varsayilan: string) {

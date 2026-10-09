@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { BASE_SELECT, toSummary, type StorefrontProductSummary } from "@/lib/search";
+import { eticaretStokuUygula } from "@/lib/depoStok";
 import { aggregatePurchases, type FrequentItem, type PurchaseLine } from "@/lib/frequentPurchasesCore";
 
 export type FrequentPurchase = FrequentItem & { product: StorefrontProductSummary };
@@ -57,10 +58,14 @@ export async function getFrequentPurchases(webCustomerId: string): Promise<Frequ
   if (items.length === 0) return [];
 
   const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
-  const products = await prisma.product.findMany({
-    where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: items.map((i) => i.barcode) } },
-    select: { ...BASE_SELECT, barcode: true },
-  });
+  // Stok Ana Depo'dan (tek havuz, 2026-10).
+  const products = await eticaretStokuUygula(
+    prisma,
+    await prisma.product.findMany({
+      where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: items.map((i) => i.barcode) } },
+      select: BASE_SELECT,
+    })
+  );
   const byBarcode = new Map(products.map((p) => [p.barcode, toSummary(p, markupPercent)]));
 
   return items

@@ -6,7 +6,8 @@
 // dosya seviyesinde "use server" gerekiyor (bkz. proje hafızası). lib/search.ts
 // ve lib/memberPricing.ts'teki asıl mantığı burada sadece sarmalıyoruz.
 import { prisma } from "@/lib/prisma";
-import { getOnlineStoreId } from "@/lib/onlineStore";
+import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
+import { eticaretStokuUygula } from "@/lib/depoStok";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import {
   listStorefrontProducts,
@@ -42,13 +43,18 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
 export async function getStorefrontProductsByIds(ids: string[]): Promise<StorefrontProductSummary[]> {
   if (ids.length === 0) return [];
   if (isDemoMode()) return demoProductsByIds(ids);
-  const storeId = await getOnlineStoreId();
-  const products = await prisma.product.findMany({
-    where: { id: { in: ids }, storeId, showOnStorefront: true, archivedAt: null },
-    select: BASE_SELECT,
-  });
+  const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
+  // Stok Ana Depo'dan (tek havuz, 2026-10).
+  const products = await eticaretStokuUygula(
+    prisma,
+    await prisma.product.findMany({
+      where: { id: { in: ids }, storeId, showOnStorefront: true, archivedAt: null },
+      select: BASE_SELECT,
+    })
+  );
   const byId = new Map(products.map((p) => [p.id, p]));
-  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map(toSummary);
+  // Not: eskiden `.map(toSummary)` idi — map'in sıra numarası fiyat artış oranı yerine geçiyordu; oran açıkça veriliyor.
+  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
 }
 
 export async function getMemberDiscountPercentAction(): Promise<number | null> {
