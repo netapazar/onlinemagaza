@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { depoStokHaritasi } from "@/lib/depoStok";
 import { centsToTl } from "@/lib/pricing";
 import { miktarMetni } from "@/lib/satisBirimleri";
 import { odemeSonucuIsle } from "@/lib/iyzicoOdeme";
@@ -24,7 +25,7 @@ async function siparisiOku(id: string) {
   return prisma.webOrder.findUnique({
     where: { id },
     include: {
-      items: { include: { product: { select: { stock: true } } } },
+      items: { include: { product: { select: { barcode: true } } } },
       odemeDenemeleri: { orderBy: { denemeNo: "desc" }, take: 1 },
     },
   });
@@ -53,10 +54,11 @@ export default async function OdemePage({
   }
   const son = order.odemeDenemeleri[0];
   // Stok hatasında hangi ürünlerde sorun olduğu sunucuda yeniden hesaplanır (URL'deki metne güvenilmez).
-  const stoguYetmeyen =
-    hata === "STOK"
-      ? [...new Set(order.items.filter((i) => i.quantity > i.product.stock).map((i) => i.name))]
-      : [];
+  // Stok Ana Depo'dan, e-ticaret kuralıyla (tek havuz, 2026-10).
+  const depo = hata === "STOK" ? await depoStokHaritasi(prisma, order.items.map((i) => i.product.barcode)) : null;
+  const stoguYetmeyen = depo
+    ? [...new Set(order.items.filter((i) => i.quantity > (depo.get(i.product.barcode)?.eticaretSatilabilir ?? 0)).map((i) => i.name))]
+    : [];
   const iptal = order.status === "IPTAL_EDILDI";
   const dogrulanamadi = son?.durum === "TUTAR_UYUSMAZ" || son?.hataKodu === "SIPARIS_UYGUN_DEGIL";
   const devamEdiyor = son?.durum === "BASLATILDI";

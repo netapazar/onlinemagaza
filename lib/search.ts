@@ -7,6 +7,7 @@ import { computeListPriceCents } from "@/lib/pricing";
 import { getBestSellerRanking } from "@/lib/bestSellerRanking";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
 import { trTitle } from "@/lib/text";
+import { eticaretStokuUygula } from "@/lib/depoStok";
 import {
   isDemoMode,
   demoListStorefrontProducts,
@@ -30,6 +31,8 @@ export type StorefrontProductSummary = {
   // bunu doğrudan kullanır, salePriceCents/onlinePriceCents'i tekrar hesaplamaz.
   listPriceCents: number;
   shortDescription: string | null;
+  // Tek havuz (2026-10): Ana Depo stoğu − pazarlamaya ayrılan (e-ticarete satılabilir). Online satırın kendi
+  // `stock` alanı okunmaz — listeler eticaretStokuUygula'dan geçer (bkz. lib/depoStok.ts).
   stock: number;
   unit: string; // ProductUnit enum değeri (ADET/KOLI/DUZINE/KUTU/PAKET) — gösterim etiketi lib/units.ts'te
   packageInfo: string | null; // serbest metin paket/koli içeriği ("50'li paket"); boşsa vitrinde gösterilmez
@@ -52,6 +55,8 @@ export const BASE_SELECT = {
   onlinePriceCents: true,
   shortDescription: true,
   stock: true,
+  // Ana Depo eşlemesi (stok) barkodla yapılır.
+  barcode: true,
   unit: true,
   packageInfo: true,
   paketliSatis: true,
@@ -246,25 +251,31 @@ export async function listStorefrontProducts(options: {
     ]);
     const orderedIds = [...new Set([...exactIds, ...fuzzyIds])];
     if (orderedIds.length === 0) return [];
-    const products = await prisma.product.findMany({
-      where: { id: { in: orderedIds } },
-      select: BASE_SELECT,
-    });
+    const products = await eticaretStokuUygula(
+      prisma,
+      await prisma.product.findMany({
+        where: { id: { in: orderedIds } },
+        select: BASE_SELECT,
+      })
+    );
     const byId = new Map(products.map((p) => [p.id, p]));
     // $queryRaw'ın döndürdüğü sıralama (en iyi eşleşme önce) korunuyor —
     // Prisma'nın `id: { in: [...] }` sorgusu bu sırayı garanti etmiyor.
     summaries = orderedIds.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
   } else {
-    const products = await prisma.product.findMany({
-      where: {
-        storeId,
-        archivedAt: null,
-        showOnStorefront: true,
-        ...(categoryIds ? { categoryId: { in: categoryIds } } : {}),
-      },
-      select: BASE_SELECT,
-      orderBy: options.sort === "yeni" ? { updatedAt: "desc" } : [{ storefrontSortOrder: "asc" }, { name: "asc" }],
-    });
+    const products = await eticaretStokuUygula(
+      prisma,
+      await prisma.product.findMany({
+        where: {
+          storeId,
+          archivedAt: null,
+          showOnStorefront: true,
+          ...(categoryIds ? { categoryId: { in: categoryIds } } : {}),
+        },
+        select: BASE_SELECT,
+        orderBy: options.sort === "yeni" ? { updatedAt: "desc" } : [{ storefrontSortOrder: "asc" }, { name: "asc" }],
+      })
+    );
     summaries = products.map((p) => toSummary(p, markupPercent));
   }
 
@@ -370,7 +381,7 @@ export async function getNewArrivals(limit: number): Promise<StorefrontProductSu
     orderBy: { updatedAt: "desc" },
     take: limit,
   });
-  return cokSatanIsaretle(products.map((p) => toSummary(p, markupPercent)));
+  return cokSatanIsaretle((await eticaretStokuUygula(prisma, products)).map((p) => toSummary(p, markupPercent)));
 }
 
 // Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
@@ -392,7 +403,7 @@ export async function getRelatedProducts(
     gorselli.length < limit
       ? await prisma.product.findMany({ where: { ...where, images: { none: {} } }, select: BASE_SELECT, orderBy, take: limit - gorselli.length })
       : [];
-  return cokSatanIsaretle([...gorselli, ...gorselsiz].map((p) => toSummary(p, markupPercent)));
+  return cokSatanIsaretle((await eticaretStokuUygula(prisma, [...gorselli, ...gorselsiz])).map((p) => toSummary(p, markupPercent)));
 }
 
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
@@ -451,10 +462,13 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
   ]);
   if (ranking.length === 0) return [];
 
-  const products = await prisma.product.findMany({
-    where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: ranking.map((r) => r.barcode) } },
-    select: { ...BASE_SELECT, barcode: true },
-  });
+  const products = await eticaretStokuUygula(
+    prisma,
+    await prisma.product.findMany({
+      where: { storeId, showOnStorefront: true, archivedAt: null, barcode: { in: ranking.map((r) => r.barcode) } },
+      select: BASE_SELECT,
+    })
+  );
   const byBarcode = new Map(products.map((p) => [p.barcode, p]));
   // Bu listede rozet işaretlenmez: "Çok Satanlar" başlığı aynı bilgiyi zaten veriyor (her kartta rozet gürültü olurdu).
   return ranking
@@ -531,13 +545,21 @@ const DETAIL_SELECT = {
   category: { select: { name: true } },
 } as const;
 
+// Detayda stok Ana Depo'dan (e-ticaret kuralı) — bkz. StorefrontProductSummary.stock.
+async function detayStogu<T extends { barcode: string; stock: number }>(p: T | null): Promise<T | null> {
+  if (!p) return null;
+  return (await eticaretStokuUygula(prisma, [p]))[0];
+}
+
 export async function getStorefrontProductBySlug(slug: string) {
   if (isDemoMode()) return demoProductBySlugOrId(slug);
   const storeId = await getOnlineStoreId();
-  return prisma.product.findFirst({
-    where: { storeId, slug, showOnStorefront: true, archivedAt: null },
-    select: DETAIL_SELECT,
-  });
+  return detayStogu(
+    await prisma.product.findFirst({
+      where: { storeId, slug, showOnStorefront: true, archivedAt: null },
+      select: DETAIL_SELECT,
+    })
+  );
 }
 
 // Fallback for a showOnStorefront product that was never given a slug —
@@ -546,8 +568,10 @@ export async function getStorefrontProductBySlug(slug: string) {
 export async function getStorefrontProductById(id: string) {
   if (isDemoMode()) return demoProductBySlugOrId(id);
   const storeId = await getOnlineStoreId();
-  return prisma.product.findFirst({
-    where: { id, storeId, showOnStorefront: true, archivedAt: null },
-    select: DETAIL_SELECT,
-  });
+  return detayStogu(
+    await prisma.product.findFirst({
+      where: { id, storeId, showOnStorefront: true, archivedAt: null },
+      select: DETAIL_SELECT,
+    })
+  );
 }

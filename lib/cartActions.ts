@@ -2,6 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
+import { eticaretStokuUygula, StokYetersizError } from "@/lib/depoStok";
+import { siparisStokunuDusTx } from "@/lib/siparisStok";
 import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
@@ -84,10 +87,14 @@ export async function getCartDetails(items: CartItemInput[]) {
   // ürün sepete eklendikten SONRA yayından kaldırılmış/arşivlenmiş/stoksuz
   // kalmış olabilir, bu durumda da satırı (uyarıyla) göstermemiz gerekiyor.
   // "Satın alınabilir mi" kararı aşağıda `available` alanıyla ayrıca veriliyor.
-  const products = await prisma.product.findMany({
-    where: { id: { in: items.map((i) => i.productId) }, storeId },
-    include: { images: { where: { isCover: true }, take: 1 } },
-  });
+  // Stok Ana Depo'dan, e-ticaret kuralıyla (stok − pazarlamaya ayrılan) — tek havuz, 2026-10.
+  const products = await eticaretStokuUygula(
+    prisma,
+    await prisma.product.findMany({
+      where: { id: { in: items.map((i) => i.productId) }, storeId },
+      include: { images: { where: { isCover: true }, take: 1 } },
+    })
+  );
 
   const lines: CartLine[] = [];
   for (const item of items) {
@@ -287,9 +294,14 @@ export async function createOrder(
     : null;
 
   const [storeId, markupPercent] = await Promise.all([storeIdPromise, markupPercentPromise]);
-  const products = await prisma.product.findMany({
-    where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
-  });
+  // Stok Ana Depo'dan (e-ticaret kuralı). Bu kontrol yalnız ön kontroldür; kesin kontrol stok düşülürken yapılır
+  // (cari hesapta aşağıda sipariş oluşturulurken, kart/havalede ödeme anında — bkz. lib/siparisStok.ts).
+  const products = await eticaretStokuUygula(
+    prisma,
+    await prisma.product.findMany({
+      where: { id: { in: items.map((i) => i.productId) }, storeId, showOnStorefront: true, archivedAt: null },
+    })
+  );
 
   const outOfStock: string[] = [];
   const orderItemsData: {
@@ -364,8 +376,7 @@ export async function createOrder(
   const shippingCents = SHIPPING_COST_CENTS;
   const totalCents = subtotalCents + shippingCents;
 
-  const order = await prisma.webOrder.create({
-    data: {
+  const orderData = {
       webCustomerId: webCustomer?.id ?? null,
       guestName: webCustomer ? null : guestName,
       guestEmail: webCustomer ? null : guestEmail,
@@ -383,8 +394,25 @@ export async function createOrder(
       paymentMethod,
       sameDayShipping: isBeforeShippingCutoff(),
       items: { create: orderItemsData },
-    },
-  });
+  } satisfies Prisma.WebOrderUncheckedCreateInput;
+
+  // Cari hesap siparişinde ödeme anı yoktur — stok sipariş oluşturulduğu anda, aynı transaction'da Ana Depo'dan
+  // düşülür (eksiye düşemez; yetmezse sipariş hiç oluşmaz). Kart/havalede stok ödeme alınınca düşer.
+  let order: { id: string };
+  if (paymentMethod === "CARI_HESAP") {
+    try {
+      order = await prisma.$transaction(async (tx) => {
+        const created = await tx.webOrder.create({ data: orderData });
+        await siparisStokunuDusTx(tx, created.id, null);
+        return created;
+      });
+    } catch (e) {
+      if (e instanceof StokYetersizError) return { error: `Şu ürünler stokta yok: ${e.urunler.join(", ")}` };
+      throw e;
+    }
+  } else {
+    order = await prisma.webOrder.create({ data: orderData });
+  }
 
   // E-posta (müşteriye "sipariş alındı" + yöneticiye "yeni sipariş") DB yazımı
   // bittikten sonra, yanıttan bağımsız çalışır — başarısız olsa bile sipariş etkilenmez.
