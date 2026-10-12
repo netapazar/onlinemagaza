@@ -29,8 +29,8 @@ const ROW_LIMIT = 12;
 export default async function Home() {
   const [categories, newArrivals, bestSellers, brands, memberDiscountPercent, membershipStatus] = await Promise.all([
     getStorefrontCategoriesWithCounts(),
-    getNewArrivals(ROW_LIMIT),
-    getBestSellers(ROW_LIMIT),
+    getNewArrivals(ROW_LIMIT, { yalnizSatilabilir: true }),
+    getBestSellers(ROW_LIMIT, { yalnizSatilabilir: true }),
     getVitrinMarkalari(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
@@ -74,31 +74,26 @@ export default async function Home() {
         />
       ) : (
         <>
-          {/* Renk ritmi (2026-10): açık teal ve beyaz bölümler sırayla gelir, iki teal bölüm yan yana düşmez —
-              bilgi şeridi (teal) · kurumsal avantajlar (beyaz) · kategoriler (teal) · çok satanlar (beyaz) ·
-              kimlere hizmet (teal) · yeni eklenenler (beyaz) · markalar (teal). Ürün satırları beyaz: fotoğraflar beyazda iyi durur.
-              Onaylı üyede: büyük avantaj bölümü ve "Kimlere Hizmet" yok, üye durum çubuğu bilgi şeridiyle aynı teal bandın alt
-              satırı, Çok Satanlar kategorilerin üstünde → bilgi şeridi · çok satanlar · kategoriler · yeni eklenenler · markalar. */}
+          {/* Sıra ve renk ritmi (2026-10 yoğunluk turu — ürünler yukarıda): bilgi şeridi (teal) · çok satanlar (beyaz) ·
+              kategoriler (teal) · kurumsal üyelik bandı (beyaz) · kimlere hizmet (teal) · yeni eklenenler (beyaz) · markalar (teal).
+              Ürün satırları beyaz: fotoğraflar beyazda iyi durur. Onaylı üyede kurumsal bant ve "Kimlere Hizmet" yok, üye durum
+              çubuğu bilgi şeridiyle aynı teal bandın alt satırı → bilgi şeridi · çok satanlar · kategoriler · yeni eklenenler · markalar. */}
           <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
             <TrustBar />
             {membershipStatus.kind === "approved" && <ApprovedStrip status={membershipStatus} />}
           </div>
 
-          {/* Kurumsal üyelik avantajları: onaylı üye dışındakilere görselli avantaj bölümü + "Hemen Başvur"
-              (bkz. components/CorporateBenefits.tsx) */}
-          <Reveal>
-            <CorporateBenefits status={membershipStatus} />
-          </Reveal>
-
-          {/* Onaylı üyede kurumsal avantaj bölümü (beyaz) yok → Çok Satanlar kategorilerin ÜSTÜNE çıkar ki bilgi şeridi (teal)
-              ile kategoriler (teal) yan yana düşmesin. */}
-          {approved && bestSellersRow}
+          {bestSellersRow}
           {categories.length > 0 && (
             <Reveal>
               <CategoryGrid categories={categories} />
             </Reveal>
           )}
-          {!approved && bestSellersRow}
+
+          {/* Kurumsal üyelik: onaylı üye dışındakilere kısa bant + "Hemen Başvur" (bkz. components/CorporateBenefits.tsx) */}
+          <Reveal>
+            <CorporateBenefits status={membershipStatus} />
+          </Reveal>
 
           {/* Kimlere Hizmet yalnız üyeliğe yönlendiriyor — onaylı üyede işlevi yok, gösterilmez. */}
           {!approved && (

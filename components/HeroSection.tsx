@@ -43,7 +43,12 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
   return (
     <div className="mb-6 grid gap-3 lg:grid-cols-3 lg:gap-4">
       <div className="lg:col-span-2">
-        <HeroSlider cariHesapSlide={slideModeFor(status)} photos={photos} bannerImages={bannerImages} />
+        <HeroSlider
+          cariHesapSlide={slideModeFor(status)}
+          photos={photos}
+          bannerImages={bannerImages}
+          backgroundPhoto={bannerImage("hero-arka")}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-col lg:gap-4">
         <PromoBanner

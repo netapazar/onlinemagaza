@@ -1263,6 +1263,13 @@ model Firma {
   faturaTuru       FaturaTuru @default(E_ARSIV)
   // free-text notes, checked/reviewed on future interactions with this firma
   notlar           String?
+  // Cari rol ayrımı (2026-10): bir cari müşteri, tedarikçi ya da ikisi birden olabilir (en az biri — DB CHECK).
+  // Bakiye de role göre ikiye ayrılır (src/lib/cari.ts): müşteri bakiyesi = SİPARİŞ − TAHSİLAT, tedarikçi bakiyesi =
+  // ALIŞ − TEDİYE. Tedarikçi tarafı (kart, tediye, "Tedarikçilere Borcumuz") yalnız ADMIN'e açık.
+  musteriMi        Boolean    @default(true)
+  tedarikciMi      Boolean    @default(false)
+  // Yalnız müşteri için anlamlı SATIŞ GRUBU (Pazarlama / İhale). Eski TEDARIKCI değeri artık yazılmaz/okunmaz — rol
+  // tedarikciMi'dedir (enum değeri ayrı bir temizlikle kaldırılacak, PazarlamaSiparis.cariGrubu da bu enum'u kullanıyor).
   cariGrubu        CariGrubu  @default(PAZARLAMA)
   // netapazar.xyz'den aktarımda eski sistemin gerçek cari ID'si — hem
   // izlenebilirlik hem de import'un idempotent tekrar çalıştırılabilmesi için.
@@ -1380,6 +1387,13 @@ model CariHareket {
   // kaldırılmaz (kasa sayımı asla tutmaz hale gelir). İptal edilen satır
   // durur, ters yönde yeni bir satır oluşturulur (bkz. hareketIptalEt).
   iptal         Boolean      @default(false)
+  // Ters kayıt ise iptal ettiği asıl hareket (2026-10). Ters kayıt asılla AYNI TİPTE ve EKSİ tutarla yazılır (irsaliye
+  // iptalinin yöntemi) — eskiden tahsilat iptali TEDİYE olarak yazılıyordu, bakiye müşteri/tedarikçi diye ikiye
+  // bölününce müşterinin iptal edilen tahsilatı tedarikçi tarafına düşerdi. Listeler/toplamlar ters kayıtları ve
+  // iptal edilmiş asılları dışarıda tutar; bakiye SUM'u ikisini de toplar (net sıfır).
+  iptalEdilenId String?      @unique
+  iptalEdilen   CariHareket? @relation("cariHareketIptal", fields: [iptalEdilenId], references: [id])
+  iptalKaydi    CariHareket? @relation("cariHareketIptal")
 
   createdById String
   createdBy   User     @relation("CariHareketCreatedBy", fields: [createdById], references: [id])

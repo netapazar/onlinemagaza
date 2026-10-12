@@ -168,7 +168,8 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
         </div>
       </details>
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+      {/* grid-cols-1 (= minmax(0,1fr)): tek sütunda iz "auto" kalırsa kartların en dar içeriği sütunu genişletip mobilde sayfayı yana taşırıyordu */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
         <aside className="hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm lg:block lg:h-fit">
           <ProductFilters {...filterPanelProps} />
         </aside>

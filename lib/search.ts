@@ -369,19 +369,36 @@ export const getStorefrontCategoriesWithCounts = cache(async (): Promise<Storefr
   return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name, "tr"));
 });
 
+// Ana sayfa ürün satırları (Çok Satanlar, Yeni Eklenenler) yalnız sitede SATILABİLİR ürünleri gösterir (kullanıcı kararı
+// 2026-10-12, yalnizSatilabilir seçeneği): stoksuz ürün satırdan çıkar, yerine sıradaki gelir. Kural ürün kartındaki "Stokta yok" ile aynı — en küçük açık
+// satış biriminin içeriği kadar e-ticaret stoğu (bkz. components/ProductCard.tsx inStock). Ürün listesi/kategori sayfaları
+// (/cok-satanlar dahil) bu süzgeçten geçmez; orada stoksuz ürünler görünmeye devam eder.
+function satilabilir(p: StorefrontProductSummary): boolean {
+  return p.stock >= (p.satisBirimleri?.[0]?.adet ?? 1);
+}
+
 // Anasayfadaki "Yeni Eklenen Ürünler" bölümü — storefrontSortOrder'dan
 // bağımsız, sadece en son storefront'a eklenmiş/güncellenmiş ürünleri
 // vitrine taşımak için (küçük bir kataloğa "hareket" hissi katıyor).
-export async function getNewArrivals(limit: number): Promise<StorefrontProductSummary[]> {
+export async function getNewArrivals(limit: number, { yalnizSatilabilir = false } = {}): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoNewArrivals(limit);
   const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
-  const products = await prisma.product.findMany({
-    where: { storeId, archivedAt: null, showOnStorefront: true },
-    select: BASE_SELECT,
-    orderBy: { updatedAt: "desc" },
-    take: limit,
-  });
-  return cokSatanIsaretle((await eticaretStokuUygula(prisma, products)).map((p) => toSummary(p, markupPercent)));
+  // Stoksuzlar süzüldüğü için sayfa sayfa okunur: satır dolana ya da yayındaki ürünler bitene kadar (en fazla 5 sayfa).
+  const sayfa = limit * 2;
+  const secilen: StorefrontProductSummary[] = [];
+  for (let i = 0; i < 5 && secilen.length < limit; i++) {
+    const products = await prisma.product.findMany({
+      where: { storeId, archivedAt: null, showOnStorefront: true },
+      select: BASE_SELECT,
+      orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+      skip: i * sayfa,
+      take: sayfa,
+    });
+    const ozet = (await eticaretStokuUygula(prisma, products)).map((p) => toSummary(p, markupPercent));
+    secilen.push(...(yalnizSatilabilir ? ozet.filter(satilabilir) : ozet));
+    if (products.length < sayfa) break;
+  }
+  return cokSatanIsaretle(secilen.slice(0, limit));
 }
 
 // Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
@@ -451,7 +468,7 @@ async function cokSatanIsaretle(list: StorefrontProductSummary[]): Promise<Store
   return ids.size === 0 ? list : list.map((p) => (ids.has(p.id) ? { ...p, cokSatan: true } : p));
 }
 
-export async function getBestSellers(limit: number): Promise<StorefrontProductSummary[]> {
+export async function getBestSellers(limit: number, { yalnizSatilabilir = false } = {}): Promise<StorefrontProductSummary[]> {
   if (isDemoMode()) return demoBestSellers(limit);
   // Sıra günde bir hesaplanır (bkz. lib/bestSellerRanking.ts — pazarlama + online, son 90 gün, belge sayısı);
   // ürün bilgisi (fiyat, stok, yayın) her istekte güncel okunur. Yayında olmayanlar atlanır.
@@ -474,8 +491,9 @@ export async function getBestSellers(limit: number): Promise<StorefrontProductSu
   return ranking
     .map((r) => byBarcode.get(r.barcode))
     .filter((p) => p !== undefined)
-    .slice(0, limit)
-    .map((p) => toSummary(p, markupPercent));
+    .map((p) => toSummary(p, markupPercent))
+    .filter((p) => !yalnizSatilabilir || satilabilir(p))
+    .slice(0, limit);
 }
 
 // Anasayfa marka şeridi (kullanıcı kararı 2026-10-07): ELLE tanımlı, tanınırlığa göre sabit 20 markalık sıra — üstte ofis

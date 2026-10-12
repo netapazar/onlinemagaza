@@ -6,11 +6,12 @@ import { HomeIcon, GridIcon, CartIcon, UserIcon, CloseIcon, HeartIcon, Briefcase
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 import { CategoryIcon } from "@/lib/categoryIcons";
+import { WHATSAPP_HREF, WhatsAppIcon } from "@/components/WhatsAppButton";
 
 type CategoryWithCount = { id: string; name: string; count: number; children?: { id: string; name: string; count: number }[] };
 
 // "Genel" bölümündeki mobil alt navigasyon: Ana Sayfa / Kategoriler / Sepet
-// / Hesabım — sadece küçük ekranlarda görünür (bkz. layout.tsx'teki sm:hidden
+// / Hesabım / WhatsApp — sadece küçük ekranlarda görünür (bkz. layout.tsx'teki sm:hidden
 // sarmalayıcı). "Kategoriler" sekmesi ayrı bir hamburger menüye gerek
 // bırakmadan aynı kategori listesini bir alttan-açılan panelde gösteriyor.
 export default function MobileBottomNav({
@@ -52,6 +53,16 @@ export default function MobileBottomNav({
           <UserIcon className="h-5 w-5" aria-hidden="true" />
           {loggedIn ? "Hesabım" : "Giriş"}
         </Link>
+        {/* Mobilde WhatsApp burada — yüzen düğme içeriğin üstüne biniyordu (bkz. components/WhatsAppButton.tsx). */}
+        <a
+          href={WHATSAPP_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-neutral-600"
+        >
+          <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
+          WhatsApp
+        </a>
       </nav>
 
       {drawerOpen && (

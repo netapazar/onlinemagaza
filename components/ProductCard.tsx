@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HeartIcon, CartIcon, CheckIcon, TrendUpIcon } from "@/components/icons";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
@@ -14,6 +14,25 @@ import { birimEtiketi } from "@/lib/satisBirimleri";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 
+// Ana sayfa satırları (2026-10 yoğunluk turu): ürünler ilk ekranın hemen altına çıktı; tarayıcının tembel yükleme eşiği yavaş
+// mobil bağlantıda ~2500 px olduğundan kart görselleri sayfa yüklemesine (load) ekleniyor, mobil tam yükleme sınırını (2,15 sn)
+// aşıyordu. deferImage: dar ekranda görsel load olayından SONRA istenir (yer tutucu gri kutu); geniş ekranda (≥1024 px) satır ilk
+// ekranda göründüğü için hemen.
+function useImagesReady(defer: boolean): boolean {
+  const [ready, setReady] = useState(!defer);
+  useEffect(() => {
+    if (!defer) return;
+    const hazir = () => setReady(true);
+    if (document.readyState === "complete" || window.matchMedia("(min-width: 1024px)").matches) {
+      hazir();
+      return;
+    }
+    window.addEventListener("load", hazir, { once: true });
+    return () => window.removeEventListener("load", hazir);
+  }, [defer]);
+  return ready;
+}
+
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
 // client'ta çalışması güvenli (üye/misafir fiyatı zaten sunucudan
@@ -22,12 +41,16 @@ export default function ProductCard({
   product,
   memberDiscountPercent,
   eager = false,
+  deferImage = false,
 }: {
   product: StorefrontProductSummary;
   memberDiscountPercent: number | null;
   /** İlk ekranda görünen kart: görseli tembel yükleme (lazy) LCP'yi geciktirir, bu yüzden hemen yüklenir. */
   eager?: boolean;
+  /** Dar ekranda görseli sayfa yüklemesi bittikten sonra iste (bkz. useImagesReady). */
+  deferImage?: boolean;
 }) {
+  const imagesReady = useImagesReady(deferImage);
   const price = resolvePrice(product, memberDiscountPercent);
   const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
   const { addItem } = useCart();
@@ -59,7 +82,7 @@ export default function ProductCard({
 
       <Link href={href} className="block">
         <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
-          {product.coverImageUrl ? (
+          {!imagesReady ? null : product.coverImageUrl ? (
             <StoreImage
               src={product.coverImageUrl}
               alt={product.name}
@@ -86,23 +109,29 @@ export default function ProductCard({
           <span className="block h-4 truncate text-xs leading-4 text-neutral-400">{product.brandName ?? ""}</span>
           <p className="line-clamp-2 h-10 text-sm leading-5 font-medium text-neutral-900">{product.name}</p>
           <p className="line-clamp-1 h-4 text-xs leading-4 text-neutral-500">{product.shortDescription ?? ""}</p>
-          <div className="mt-1 h-[18px]">
-          {/* Paket içeriği varsa o ("50'li paket"); yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa hiçbir şey */}
-          {enKucukBirim ? (
-            <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
-              {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
-            </span>
-          ) : (
-            (product.packageInfo || product.unit !== "ADET") && (
-              <span className="inline-block max-w-full truncate rounded bg-neutral-100 px-1.5 py-0.5 align-top text-[10px] font-medium text-neutral-600">
-                {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
+          {/* Bilgi etiketleri tek satırda (2026-10 yoğunluk turu): satış birimi + KDV Dahil. Paket içeriği varsa o ("50'li paket");
+              yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa yalnız KDV etiketi. */}
+          <div className="mt-1.5 flex h-[18px] items-start gap-1 overflow-hidden">
+            {enKucukBirim ? (
+              <span className="min-w-0 truncate rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-neutral-600">
+                {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
               </span>
-            )
-          )}
+            ) : (
+              (product.packageInfo || product.unit !== "ADET") && (
+                <span className="min-w-0 truncate rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-neutral-600">
+                  {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
+                </span>
+              )
+            )}
+            <span className="shrink-0 rounded bg-[var(--color-brand-50)] px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-[var(--color-brand-700)]">
+              KDV Dahil
+            </span>
           </div>
         </div>
       </Link>
 
+      {/* Alt blok: fiyat · adet + Sepete Ekle (her zaman görünür — eskiden yalnız hover'da beliriyor, kartın altında boş alan
+          bırakıyordu) · onaysız ziyaretçide kurumsal fiyat düğmesi. */}
       <div className="flex flex-1 flex-col gap-1.5 p-2.5 pt-1.5">
         <div className="mt-auto">
           <div className="flex items-baseline gap-2">
@@ -114,13 +143,11 @@ export default function ProductCard({
               {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
             </span>
           </div>
-          <span className="text-[10px] text-neutral-400">KDV Dahil</span>
-          <CorporatePriceHint className="mt-0.5" />
         </div>
 
         {inStock ? (
-          <div className="flex items-stretch gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
-            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="sm" />
+          <div className="flex items-stretch gap-1.5">
+            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="xs" />
             <button
               type="button"
               title={enKucukBirim ? `${quantity} ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}` : undefined}
@@ -129,14 +156,14 @@ export default function ProductCard({
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-white transition-all duration-200 active:scale-95 ${
+              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 active:scale-95 ${
                 added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
               }`}
             >
               {added ? (
                 <CheckIcon className="animate-pop h-3.5 w-3.5" aria-hidden="true" />
               ) : (
-                <CartIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                <CartIcon className="hidden h-3.5 w-3.5 sm:block" aria-hidden="true" />
               )}
               {added ? "✓ Eklendi" : "Sepete Ekle"}
             </button>
@@ -144,6 +171,7 @@ export default function ProductCard({
         ) : (
           <p className="text-xs font-medium text-neutral-500">Stokta yok</p>
         )}
+        <CorporatePriceHint button />
       </div>
     </div>
   );

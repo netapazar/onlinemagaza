@@ -47,6 +47,11 @@ const SLIDES: Slide[] = [
 
 const ROTATE_MS = 5500;
 
+const EMPTY_GIF = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+// Soldan sağa: metin bölgesi tam teal, ürünlere doğru açılır.
+const HERO_FADE =
+  "linear-gradient(90deg, var(--color-brand) 0%, var(--color-brand) 46%, color-mix(in srgb, var(--color-brand) 70%, transparent) 56%, transparent 68%)";
+
 // "Şimdi alın, cari hesabınızla ödeyin" slaydı (Grup 4). Cari hesap YALNIZCA yetki tanımlanan
 // firmalara açık — metin bunu söylüyor. Onaylı üyelere (yetkisi açık ya da kapalı) gösterilmez;
 // başvurusu bekleyene düğme yerine "inceleniyor" bilgisi çıkar.
@@ -78,10 +83,13 @@ export default function HeroSlider({
   cariHesapSlide = "hidden",
   photos = [],
   bannerImages = {},
+  backgroundPhoto = null,
 }: {
   cariHesapSlide?: CariHesapSlideMode;
   photos?: CollagePhoto[];
   bannerImages?: Partial<Record<Slide["imageKey"], string>>;
+  /** Tüm slaytların ortak arka plan fotoğrafı (public/banners/hero-arka.*); varsa slayt görseli ve kolaj çizilmez. */
+  backgroundPhoto?: string | null;
 }) {
   const [active, setActive] = useState(0);
   // Geçiş animasyonu YALNIZ slayt değiştikten sonra: ilk slayt sayfa açılışında animasyonsuz, anında görünür — aksi hâlde
@@ -101,10 +109,23 @@ export default function HeroSlider({
   const index = active % slides.length;
   const slide = slides[index];
   const Icon = slide.icon;
-  const bannerFile = bannerImages[slide.imageKey];
+  const bannerFile = backgroundPhoto ? undefined : bannerImages[slide.imageKey];
+  const showCollage = !backgroundPhoto && photos.length > 0;
 
   return (
-    <div className="relative flex h-full min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-6 py-7 text-white sm:px-9 sm:py-9">
+    <div className="relative flex h-full min-h-[280px] flex-col justify-between gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-6 py-7 text-white sm:px-9 sm:py-9">
+      {/* Ortak arka plan fotoğrafı yalnız sm ve üstünde: <source media> sayesinde mobil tarayıcı dosyayı hiç İNDİRMEZ (yedek img boş
+          GIF). Kutu genişliği 656–933 px arasında değişir; fotoğraf sağa yaslı kırpılır (ürünler sağda). Soldan teal geçiş beyaz
+          metni okunur kılar — slayt değişince yeniden çizilmez, sabit durur. */}
+      {backgroundPhoto && (
+        <>
+          <picture className="pointer-events-none absolute inset-0 hidden sm:block">
+            <source media="(min-width: 640px)" srcSet={backgroundPhoto} />
+            <img src={EMPTY_GIF} alt="" decoding="async" fetchPriority="high" className="h-full w-full object-cover object-right" />
+          </picture>
+          <div className="pointer-events-none absolute inset-0 hidden sm:block" style={{ background: HERO_FADE }} aria-hidden="true" />
+        </>
+      )}
       {/* Görsel alanı: dosya > ürün kolajı > ikon (yedek). Slayt değişince yumuşakça belirir. */}
       <div key={`visual-${index}`} className={`pointer-events-none absolute inset-0 ${anim}`}>
         {bannerFile ? (
@@ -112,11 +133,11 @@ export default function HeroSlider({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={bannerFile} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" className="animate-float h-[92%] w-full object-contain object-right-bottom" />
           </div>
-        ) : photos.length > 0 ? (
+        ) : showCollage ? (
           <ProductCollage photos={photos} offset={index} />
         ) : null}
       </div>
-      {!bannerFile && photos.length === 0 && (
+      {!bannerFile && !backgroundPhoto && photos.length === 0 && (
         <div className="pointer-events-none absolute -top-10 -right-10 flex h-64 w-64 items-center justify-center rounded-full bg-white/[0.06]">
           <div className="animate-float flex h-44 w-44 items-center justify-center rounded-full bg-white/[0.08]">
             <Icon className="h-20 w-20 text-white/90" aria-hidden="true" />
@@ -124,14 +145,19 @@ export default function HeroSlider({
         </div>
       )}
       {/* Mobilde (kolaj/dosya gizli) küçük ikon rozeti: metinle çakışmadan köşede */}
-      {(bannerFile || photos.length > 0) && (
+      {(bannerFile || backgroundPhoto || photos.length > 0) && (
         <div className="pointer-events-none absolute -right-8 -bottom-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/[0.07] sm:hidden">
           <Icon className="h-10 w-10 text-white/80" aria-hidden="true" />
         </div>
       )}
 
       <div key={`text-${index}`} className={`${anim} relative z-10 max-w-md sm:max-w-[56%]`}>
-        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl">{slide.title}</h1>
+        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-white/25 ring-inset">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand-200)]" aria-hidden="true" />
+          B2B Tedarik Platformu
+        </span>
+        {/* lg–xl arasında (1024–1279 px) kutu 656 px'e daralır: başlık bir kademe küçük, üç satıra taşmasın */}
+        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl lg:text-[1.625rem] xl:text-3xl">{slide.title}</h1>
         <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
         {slide.ctaHref && slide.ctaText && (
           <Link
