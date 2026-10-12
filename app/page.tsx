@@ -29,8 +29,8 @@ const ROW_LIMIT = 12;
 export default async function Home() {
   const [categories, newArrivals, bestSellers, brands, memberDiscountPercent, membershipStatus] = await Promise.all([
     getStorefrontCategoriesWithCounts(),
-    getNewArrivals(ROW_LIMIT),
-    getBestSellers(ROW_LIMIT),
+    getNewArrivals(ROW_LIMIT, { yalnizSatilabilir: true }),
+    getBestSellers(ROW_LIMIT, { yalnizSatilabilir: true }),
     getVitrinMarkalari(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
