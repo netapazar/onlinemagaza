@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import FilterButton from "@/components/FilterButton";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GridIcon, ListIcon } from "@/components/icons";
 
@@ -18,20 +18,23 @@ export default function ViewToggle() {
 
   return (
     <div className="flex items-center gap-1 rounded-lg border border-neutral-300 p-0.5">
-      <Link
+      {/* Görünüm seçimi düğme (taranamaz) — bkz. components/FilterButton.tsx */}
+      <FilterButton
         href={hrefFor("izgara")}
         aria-label="Izgara görünümü"
+        aria-pressed={current === "izgara"}
         className={`rounded-md p-1.5 ${current === "izgara" ? "bg-[var(--color-brand)] text-white" : "text-neutral-500 hover:text-neutral-800"}`}
       >
         <GridIcon className="h-4 w-4" aria-hidden="true" />
-      </Link>
-      <Link
+      </FilterButton>
+      <FilterButton
         href={hrefFor("liste")}
         aria-label="Liste görünümü"
+        aria-pressed={current === "liste"}
         className={`rounded-md p-1.5 ${current === "liste" ? "bg-[var(--color-brand)] text-white" : "text-neutral-500 hover:text-neutral-800"}`}
       >
         <ListIcon className="h-4 w-4" aria-hidden="true" />
-      </Link>
+      </FilterButton>
     </div>
   );
 }
