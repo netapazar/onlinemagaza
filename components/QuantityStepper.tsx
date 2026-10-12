@@ -7,6 +7,8 @@ import { useState } from "react";
 // sepetin dördü de bu tek bileşeni kullanıyor — kod tekrarı yok, doğrulama
 // mantığı (stok üstü/geçersiz değer düzeltme+uyarı) tek yerde.
 const SIZE_CLASSES = {
+  // xs: ürün kartı — dar mobil kartta (176 px) "Sepete Ekle" ile yan yana sığsın.
+  xs: { button: "px-1.5 py-1", input: "w-6", text: "text-xs" },
   sm: { button: "px-2 py-1", input: "w-8", text: "text-xs" },
   md: { button: "px-2.5 py-1.5", input: "w-10", text: "text-sm" },
   lg: { button: "px-3 py-3", input: "w-10", text: "text-sm" },

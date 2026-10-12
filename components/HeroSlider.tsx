@@ -113,7 +113,7 @@ export default function HeroSlider({
   const showCollage = !backgroundPhoto && photos.length > 0;
 
   return (
-    <div className="relative flex h-full min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-6 py-7 text-white sm:px-9 sm:py-9">
+    <div className="relative flex h-full min-h-[280px] flex-col justify-between gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] px-6 py-7 text-white sm:px-9 sm:py-9">
       {/* Ortak arka plan fotoğrafı yalnız sm ve üstünde: <source media> sayesinde mobil tarayıcı dosyayı hiç İNDİRMEZ (yedek img boş
           GIF). Kutu genişliği 656–933 px arasında değişir; fotoğraf sağa yaslı kırpılır (ürünler sağda). Soldan teal geçiş beyaz
           metni okunur kılar — slayt değişince yeniden çizilmez, sabit durur. */}
@@ -152,7 +152,12 @@ export default function HeroSlider({
       )}
 
       <div key={`text-${index}`} className={`${anim} relative z-10 max-w-md sm:max-w-[56%]`}>
-        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl">{slide.title}</h1>
+        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-white/25 ring-inset">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand-200)]" aria-hidden="true" />
+          B2B Tedarik Platformu
+        </span>
+        {/* lg–xl arasında (1024–1279 px) kutu 656 px'e daralır: başlık bir kademe küçük, üç satıra taşmasın */}
+        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl lg:text-[1.625rem] xl:text-3xl">{slide.title}</h1>
         <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
         {slide.ctaHref && slide.ctaText && (
           <Link

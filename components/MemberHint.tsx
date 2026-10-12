@@ -29,12 +29,15 @@ export function corporateHintFor(kind: MemberHintKind): { text: string; href: st
 
 // Bu ipucu her ürün kartında tekrarlanır: işaretleme bilerek minimum (stil + kilit simgesi globals.css'teki .member-hint'te,
 // düz <a> — next/link değil). Mobil ölçümde kart başına ~700 bayt HTML'den ~100 bayta indi.
-export default function CorporatePriceHint({ className = "" }: { className?: string }) {
+// button: ürün kartında bağlantılı ipucu çizgili düğme olarak çizilir (stil globals.css .member-hint-btn); bağlantısız ipucu
+// (başvuru inceleniyor) düz metin kalır.
+export default function CorporatePriceHint({ className = "", button = false }: { className?: string; button?: boolean }) {
   const kind = useContext(MemberHintContext);
   const hint = corporateHintFor(kind);
   if (!hint) return null;
 
-  const cls = className ? `member-hint ${className}` : "member-hint";
+  const base = button && hint.href ? "member-hint member-hint-btn" : "member-hint";
+  const cls = className ? `${base} ${className}` : base;
   return hint.href ? (
     <a href={hint.href} className={cls}>
       {hint.text}
