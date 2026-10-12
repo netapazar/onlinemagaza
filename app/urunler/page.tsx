@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FiltersIcon } from "@/components/icons";
 import {
@@ -15,6 +16,7 @@ import SortSelect from "@/components/SortSelect";
 import ViewToggle from "@/components/ViewToggle";
 import Pagination from "@/components/Pagination";
 import EmptyState from "@/components/EmptyState";
+import { FILTRE_PARAMETRELERI } from "@/lib/seo";
 
 const PAGE_SIZE = 24;
 const SORT_VALUES: StorefrontSort[] = ["onerilen", "fiyat-artan", "fiyat-azalan", "isim-az", "yeni"];
@@ -29,6 +31,14 @@ type SearchParams = {
   gorunum?: string;
   sayfa?: string;
 };
+
+// Filtreli liste (marka, arama, fiyat, sıralama, görünüm) dizine EKLENMEZ ama bağlantıları izlenir (noindex, follow) —
+// yalnız kategori ve sayfa parametreli listeler dizinlenebilir (bkz. lib/seo.ts FILTRE_PARAMETRELERI, app/robots.ts).
+export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const filtreli = FILTRE_PARAMETRELERI.some((k) => Boolean(sp[k]));
+  return filtreli ? { robots: { index: false, follow: true } } : {};
+}
 
 export default async function UrunlerPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckIcon } from "@/components/icons";
+import FilterButton from "@/components/FilterButton";
 
 type Category = { id: string; name: string; parentId?: string | null };
 type Brand = { id: string; name: string };
@@ -32,7 +33,7 @@ export default function ProductFilters({
         <ul className="space-y-1 text-sm">
           <li>
             <Link
-              href={buildHref({ kategori: undefined })}
+              href={buildHref({ kategori: undefined, sayfa: undefined })}
               className={!activeCategoryId ? "font-semibold text-[var(--color-brand)]" : "text-neutral-600 hover:text-[var(--color-brand)]"}
             >
               Tümü
@@ -47,7 +48,7 @@ export default function ProductFilters({
               return (
                 <li key={g.id}>
                   <Link
-                    href={buildHref({ kategori: g.id })}
+                    href={buildHref({ kategori: g.id, sayfa: undefined })}
                     className={activeCategoryId === g.id ? "font-semibold text-[var(--color-brand)]" : "text-neutral-600 hover:text-[var(--color-brand)]"}
                   >
                     {g.name}
@@ -57,7 +58,7 @@ export default function ProductFilters({
                       {children.map((c) => (
                         <li key={c.id}>
                           <Link
-                            href={buildHref({ kategori: c.id })}
+                            href={buildHref({ kategori: c.id, sayfa: undefined })}
                             className={activeCategoryId === c.id ? "font-semibold text-[var(--color-brand)]" : "text-neutral-500 hover:text-[var(--color-brand)]"}
                           >
                             {c.name}
@@ -81,9 +82,11 @@ export default function ProductFilters({
               const nextIds = checked ? activeBrandIds.filter((id) => id !== b.id) : [...activeBrandIds, b.id];
               return (
                 <li key={b.id}>
-                  <Link
-                    href={buildHref({ marka: nextIds.length > 0 ? nextIds.join(",") : undefined })}
-                    className="flex items-center gap-2 text-neutral-600 hover:text-[var(--color-brand)]"
+                  {/* Marka seçimi düğme (taranamaz) — bkz. components/FilterButton.tsx */}
+                  <FilterButton
+                    href={buildHref({ marka: nextIds.length > 0 ? nextIds.join(",") : undefined, sayfa: undefined })}
+                    aria-pressed={checked}
+                    className="flex w-full items-center gap-2 text-neutral-600 hover:text-[var(--color-brand)]"
                   >
                     <span
                       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
@@ -93,7 +96,7 @@ export default function ProductFilters({
                       {checked && <CheckIcon className="h-3 w-3 text-white" aria-hidden="true" />}
                     </span>
                     {b.name}
-                  </Link>
+                  </FilterButton>
                 </li>
               );
             })}
