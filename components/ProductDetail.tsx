@@ -95,10 +95,13 @@ export default async function ProductDetail({ product }: { product: Product }) {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
       <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-        <div className="grid gap-8 sm:grid-cols-2">
+        {/* Geniş ekranda sekmeler görselin altına geçer (sağ sütun uzun olduğu için görselin altı boş kalıyordu);
+            sağ sütun iki satırı kaplar, artan yükseklik 2. satıra (1fr) gider ki görselle sekmeler arası açılmasın.
+            Dar ekranda sıra yine görsel → satın alma → sekmeler. */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-rows-[auto_1fr]">
         <ProductGallery images={product.images} name={product.name} brandName={product.brand?.name ?? null} />
 
-        <div>
+        <div className="lg:row-span-2">
           {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
           <h1 className="mb-2 text-2xl font-bold text-neutral-900">{product.name}</h1>
           {product.shortDescription && (
@@ -166,14 +169,16 @@ export default async function ProductDetail({ product }: { product: Product }) {
           {/* Eskiden iki ayrı mesaj vardı (cari hesap notu + üyelik başvuru kutusu); tek, derli toplu kutuda birleştirildi. */}
           <ProductMembershipBox status={membershipStatus} />
         </div>
-        </div>
 
-        <ProductTabs description={product.description} specs={specs} />
+        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+          <ProductTabs description={product.description} specs={specs} className="mt-2 lg:mt-0" />
+        </div>
+        </div>
       </div>
 
       {relatedProducts.length > 0 && (
         <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-          <ProductRow title="Benzer Ürünler" icon={SimilarIcon} products={relatedProducts} memberDiscountPercent={memberDiscountPercent} />
+          <ProductRow title="Benzer Ürünler" icon={SimilarIcon} products={relatedProducts} memberDiscountPercent={memberDiscountPercent} perRow={4} oklar />
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TruckIcon, PhoneIcon, BriefcaseIcon } from "@/components/icons";
+import { TruckIcon, PhoneIcon, BriefcaseIcon, HelpIcon } from "@/components/icons";
 
 // wa.me numarasıyla aynı hat (bkz. WhatsAppButton) — ayrı bir sabit hat
 // numarası tanımlı değil, tek irtibat noktası bu.
@@ -22,6 +22,11 @@ export default function AnnouncementBar() {
           <Link href="/hesabim/uyelik-basvurusu" className="flex items-center gap-1.5 hover:text-[var(--color-brand-light)]">
             <BriefcaseIcon className="h-3.5 w-3.5" aria-hidden="true" />
             Kurumsal Üyelik
+          </Link>
+          {/* Kategori satırından buraya taşındı — orada 1440 px'te "Kurumsal Üyelik"i kesiyordu. */}
+          <Link href="/sss" className="flex items-center gap-1.5 hover:text-[var(--color-brand-light)]">
+            <HelpIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            Sıkça Sorulan Sorular
           </Link>
         </div>
       </div>
