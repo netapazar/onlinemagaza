@@ -17,6 +17,11 @@ const STATIC_LINKS = [
   { href: "/hesabim/uyelik-basvurusu", label: "Kurumsal Üyelik" },
 ];
 
+// 1440 px'in altında (1280 / 1366 dizüstü) satır 14 px'le 124 px taşıyordu: orada 13 px ve dar yan boşluk, 1440 ve üstünde
+// eski ölçü. Daha dar ekranda (tablet) satır yine kaydırılır, oklar ScrollRow'da. Bkz. DESIGN.md / Gezinme.
+const NAV_LINK =
+  "shrink-0 rounded-lg px-1.5 py-2 text-[13px] font-medium whitespace-nowrap text-neutral-600 hover:bg-white hover:text-[var(--color-brand)] min-[1440px]:px-2.5 min-[1440px]:text-sm";
+
 export default async function Header() {
   const [status, categories] = await Promise.all([getMembershipStatus(), getStorefrontCategoriesWithCounts()]);
 
@@ -30,12 +35,12 @@ export default async function Header() {
         <div className="mx-auto flex max-w-content items-center gap-1 px-4 py-2">
           <MegaMenu categories={categories} />
           {/* Tüm ana kategoriler + sabit bağlantılar tek satırda; sığmazsa sağa/sola kaydırılır (oklar ScrollRow'da). */}
-          <ScrollRow label="Kategoriler" fadeFrom="from-neutral-50" className="flex-1" innerClassName="items-center gap-1">
+          <ScrollRow label="Kategoriler" fadeFrom="from-neutral-50" className="flex-1" innerClassName="items-center gap-0.5 min-[1440px]:gap-1">
             {categories.map((c) => (
               <Link
                 key={c.id}
                 href={`/urunler?kategori=${c.id}`}
-                className="shrink-0 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
+                className={NAV_LINK}
               >
                 {c.name}
               </Link>
@@ -45,7 +50,7 @@ export default async function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="shrink-0 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap text-neutral-600 hover:bg-white hover:text-[var(--color-brand)]"
+                className={NAV_LINK}
               >
                 {link.label}
               </Link>
