@@ -181,15 +181,22 @@ a.member-hint {
 a.member-hint:hover {
   text-decoration: underline;
 }
-/* Ürün kartında tek satır kuralı (ölçüm 2026-10-13, Plus Jakarta Sans): en uzun tam metin 11 px + kilit = 183 px → kart en az
-   205 px olmalı. Daha dar kartta (mobil ızgara, 1280'de ana sayfa satırı) kilitsiz 10,5 px kısa metin (en uzunu 122 px);
-   145 px'ten dar kartta (320 px telefon) 10 px (116 px; içerik alanı 118 px). Kart @container/urun-karti (ProductCard). */
+/* Dar ürün kartı (< 205 px: telefon ızgarası, 1280'de ana sayfa satırı) — kart @container/urun-karti (ProductCard).
+   Kurumsal fiyat bağlantısı (kullanıcı kararı 2026-10-13): telefonda en az 12 px; sığmazsa İKİ satıra iner. Kartlar hizalı
+   kalsın diye yükseklik iki satıra sabit (2 × 15 px). Kilitsiz kısa metin ("Kurumsal fiyat: giriş yapın"); ölçüm: 320 px'te
+   içerik alanı 118 px, en uzun kelime grubu bir satıra sığıyor → en fazla iki satır.
+   Geniş kartta (≥ 205 px) tek satır, 11 px, kilitli tam metin (en uzunu 183 px).
+   Satın alma satırı: dar kartta adet seçici üstte, "Sepete Ekle" altında tam genişlikte. */
 .mh-kisa {
   display: none;
 }
 @container urun-karti (max-width: 204px) {
   .member-hint {
-    font-size: 10.5px;
+    font-size: 12px;
+    line-height: 15px;
+    height: 30px;
+    align-items: flex-start;
+    white-space: normal;
   }
   .member-hint::before {
     display: none;
@@ -200,10 +207,20 @@ a.member-hint:hover {
   .mh-kisa {
     display: inline;
   }
-}
-@container urun-karti (max-width: 144px) {
-  .member-hint {
-    font-size: 10px;
+  .kart-satin-al {
+    flex-direction: column;
+  }
+  .kart-adet > div {
+    justify-content: space-between;
+  }
+  .kart-adet input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .kart-sepete-ekle {
+    flex: none;
+    width: 100%;
+    padding-block: 0.5rem;
   }
 }
 span.member-hint {

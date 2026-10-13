@@ -145,8 +145,10 @@ export default function ProductCard({
         </div>
 
         {inStock ? (
-          <div className="flex items-stretch gap-1.5">
-            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="xs" />
+          // Dar kartta (< 205 px) adet seçici üstte, "Sepete Ekle" altında tam genişlikte (globals.css .kart-satin-al) — yan yana
+          // dururken telefonda düğme yazısı kesiliyordu ("epete Ek"). Yazı kısaltılmaz.
+          <div className="kart-satin-al flex items-stretch gap-1.5">
+            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="xs" className="kart-adet" />
             <button
               type="button"
               title={enKucukBirim ? `${quantity} ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}` : undefined}
@@ -155,7 +157,7 @@ export default function ProductCard({
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 active:scale-95 ${
+              className={`kart-sepete-ekle flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 active:scale-95 ${
                 added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
               }`}
             >

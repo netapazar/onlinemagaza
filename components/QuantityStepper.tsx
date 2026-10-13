@@ -19,11 +19,14 @@ export function QuantityStepper({
   max,
   onChange,
   size = "md",
+  className = "",
 }: {
   value: number;
   max: number;
   onChange: (next: number) => void;
   size?: keyof typeof SIZE_CLASSES;
+  /** Dış kap sınıfı — ör. ürün kartında dar kartta tam genişlik (globals.css .kart-adet). */
+  className?: string;
 }) {
   const [text, setText] = useState(String(value));
   const [warning, setWarning] = useState<string | null>(null);
@@ -64,7 +67,7 @@ export function QuantityStepper({
   const cls = SIZE_CLASSES[size];
 
   return (
-    <div>
+    <div className={className}>
       <div className={`flex items-center rounded-lg border border-neutral-300 ${cls.text}`}>
         <button type="button" onClick={() => step(-1)} aria-label="Azalt" className={`text-neutral-600 hover:text-neutral-900 ${cls.button}`}>
           −

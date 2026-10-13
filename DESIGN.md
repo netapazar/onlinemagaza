@@ -158,7 +158,8 @@ Sitenin en çok tekrar eden parçası. Amaç, yan yana kartlarda **her satırın
 - **Favori:** sağ üstte yuvarlak beyaz düğme; masaüstünde yalnız üzerine gelince, mobilde her zaman görünür.
 - **Stok yoksa:** düğme yerine düz metin "Stokta yok". Rozet kullanılmaz.
 - **Kurumsal fiyat bağlantısı (karar 2026-10-13):** Onaylı üye olmayan ziyaretçide fiyatın hemen altında **tek satırlık küçük bir bağlantı** durur: "Kurumsal fiyat için giriş yapın". 11 px, petrol metin, kilit ikonu; düğme değil, kenarlığı ya da zemini yok. Giriş yapmış ama onaysız kullanıcıda aynı yerde durumuna uygun tek satır yazılır ("Kurumsal fiyat için başvuru yapın", "Kurumsal başvurunuz inceleniyor"). Onaylı üyede hiç görünmez.
-  - **Tek satır her genişlikte korunur:** Kart 205 px'ten darsa ikonsuz 10,5 px kısa metin ("Kurumsal fiyat: giriş yapın", "Kurumsal fiyat: başvurun", "Başvurunuz inceleniyor"); 145 px'ten darsa (320 px telefon) 10 px. Metin değişirse genişlik yeniden ölçülür (`app/globals.css` içindeki ölçüm notu).
+  - **Dar kart (< 205 px, telefon):** ikonsuz kısa metin ("Kurumsal fiyat: giriş yapın", "Kurumsal fiyat: başvurun", "Başvurunuz inceleniyor"), **en az 12 px**. Sığmazsa iki satıra iner; kartlar hizalı kalsın diye yükseklik her zaman iki satıra sabittir (30 px). Geniş kartta (≥ 205 px) 11 px, kilitli tam metin, tek satır. Metin değişirse 320 / 360 / 390 px'te yeniden ölçülür (`app/globals.css` içindeki ölçüm notu).
+- **Satın alma satırı:** geniş kartta adet seçici ve "Sepete Ekle" yan yana. Dar kartta (< 205 px) adet seçici üstte, "Sepete Ekle" altında **tam genişlikte**; düğme yazısı kısaltılmaz.
 - **Büyük üyelik mesajı** (başlıklı, açıklamalı, düğmeli üyelik çağrısı) kartta yer almaz; **bir sayfada yalnız bir kez** görünür (bkz. 4 / Üyelik mesajı).
 
 ### Bölüm başlığı
