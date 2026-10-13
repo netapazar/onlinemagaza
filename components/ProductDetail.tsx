@@ -3,9 +3,9 @@ import { TruckIcon, ClockIcon } from "@/components/icons";
 import { resolvePrice, computeListPriceCents, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
-import { getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
+import { getKargoAyari, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { getRelatedProducts } from "@/lib/search";
-import { isBeforeShippingCutoff } from "@/lib/shipping";
+import { isBeforeShippingCutoff, ucretsizKargoMetni } from "@/lib/shipping";
 import { trTitle } from "@/lib/text";
 import { unitLabel } from "@/lib/units";
 import { birimEtiketi, SATIS_BIRIMI_ETIKET, urunSatisBirimleri } from "@/lib/satisBirimleri";
@@ -43,11 +43,12 @@ type Product = {
 export default async function ProductDetail({ product }: { product: Product }) {
   if (!product) notFound();
 
-  const [memberDiscountPercent, membershipStatus, relatedProducts, markupPercent] = await Promise.all([
+  const [memberDiscountPercent, membershipStatus, relatedProducts, markupPercent, kargoAyari] = await Promise.all([
     getMemberDiscountPercent(),
     getMembershipStatus(),
     getRelatedProducts(product.categoryId, product.id, 8),
     getOnlineFiyatArtisOrani(),
+    getKargoAyari(),
   ]);
   const listPriceCents = computeListPriceCents(product, markupPercent);
   const price = resolvePrice({ listPriceCents }, memberDiscountPercent);
@@ -192,7 +193,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
           <div className="mb-4 space-y-2 border-t border-neutral-100 pt-4 text-sm">
             <div className="flex items-center gap-2 text-neutral-700">
               <TruckIcon className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
-              Tüm siparişlerde ücretsiz kargo
+              {ucretsizKargoMetni(kargoAyari)}
             </div>
             {sameDayShipping && (
               <div className="flex items-center gap-2 text-neutral-700">

@@ -15,13 +15,14 @@ import {
 import { centsToTl } from "@/lib/pricing";
 import Skeleton from "@/components/Skeleton";
 import AddressSection from "./AddressSection";
+import UcretsizKargoNotu from "@/components/UcretsizKargoNotu";
 
 const initialState: CreateOrderState = { error: null };
 
 export default function CheckoutPage() {
   const { items } = useCart();
   const [lines, setLines] = useState<CartLine[] | null>(null);
-  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0 });
+  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0, ucretsizKargoKalanCents: 0 });
   const [eligibility, setEligibility] = useState<{
     loggedIn: boolean;
     name: string;
@@ -176,6 +177,7 @@ export default function CheckoutPage() {
             <span>Toplam</span>
             <span>{centsToTl(totals.totalCents)} ₺</span>
           </div>
+          <UcretsizKargoNotu kalanCents={totals.ucretsizKargoKalanCents} className="mt-2" />
         </div>
 
         <label className="flex items-start gap-2 text-sm text-neutral-600">

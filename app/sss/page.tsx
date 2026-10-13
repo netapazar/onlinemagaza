@@ -1,4 +1,6 @@
 import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
+import { getKargoAyari } from "@/lib/onlineStore";
+import { kargoUcretiCumlesi } from "@/lib/shipping";
 import { sayfaMetasi } from "@/lib/seo";
 
 export const metadata = sayfaMetasi({
@@ -7,7 +9,8 @@ export const metadata = sayfaMetasi({
   yol: "/sss",
 });
 
-const FAQ_ITEMS: FaqItem[] = [
+// Kargo ücreti cevabı CRM'deki kargo ayarından (bkz. lib/shipping.ts).
+const faqItems = (kargoCumlesi: string): FaqItem[] => [
   {
     question: "Nasıl sipariş verebilirim?",
     answer:
@@ -31,7 +34,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Kargo ücreti ne kadar?",
     answer:
-      "Siparişlerimiz Sürat Kargo ile gönderilir. Şu anda tüm siparişlerde kargo ücretsizdir.",
+      `Siparişlerimiz Sürat Kargo ile gönderilir. ${kargoCumlesi}`,
   },
   {
     question: "Siparişimi nasıl iade edebilirim?",
@@ -55,14 +58,15 @@ const FAQ_ITEMS: FaqItem[] = [
   },
 ];
 
-export default function SssPage() {
+export default async function SssPage() {
+  const items = faqItems(kargoUcretiCumlesi(await getKargoAyari()));
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <h1 className="mb-1 text-2xl font-bold text-neutral-900">Sıkça Sorulan Sorular</h1>
       <p className="mb-6 text-sm text-neutral-500">
         Aradığınız cevabı bulamazsanız bizimle iletişime geçebilirsiniz.
       </p>
-      <FaqAccordion items={FAQ_ITEMS} />
+      <FaqAccordion items={items} />
     </div>
   );
 }

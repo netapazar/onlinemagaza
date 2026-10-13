@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { kargoKuraliAcik, tlKisa, type KargoAyari } from "@/lib/shipping";
 
 // Ürün sayfası için sayfa başlığı/meta açıklaması — CRM'de elle girilmişse
 // (Product.seoTitle/seoDescription) aynen kullanılır, boşsa ürün adı/kısa
@@ -68,8 +69,17 @@ export function sayfaMetasi({
 }
 
 export const ANA_SAYFA_BASLIGI = "Ofis Malzemesi ve Kırtasiye Tedariği | Tedarikhane";
-export const ANA_SAYFA_ACIKLAMASI =
-  "Ofis malzemesi ve kırtasiye tek adreste: kâğıt, kalem, dosya, defter, okul malzemeleri. Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.";
+// Kargo ifadesi CRM'deki kargo ayarına bağlı (2026-10-13): ücret girilmemişse hiç yazılmaz (sitede "tüm siparişlerde
+// ücretsiz" geçerli ama eşik gelince değişecek — meta açıklama Google'da günlerce eski kalabildiği için yazmıyoruz); ücret
+// girilince "5.000 TL ve üzeri ücretsiz kargo". Bkz. lib/shipping.ts.
+export function hizmetCumlesi(kargo: KargoAyari): string {
+  return kargoKuraliAcik(kargo)
+    ? `Kurumsal fiyat, ${tlKisa(kargo.esikCents)} ve üzeri ücretsiz kargo, 13:30'a kadar aynı gün kargo.`
+    : "Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.";
+}
+
+export const ANA_SAYFA_ACIKLAMASI_GIRIS = "Ofis malzemesi ve kırtasiye: kâğıt, kalem, dosya, defter, okul malzemeleri.";
+export const anaSayfaAciklamasi = (kargo: KargoAyari) => `${ANA_SAYFA_ACIKLAMASI_GIRIS} ${hizmetCumlesi(kargo)}`;
 
 // Ürün sayfası metadata'sı: canonical her zaman slug adresi (slug'ı olmayan ürün /urun/id/… adresinde kalır).
 export function urunMetasi(p: {

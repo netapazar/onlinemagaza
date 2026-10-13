@@ -17,7 +17,8 @@ import SortSelect from "@/components/SortSelect";
 import ViewToggle from "@/components/ViewToggle";
 import Pagination from "@/components/Pagination";
 import EmptyState from "@/components/EmptyState";
-import { FILTRE_PARAMETRELERI, MARKA, sayfaMetasi } from "@/lib/seo";
+import { FILTRE_PARAMETRELERI, MARKA, hizmetCumlesi, sayfaMetasi } from "@/lib/seo";
+import { getKargoAyari } from "@/lib/onlineStore";
 import { KDV_NOTU } from "@/components/KdvNotu";
 
 const PAGE_SIZE = 24;
@@ -38,11 +39,12 @@ type SearchParams = {
 // yalnız kategori ve sayfa parametreli listeler dizinlenebilir (bkz. lib/seo.ts FILTRE_PARAMETRELERI, app/robots.ts).
 // Dizinlenen listelerde (tüm ürünler, kategori, sayfa) özel başlık + açıklama + canonical (SEO, 2026-10-13). Kategori
 // açıklaması gerçek veriden: ürün sayısı, alt kategoriler ya da en çok ürünü olan markalar.
-// Kargo ücreti ifadesi bilerek yok (2026-10-13): 5.000 TL ücretsiz kargo eşiği ayrı iş olarak gelecek; o gün eklenecek.
-const HIZMET_CUMLESI = "Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.";
 const ACIKLAMA_MAX = 160;
 
-function kategoriAciklamasi(k: { ad: string; ustAd: string | null; urunSayisi: number; markalar: string[]; altKategoriler: string[] }) {
+function kategoriAciklamasi(
+  k: { ad: string; ustAd: string | null; urunSayisi: number; markalar: string[]; altKategoriler: string[] },
+  hizmet: string
+) {
   const giris = k.ustAd ? `${k.ad} (${k.ustAd}): ${k.urunSayisi} ürün` : `${k.ad}: ${k.urunSayisi} ürün`;
   const adaylar = [
     k.altKategoriler.length > 0 ? `${giris}; ${k.altKategoriler.slice(0, 4).join(", ")}.` : null,
@@ -50,13 +52,14 @@ function kategoriAciklamasi(k: { ad: string; ustAd: string | null; urunSayisi: n
     `${giris}.`,
   ].filter((x): x is string => x !== null);
   // Sığan en bilgili ilk aday + hizmet cümlesi; hiçbiri sığmazsa yalnız aday.
-  return adaylar.map((a) => `${a} ${HIZMET_CUMLESI}`).find((m) => m.length <= ACIKLAMA_MAX) ?? adaylar[adaylar.length - 1];
+  return adaylar.map((a) => `${a} ${hizmet}`).find((m) => m.length <= ACIKLAMA_MAX) ?? adaylar[adaylar.length - 1];
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
   const sp = await searchParams;
   const filtreli = FILTRE_PARAMETRELERI.some((k) => Boolean(sp[k]));
   if (filtreli) return { robots: { index: false, follow: true } };
+  const hizmet = hizmetCumlesi(await getKargoAyari());
 
   const sayfa = Math.max(1, Number(sp.sayfa) || 1);
   const sayfaEki = sayfa > 1 ? ` — Sayfa ${sayfa}` : "";
@@ -68,7 +71,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   if (!sp.kategori) {
     return sayfaMetasi({
       baslik: `Tüm Ürünler: Ofis Malzemesi ve Kırtasiye${sayfaEki} | ${MARKA}`,
-      aciklama: `Kâğıt, kalem, dosya, defter, ofis elektroniği ve okul malzemeleri. ${HIZMET_CUMLESI}`,
+      aciklama: `Kâğıt, kalem, dosya, defter, ofis elektroniği ve okul malzemeleri. ${hizmet}`,
       yol,
     });
   }
@@ -77,7 +80,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const uzun = `${k.ad} Çeşitleri ve Fiyatları${sayfaEki} | ${MARKA}`;
   return sayfaMetasi({
     baslik: uzun.length <= 60 ? uzun : `${k.ad}${sayfaEki} | ${MARKA}`,
-    aciklama: kategoriAciklamasi(k),
+    aciklama: kategoriAciklamasi(k, hizmet),
     yol,
   });
 }

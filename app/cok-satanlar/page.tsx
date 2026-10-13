@@ -3,13 +3,16 @@ import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
 import KdvNotu from "@/components/KdvNotu";
-import { sayfaMetasi } from "@/lib/seo";
+import { hizmetCumlesi, sayfaMetasi } from "@/lib/seo";
+import { getKargoAyari } from "@/lib/onlineStore";
 
-export const metadata = sayfaMetasi({
-  baslik: "Çok Satanlar: En Çok Sipariş Edilen Ürünler | Tedarikhane",
-  aciklama: "Son 90 günde en çok sipariş edilen ofis malzemesi ve kırtasiye ürünleri. Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.",
-  yol: "/cok-satanlar",
-});
+export async function generateMetadata() {
+  return sayfaMetasi({
+    baslik: "Çok Satanlar: En Çok Sipariş Edilen Ürünler | Tedarikhane",
+    aciklama: `Son 90 günde en çok sipariş edilen ofis malzemesi ve kırtasiye ürünleri. ${hizmetCumlesi(await getKargoAyari())}`,
+    yol: "/cok-satanlar",
+  });
+}
 
 const LIMIT = 40;
 

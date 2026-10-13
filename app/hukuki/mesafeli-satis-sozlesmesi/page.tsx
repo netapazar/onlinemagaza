@@ -35,7 +35,7 @@ export default function MesafeliSatisPage() {
 
       <h2 className={h2}>3. Sözleşme Konusu Ürün/Ödeme/Teslimat Bilgileri</h2>
       <p>
-        Ürünün/ürünlerin türü, miktarı, marka/modeli, rengi, adedi, satış bedeli, ödeme şekli ve teslimat
+        Ürünün/ürünlerin türü, miktarı, marka/modeli, rengi, adedi, satış bedeli, varsa kargo ücreti, ödeme şekli ve teslimat
         bilgileri, sipariş sırasında ALICI tarafından onaylanan sipariş özetinde ve sipariş onay e-postasında
         belirtildiği gibidir.
       </p>
