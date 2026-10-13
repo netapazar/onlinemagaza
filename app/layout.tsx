@@ -13,6 +13,7 @@ import { getWebSession } from "@/lib/webSession";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { MemberHintProvider } from "@/components/MemberHint";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
+import { ANA_SAYFA_ACIKLAMASI, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 // Logo harfleri zaten vektöre çevrilmiş olduğundan font kurulumu logonun
@@ -34,9 +35,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tedarikhane.com"),
+  // Sitenin asıl adresi www (çıplak alan adı 308 ile buraya yönlenir) — göreli canonical/OG adresleri buna göre tamamlanır.
+  metadataBase: new URL(SITE_URL),
+  // Kendi metadata'sı olmayan sayfalar için (sepet, hesap vb. — çoğu robots.txt ile zaten taranmaz).
   title: "Tedarikhane",
-  description: "Tedarikhane — Online Mağaza",
+  description: ANA_SAYFA_ACIKLAMASI,
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

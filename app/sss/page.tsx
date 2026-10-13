@@ -1,6 +1,11 @@
 import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "Sıkça Sorulan Sorular" };
+export const metadata = sayfaMetasi({
+  baslik: "Sıkça Sorulan Sorular: Sipariş, Kargo, Ödeme | Tedarikhane",
+  aciklama: "Sipariş verme, kurumsal üyelik, cari hesapla ödeme, kargo süresi ve ücreti, iade, ödeme yöntemleri ve fatura hakkında sık sorulan soruların cevapları.",
+  yol: "/sss",
+});
 
 const FAQ_ITEMS: FaqItem[] = [
   {

@@ -130,7 +130,8 @@ export default function HeroSlider({
 
       <div key={`text-${index}`} className={`${anim} relative z-10 max-w-md sm:max-w-[56%]`}>
         {/* lg–xl arasında (1024–1279 px) kutu 656 px'e daralır: başlık bir kademe küçük, üç satıra taşmasın */}
-        <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl lg:text-[1.625rem] xl:text-3xl">{slide.title}</h1>
+        {/* Slayt başlığı H2 — sayfanın H1'i bilgi şeridinde (app/page.tsx). */}
+        <h2 className="mb-2.5 text-2xl font-extrabold sm:text-3xl lg:text-[1.625rem] xl:text-3xl">{slide.title}</h2>
         <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
         {slide.ctaHref && slide.ctaText && (
           <Link

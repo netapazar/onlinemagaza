@@ -1,7 +1,12 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "Gizlilik Politikası" };
+export const metadata = sayfaMetasi({
+  baslik: "Gizlilik Politikası | Tedarikhane",
+  aciklama: "Tedarikhane'de kişisel verilerinizin nasıl toplandığı, kullanıldığı ve korunduğu.",
+  yol: "/hukuki/gizlilik-politikasi",
+});
 
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const ul = "list-disc space-y-1 pl-5";

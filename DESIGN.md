@@ -116,6 +116,8 @@ Eş aralıklı yazı yalnız kargo takip numarasında kullanılır (Geist Mono, 
 | İkincil / yardımcı | 12 px (`text-xs`) | 400–500 | 16 px | Marka, birim, "KDV Dahil" |
 | Etiket | 10–11 px | 500–600 | 14 px | Kart etiketleri — **10 px altına inilmez** |
 
+**H1 kuralı (SEO, 2026-10-13):** her sayfada tek H1. Ana sayfanın H1'i bilgi şeridinin başlığıdır ("Ofis malzemesi ve kırtasiye: …", 16 px 700, petrol-800); hero slayt başlıkları H2'dir.
+
 Para birimi her zaman sayıdan sonra boşlukla yazılır: `1.250,00 ₺`. Birimli fiyatta `/ adet` ikincil renkte ve küçük punto.
 
 ---

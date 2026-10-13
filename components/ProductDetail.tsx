@@ -15,9 +15,11 @@ import CorporatePriceHint from "@/components/MemberHint";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductTabs from "@/components/ProductTabs";
 import ProductRow from "@/components/ProductRow";
+import { SITE_URL, urunYolu } from "@/lib/seo";
 
 type Product = {
   id: string;
+  slug?: string | null;
   name: string;
   shortDescription?: string | null;
   description: string | null;
@@ -57,6 +59,33 @@ export default async function ProductDetail({ product }: { product: Product }) {
   // Paketli üründe en küçük birim kadar stok yoksa satılamaz.
   const satilabilir = product.stock >= (satisBirimleri?.[0].adet ?? 1);
   const sameDayShipping = satilabilir && isBeforeShippingCutoff();
+
+  // Ürün yapılandırılmış verisi (schema.org Product, SEO 2026-10-13). Fiyat MİSAFİR fiyatıdır (üye indirimi uygulanmamış
+  // liste fiyatı, KDV dahil) — oturuma göre değişmez, arama motoru herkese açık fiyatı görür. Paketli satışta adet fiyatı.
+  // Satıcı/işletme/adres bilgisi bilerek yok (kullanıcı kararı).
+  const misafirFiyatiCents = resolvePrice({ listPriceCents }, null).displayCents;
+  const gtin = product.barcode && !product.barcodeIsGenerated && /^(\d{8}|\d{12,14})$/.test(product.barcode) ? product.barcode : null;
+  const urunUrl = `${SITE_URL}${urunYolu({ id: product.id, slug: product.slug ?? null })}`;
+  const urunVerisi = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    url: urunUrl,
+    ...(product.images.length ? { image: product.images.map((i) => i.url) } : {}),
+    ...(product.shortDescription || product.description ? { description: (product.shortDescription || product.description)!.slice(0, 500) } : {}),
+    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand.name } } : {}),
+    ...(product.category ? { category: product.category.name } : {}),
+    sku: product.productCode || product.barcode,
+    ...(gtin ? { gtin } : {}),
+    offers: {
+      "@type": "Offer",
+      url: urunUrl,
+      priceCurrency: "TRY",
+      price: (misafirFiyatiCents / 100).toFixed(2),
+      availability: satilabilir ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
   const satisBirimiMetni = satisBirimleri
     ? satisBirimleri.map((b) => birimEtiketi(b.birim, b.adet)).join(", ")
     : unitLabel(product.unit);
@@ -94,6 +123,11 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
+      <script
+        type="application/ld+json"
+        // "<" kaçırılır: veri içindeki bir "</script>" etiketi kapatamasın.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(urunVerisi).replace(/</g, "\\u003c") }}
+      />
       <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
         {/* Geniş ekranda sekmeler görselin altına geçer (sağ sütun uzun olduğu için görselin altı boş kalıyordu);
             sağ sütun iki satırı kaplar, artan yükseklik 2. satıra (1fr) gider ki görselle sekmeler arası açılmasın.

@@ -1,7 +1,12 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "Çerez Politikası" };
+export const metadata = sayfaMetasi({
+  baslik: "Çerez Politikası | Tedarikhane",
+  aciklama: "Tedarikhane'de kullanılan çerezler, Google Analytics onayı ve çerez tercihlerinizi nasıl değiştirebileceğiniz.",
+  yol: "/hukuki/cerez-politikasi",
+});
 
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const table = "w-full border-collapse text-left text-sm";

@@ -16,6 +16,7 @@ import { ApprovedStrip } from "@/components/CorporateBenefits";
 import BrandStrip, { MIN_BRANDS } from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 import Reveal from "@/components/Reveal";
+import { ANA_SAYFA_ACIKLAMASI, ANA_SAYFA_BASLIGI, sayfaMetasi } from "@/lib/seo";
 
 const ROW_LIMIT = 12;
 
@@ -25,6 +26,8 @@ const ROW_LIMIT = 12;
 // renkli bantlar (Avansas esintili, daha "dolu" bir görünüm için).
 // Tasarım turu: "Neden Tedarikhane?" bandı kaldırıldı (içeriği TrustBar/CorporateBenefits ile tekrarlıyordu); bölümler
 // ekrana girerken bir kez yumuşakça belirir (Reveal); az markayla "Markalar" bölümü gizlenir (MIN_BRANDS).
+export const metadata = sayfaMetasi({ baslik: ANA_SAYFA_BASLIGI, aciklama: ANA_SAYFA_ACIKLAMASI, yol: "/" });
+
 export default async function Home() {
   const [categories, newArrivals, bestSellers, brands, memberDiscountPercent, membershipStatus] = await Promise.all([
     getStorefrontCategoriesWithCounts(),
@@ -79,6 +82,10 @@ export default async function Home() {
               (beyaz) · markalar (teal). Ürün satırları beyaz: fotoğraflar beyazda iyi durur. Onaylı üyede üye durum çubuğu bilgi
               şeridiyle aynı teal bandın alt satırı. */}
           <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
+            {/* Sayfanın tek H1'i (SEO, 2026-10-13): slayt başlıkları H2. Bilgi şeridinin başlığı olarak sade, kısa metin. */}
+            <h1 className="mb-3 px-2 text-base leading-snug font-bold text-[var(--color-brand-800)] sm:px-2.5">
+              Ofis malzemesi ve kırtasiye: firmalara, okullara ve kurumlara tek adresten tedarik
+            </h1>
             <TrustBar />
             {membershipStatus.kind === "approved" && <ApprovedStrip status={membershipStatus} />}
           </div>

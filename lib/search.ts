@@ -540,7 +540,11 @@ export async function getStorefrontBrands(): Promise<{ id: string; name: string 
 // gibi kırılgan bir varsayıma değil.
 const DETAIL_SELECT = {
   id: true,
+  slug: true,
   name: true,
+  // CRM'de girilen SEO başlığı/açıklaması (2026-10-13'e kadar seçilmiyordu → sayfa başlığı hep ürün adından üretiliyordu).
+  seoTitle: true,
+  seoDescription: true,
   shortDescription: true,
   description: true,
   features: true,
@@ -594,3 +598,36 @@ export async function getStorefrontProductById(id: string) {
     })
   );
 }
+
+// Kategori sayfasının başlık/açıklaması için (2026-10-13): kategori adı, ana kategorisi, yayındaki ürün sayısı ve en çok
+// ürünü olan 3 marka. Ana kategoride alt kategorilerin ürünleri de sayılır. Bilinmeyen kategori → null.
+export const getKategoriSeoBilgisi = cache(
+  async (kategoriId: string): Promise<{ ad: string; ustAd: string | null; urunSayisi: number; markalar: string[]; altKategoriler: string[] } | null> => {
+    if (isDemoMode()) return null;
+    const gruplar = await getStorefrontCategoriesWithCounts();
+    const ana = gruplar.find((g) => g.id === kategoriId);
+    const alt = ana ? null : gruplar.flatMap((g) => g.children.map((c) => ({ c, g }))).find((x) => x.c.id === kategoriId);
+    if (!ana && !alt) return null;
+    const kategoriIdleri = ana ? [ana.id, ...ana.children.map((c) => c.id)] : [kategoriId];
+    const storeId = await getOnlineStoreId();
+    const sayim = await prisma.product.groupBy({
+      by: ["brandId"],
+      where: { storeId, showOnStorefront: true, archivedAt: null, categoryId: { in: kategoriIdleri }, brandId: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { brandId: "desc" } },
+      take: 3,
+    });
+    const markalar = await prisma.brand.findMany({
+      where: { id: { in: sayim.map((s) => s.brandId!) } },
+      select: { id: true, name: true },
+    });
+    const ad = new Map(markalar.map((m) => [m.id, m.name]));
+    return {
+      ad: ana ? ana.name : alt!.c.name,
+      ustAd: alt ? alt.g.name : null,
+      urunSayisi: ana ? ana.count : alt!.c.count,
+      markalar: sayim.map((s) => ad.get(s.brandId!)).filter((x): x is string => Boolean(x)),
+      altKategoriler: ana ? ana.children.map((c) => c.name) : [],
+    };
+  }
+);

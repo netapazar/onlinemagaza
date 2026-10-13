@@ -1,7 +1,12 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "Hakkımızda" };
+export const metadata = sayfaMetasi({
+  baslik: "Hakkımızda | Tedarikhane",
+  aciklama: "Tedarikhane, ofis ve kırtasiye mağazalarımızın çevrimiçi satış kanalı: firmalara, okullara ve kurumlara düzenli toplu tedarik, bireysel müşteriye kolay sipariş.",
+  yol: "/hakkimizda",
+});
 
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const ul = "list-disc space-y-1 pl-5";

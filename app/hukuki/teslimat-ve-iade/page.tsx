@@ -1,7 +1,12 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "Teslimat ve İade Şartları" };
+export const metadata = sayfaMetasi({
+  baslik: "Teslimat ve İade Şartları | Tedarikhane",
+  aciklama: "Tedarikhane siparişlerinde kargo, teslimat süresi, 14 gün cayma hakkı ve iade şartları.",
+  yol: "/hukuki/teslimat-ve-iade",
+});
 
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const ul = "list-disc space-y-1 pl-5";

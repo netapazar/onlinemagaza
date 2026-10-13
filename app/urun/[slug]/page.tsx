@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getStorefrontProductBySlug } from "@/lib/search";
-import { resolveSeoTitle, resolveSeoDescription } from "@/lib/seo";
+import { urunMetasi } from "@/lib/seo";
 import ProductDetail from "@/components/ProductDetail";
 
 export async function generateMetadata({
@@ -11,7 +11,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getStorefrontProductBySlug(slug);
   if (!product) return {};
-  return { title: resolveSeoTitle(product), description: resolveSeoDescription(product) };
+  return urunMetasi(product);
 }
 
 export default async function UrunSlugPage({

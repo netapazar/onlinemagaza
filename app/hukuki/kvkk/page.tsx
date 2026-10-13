@@ -1,7 +1,12 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
+import { sayfaMetasi } from "@/lib/seo";
 
-export const metadata = { title: "KVKK Aydınlatma Metni" };
+export const metadata = sayfaMetasi({
+  baslik: "KVKK Aydınlatma Metni | Tedarikhane",
+  aciklama: "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Tedarikhane aydınlatma metni.",
+  yol: "/hukuki/kvkk",
+});
 
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const ul = "list-disc space-y-1 pl-5";
