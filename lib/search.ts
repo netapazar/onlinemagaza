@@ -497,7 +497,8 @@ export async function getBestSellers(limit: number, { yalnizSatilabilir = false 
 }
 
 // Anasayfa marka şeridi (kullanıcı kararı 2026-10-07): ELLE tanımlı, tanınırlığa göre sabit 20 markalık sıra — üstte ofis
-// sarf markaları, lüks/teknik kalem altta. Gösterilen ad bu listedeki yazım; eşleştirme veritabanındaki marka adıyla
+// sarf markaları, lüks/teknik kalem altta. Bu liste yalnız HANGİ markaların ve hangi SIRAYLA gösterileceğini belirler;
+// gösterilen ad veritabanındaki marka adıdır (2026-10-13 — kart ve ürün sayfasıyla aynı yazım, ör. "BIC"). Eşleştirme
 // büyük/küçük harf, boşluk ve tire farkı gözetmeden yapılır. Yayında ürünü olmayan marka sessizce atlanır.
 // Tüm markalar ürün listesinin marka filtresinde (getStorefrontBrands) kalır.
 export const VITRIN_MARKALARI = [
@@ -513,10 +514,10 @@ export async function getVitrinMarkalari(): Promise<{ id: string; name: string }
     where: { products: { some: { storeId, showOnStorefront: true, archivedAt: null } } },
     select: { id: true, name: true },
   });
-  const byKey = new Map(brands.map((b) => [markaAnahtari(b.name), b.id]));
+  const byKey = new Map(brands.map((b) => [markaAnahtari(b.name), b]));
   return VITRIN_MARKALARI.flatMap((ad) => {
-    const id = byKey.get(markaAnahtari(ad));
-    return id ? [{ id, name: ad }] : [];
+    const brand = byKey.get(markaAnahtari(ad));
+    return brand ? [{ id: brand.id, name: brand.name }] : [];
   });
 }
 
