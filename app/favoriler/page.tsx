@@ -7,6 +7,7 @@ import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
 import { ProductCardSkeleton } from "@/components/Skeleton";
+import KdvNotu from "@/components/KdvNotu";
 
 export default function FavorilerPage() {
   const { ids } = useFavorites();
@@ -27,7 +28,8 @@ export default function FavorilerPage() {
 
   return (
     <div className="mx-auto w-full max-w-content px-4 py-6">
-      <h1 className="mb-4 text-2xl font-bold text-neutral-900">Favorilerim</h1>
+      <h1 className="text-2xl font-bold text-neutral-900">Favorilerim</h1>
+      <KdvNotu className="mt-0.5 mb-4" />
 
       {products === null ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5" role="status" aria-label="Yükleniyor">{Array.from({ length: 5 }, (_, i) => <ProductCardSkeleton key={i} />)}</div>

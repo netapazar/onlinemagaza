@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRightIcon, type Icon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import SectionHeading from "@/components/SectionHeading";
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
@@ -13,7 +13,6 @@ export default function ProductRow({
   products,
   memberDiscountPercent,
   viewAllHref,
-  icon,
   perRow = 6,
   oklar = false,
 }: {
@@ -21,7 +20,6 @@ export default function ProductRow({
   products: StorefrontProductSummary[];
   memberDiscountPercent: number | null;
   viewAllHref?: string;
-  icon?: Icon;
   /** Geniş ekranda satıra sığan kart sayısı; dar kapta (ürün sayfası, max-w-5xl) 4 — 6 kartta düğme yazısı kesiliyordu. */
   perRow?: 4 | 6;
   /** Taşan satırda Markalar şeridindeki gibi sol/sağ ok düğmeleri (ScrollRow). */
@@ -40,7 +38,7 @@ export default function ProductRow({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <SectionHeading title={title} icon={icon} />
+        <SectionHeading title={title} />
         {viewAllHref && (
           <Link
             href={viewAllHref}

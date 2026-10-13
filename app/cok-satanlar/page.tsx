@@ -2,6 +2,7 @@ import { getBestSellers } from "@/lib/search";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
+import KdvNotu from "@/components/KdvNotu";
 
 const LIMIT = 40;
 
@@ -13,7 +14,8 @@ export default async function CokSatanlarPage() {
 
   return (
     <div className="mx-auto w-full max-w-content px-4 py-6">
-      <h1 className="mb-4 text-xl font-bold text-neutral-900">Çok Satanlar</h1>
+      <h1 className="text-xl font-bold text-neutral-900">Çok Satanlar</h1>
+      <KdvNotu className="mt-0.5 mb-4" />
 
       {products.length === 0 ? (
         <EmptyState

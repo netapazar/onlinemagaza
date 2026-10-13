@@ -16,17 +16,9 @@ type Slide = {
   ctaHref?: string;
 };
 
-// Üç gerçek, uydurulmamış mesaj. Görsel önceliği: (1) public/banners'taki dosya, (2) ürün fotoğraflı kompozisyon,
-// (3) ikonlu yedek (ilk hâl).
+// Gerçek, uydurulmamış mesajlar. Görsel önceliği: (1) public/banners'taki dosya, (2) ürün fotoğraflı kompozisyon,
+// (3) ikonlu yedek (ilk hâl). Üyelik slaydı duruma göre buildSlides'ta eklenir.
 const SLIDES: Slide[] = [
-  {
-    icon: BriefcaseIcon,
-    imageKey: "hero-1",
-    title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",
-    description: "Kurumsal üyelik başvurusu yaparak size özel indirimli fiyatlardan yararlanın.",
-    ctaText: "Üyelik Başvurusu Yap",
-    ctaHref: "/hesabim/uyelik-basvurusu",
-  },
   {
     icon: TruckIcon,
     imageKey: "hero-2",
@@ -52,31 +44,32 @@ const EMPTY_GIF = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAE
 const HERO_FADE =
   "linear-gradient(90deg, var(--color-brand) 0%, var(--color-brand) 46%, color-mix(in srgb, var(--color-brand) 70%, transparent) 56%, transparent 68%)";
 
-// "Şimdi alın, cari hesabınızla ödeyin" slaydı (Grup 4). Cari hesap YALNIZCA yetki tanımlanan
-// firmalara açık — metin bunu söylüyor. Onaylı üyelere (yetkisi açık ya da kapalı) gösterilmez;
-// başvurusu bekleyene düğme yerine "inceleniyor" bilgisi çıkar.
+// Ana sayfanın TEK büyük üyelik mesajı bu slayttır (DESIGN.md / Üyelik mesajı, 2026-10-13): eskiden ayrı "Firmanıza özel
+// fiyat" ve "cari hesapla ödeyin" slaytları + yan kartlar + avantaj şeridi aynı çağrıyı tekrarlıyordu; ikisi tek slaytta
+// birleşti. Cari hesap YALNIZCA yetki tanımlanan firmalara açık — metin bunu söylüyor. Onaylı üyeye gösterilmez;
+// başvurusu bekleyene düğme yerine durum bilgisi çıkar.
 export type CariHesapSlideMode = "apply-guest" | "apply-account" | "pending" | "hidden";
 
 function buildSlides(mode: CariHesapSlideMode): Slide[] {
   if (mode === "hidden") return SLIDES;
-  const cariSlide: Slide =
+  const uyelikSlide: Slide =
     mode === "pending"
       ? {
           icon: BankIcon,
           imageKey: "hero-cari",
-          title: "Şimdi alın, cari hesabınızla ödeyin",
-          description: "Başvurunuz inceleniyor. Cari hesap yalnızca yetki tanımlanan kurumsal üyelerimize açıktır.",
+          title: "Kurumsal üyelik başvurunuz inceleniyor",
+          description: "Onaylandığında firmanıza tanımlanan indirim fiyatlara otomatik yansır; cari hesap yetkisi ayrıca tanımlanır.",
         }
       : {
-          icon: BankIcon,
-          imageKey: "hero-cari",
-          title: "Şimdi alın, cari hesabınızla ödeyin",
+          icon: BriefcaseIcon,
+          imageKey: "hero-1",
+          title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",
           description:
-            "Yetki tanımlanan kurumsal üyelerimiz siparişlerini cari hesabına işletebilir. Başvurunuz incelenip onaylanır.",
+            "Onaylanan firmaya tanımlanan indirim fiyatlara otomatik yansır; cari hesap yetkisi verilen firmalar siparişini cari hesabına işletebilir.",
           ctaText: "Kurumsal Üyelik Başvurusu",
           ctaHref: mode === "apply-guest" ? "/uyelik/kayit" : "/hesabim/uyelik-basvurusu",
         };
-  return [SLIDES[0], cariSlide, ...SLIDES.slice(1)];
+  return [uyelikSlide, ...SLIDES];
 }
 
 export default function HeroSlider({

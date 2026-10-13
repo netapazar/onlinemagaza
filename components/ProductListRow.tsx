@@ -10,7 +10,6 @@ import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
-import { birimEtiketi } from "@/lib/satisBirimleri";
 
 // Izgara kartıyla (ProductCard) aynı veri/fiyat mantığı, sadece geniş
 // yatay satır düzeninde — listeleme sayfasının "liste görünümü" seçeneği için.
@@ -50,7 +49,7 @@ export default function ProductListRow({
           <p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
         )}
         {enKucukBirim ? (
-          <p className="mt-0.5 text-xs text-neutral-500">En az {birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}</p>
+          enKucukBirim.adet > 1 && <p className="mt-0.5 text-xs text-neutral-500">En az {enKucukBirim.adet} adet</p>
         ) : (
           product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>
         )}
@@ -69,7 +68,6 @@ export default function ProductListRow({
         <p className="text-base font-extrabold text-[var(--color-brand)]">
           {centsToTl(price.displayCents)} ₺{enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
         </p>
-        <p className="text-[10px] text-neutral-400">KDV Dahil</p>
         <CorporatePriceHint className="mt-0.5 justify-end" />
       </div>
 

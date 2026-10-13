@@ -162,6 +162,7 @@ body {
   gap: 0.25rem;
   font-size: 11px;
   line-height: 1.25;
+  white-space: nowrap; /* tek satır — DESIGN.md / Ürün kartı */
   color: var(--color-brand-700);
 }
 .member-hint::before {
@@ -180,19 +181,24 @@ a.member-hint {
 a.member-hint:hover {
   text-decoration: underline;
 }
-a.member-hint-btn {
-  justify-content: center;
-  padding: 0.375rem 0.25rem;
-  border: 1px solid var(--color-brand);
-  border-radius: 0.5rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--color-brand);
-  transition: background-color 0.2s;
+/* Ürün kartında tek satır kuralı: kart 200 px'ten darsa (mobil ızgara, 1280'de ana sayfa satırı) tam metin sığmıyor →
+   kilitsiz, 10,5 px kısa metin. Kart @container/urun-karti (ProductCard). 320 px telefonda bile tek satır. */
+.mh-kisa {
+  display: none;
 }
-a.member-hint-btn:hover {
-  text-decoration: none;
-  background: var(--color-brand-50);
+@container urun-karti (max-width: 199px) {
+  .member-hint {
+    font-size: 10.5px;
+  }
+  .member-hint::before {
+    display: none;
+  }
+  .mh-uzun {
+    display: none;
+  }
+  .mh-kisa {
+    display: inline;
+  }
 }
 span.member-hint {
   color: var(--color-neutral-500, #737373);

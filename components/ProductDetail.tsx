@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { TruckIcon, ClockIcon, SimilarIcon } from "@/components/icons";
+import { TruckIcon, ClockIcon } from "@/components/icons";
 import { resolvePrice, computeListPriceCents, centsToTl } from "@/lib/pricing";
 import { getMemberDiscountPercent } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
@@ -178,7 +178,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
 
       {relatedProducts.length > 0 && (
         <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-          <ProductRow title="Benzer Ürünler" icon={SimilarIcon} products={relatedProducts} memberDiscountPercent={memberDiscountPercent} perRow={4} oklar />
+          <ProductRow title="Benzer Ürünler" products={relatedProducts} memberDiscountPercent={memberDiscountPercent} perRow={4} oklar />
         </div>
       )}
     </div>
