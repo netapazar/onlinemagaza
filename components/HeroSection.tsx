@@ -1,4 +1,3 @@
-import { TrendUpIcon, SparkleIcon } from "@/components/icons";
 import HeroSlider from "@/components/HeroSlider";
 import PromoBanner from "@/components/PromoBanner";
 import type { MembershipStatus } from "@/lib/membershipStatus";
@@ -28,7 +27,7 @@ function slideModeFor(status: MembershipStatus): CariHesapSlideMode {
 // gidiyor, kendi listelerinden bir ürün fotoğrafıyla. Amber yalnız kampanyaya ayrıldığı için ikinci kart koyu petrol.
 //
 // Görseller: public/banners'a konan dosya (anahtarlar için bkz. lib/bannerImages.ts) HER ZAMAN önceliklidir; dosya yoksa
-// mevcut ürün fotoğraflarından kompozisyon (photos), hiç fotoğraf yoksa ikonlu ilk hâl.
+// mevcut ürün fotoğraflarından kompozisyon (photos), hiç fotoğraf yoksa görsel alanı boş kalır.
 export default function HeroSection({
   status,
   photos = [],
@@ -63,7 +62,6 @@ export default function HeroSection({
       <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-col lg:gap-4">
         {/* Açıklamalar veriye dayanıyor: sıralama son 90 günün sipariş belgelerinden (lib/bestSellerRanking.ts). */}
         <PromoBanner
-          icon={TrendUpIcon}
           title="Çok Satanlar"
           description="Son 90 günde en çok sipariş edilen ürünler"
           href="/cok-satanlar"
@@ -72,7 +70,6 @@ export default function HeroSection({
           imageIsPhoto={!promo1 && Boolean(bestPhoto)}
         />
         <PromoBanner
-          icon={SparkleIcon}
           title="Yeni Eklenenler"
           description="Kataloğa en son eklenen ürünler"
           href="/urunler?sirala=yeni"

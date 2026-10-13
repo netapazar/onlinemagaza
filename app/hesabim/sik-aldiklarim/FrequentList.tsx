@@ -53,7 +53,7 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
 
       <div className="min-w-0 flex-1">
         <Link href={href}>
-          {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
+          {product.brandName && <span className="text-xs text-neutral-500">{product.brandName}</span>}
           <p className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</p>
         </Link>
         {enKucukBirim ? (

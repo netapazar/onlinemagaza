@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRightIcon, BriefcaseIcon, TruckIcon, BoxesIcon, BankIcon, type Icon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import ProductCollage, { type CollagePhoto } from "@/components/ProductCollage";
+import GecGorsel from "@/components/GecGorsel";
 
 type Slide = {
-  icon: Icon;
   title: string;
   description: string;
   // Banner görsel anahtarı (public/banners/<anahtar>.<uzantı>, bkz. lib/bannerImages.ts).
@@ -17,10 +17,9 @@ type Slide = {
 };
 
 // Gerçek, uydurulmamış mesajlar. Görsel önceliği: (1) public/banners'taki dosya, (2) ürün fotoğraflı kompozisyon,
-// (3) ikonlu yedek (ilk hâl). Üyelik slaydı duruma göre buildSlides'ta eklenir.
+// görsel yoksa alan boş (süs dairesi/ikon yok, DESIGN.md Yapma 3). Üyelik slaydı duruma göre buildSlides'ta eklenir.
 const SLIDES: Slide[] = [
   {
-    icon: TruckIcon,
     imageKey: "hero-2",
     title: "Aynı Gün Kargo İmkanı",
     description: "13:30'a kadar verdiğiniz siparişler aynı gün kargoya teslim edilir.",
@@ -28,7 +27,6 @@ const SLIDES: Slide[] = [
     ctaHref: "/urunler",
   },
   {
-    icon: BoxesIcon,
     imageKey: "hero-3",
     title: "Toplu Alımda Avantajlı Tedarik",
     description: "İşletmenizin ofis/kırtasiye ihtiyacını tek seferde, tek adresten karşılayın.",
@@ -55,13 +53,11 @@ function buildSlides(mode: CariHesapSlideMode): Slide[] {
   const uyelikSlide: Slide =
     mode === "pending"
       ? {
-          icon: BankIcon,
           imageKey: "hero-cari",
           title: "Kurumsal üyelik başvurunuz inceleniyor",
           description: "Onaylandığında firmanıza tanımlanan indirim fiyatlara otomatik yansır; cari hesap yetkisi ayrıca tanımlanır.",
         }
       : {
-          icon: BriefcaseIcon,
           imageKey: "hero-1",
           title: "Firmanıza Özel Fiyatlarla Alışveriş Yapın",
           description:
@@ -101,7 +97,6 @@ export default function HeroSlider({
 
   const index = active % slides.length;
   const slide = slides[index];
-  const Icon = slide.icon;
   const bannerFile = backgroundPhoto ? undefined : bannerImages[slide.imageKey];
   const showCollage = !backgroundPhoto && photos.length > 0;
 
@@ -124,31 +119,16 @@ export default function HeroSlider({
         {bannerFile ? (
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] items-end justify-end sm:flex" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bannerFile} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" className="animate-float h-[92%] w-full object-contain object-right-bottom" />
+            <img src={bannerFile} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" className="h-[92%] w-full object-contain object-right-bottom" />
           </div>
         ) : showCollage ? (
           <ProductCollage photos={photos} offset={index} />
         ) : null}
       </div>
-      {!bannerFile && !backgroundPhoto && photos.length === 0 && (
-        <div className="pointer-events-none absolute -top-10 -right-10 flex h-64 w-64 items-center justify-center rounded-full bg-white/[0.06]">
-          <div className="animate-float flex h-44 w-44 items-center justify-center rounded-full bg-white/[0.08]">
-            <Icon className="h-20 w-20 text-white/90" aria-hidden="true" />
-          </div>
-        </div>
-      )}
-      {/* Mobilde (kolaj/dosya gizli) küçük ikon rozeti: metinle çakışmadan köşede */}
-      {(bannerFile || backgroundPhoto || photos.length > 0) && (
-        <div className="pointer-events-none absolute -right-8 -bottom-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/[0.07] sm:hidden">
-          <Icon className="h-10 w-10 text-white/80" aria-hidden="true" />
-        </div>
-      )}
+      {/* 2026-10-13 (DESIGN.md Yapma 3): fotoğraf yerine çizilen yarı saydam daireler + ikon kaldırıldı. Görsel yoksa alan boş
+          kalır; mobilde altta gerçek ürün fotoğrafları (bkz. slayt noktalarının yanı). */}
 
       <div key={`text-${index}`} className={`${anim} relative z-10 max-w-md sm:max-w-[56%]`}>
-        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-white/25 ring-inset">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand-200)]" aria-hidden="true" />
-          B2B Tedarik Platformu
-        </span>
         {/* lg–xl arasında (1024–1279 px) kutu 656 px'e daralır: başlık bir kademe küçük, üç satıra taşmasın */}
         <h1 className="mb-2.5 text-2xl font-extrabold sm:text-3xl lg:text-[1.625rem] xl:text-3xl">{slide.title}</h1>
         <p className="mb-6 text-sm text-white/85 sm:text-base">{slide.description}</p>
@@ -163,7 +143,8 @@ export default function HeroSlider({
         )}
       </div>
 
-      <div className="relative z-10 flex gap-1.5">
+      <div className="relative z-10 flex items-center justify-between gap-3">
+        <div className="flex gap-1.5">
         {slides.map((s, i) => (
           <button
             key={s.title}
@@ -176,6 +157,20 @@ export default function HeroSlider({
             className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-7 bg-white" : "w-1.5 bg-white/40 hover:bg-white/60"}`}
           />
         ))}
+        </div>
+        {/* Mobil: geniş ekrandaki fotoğraf/kolaj gizli olduğundan, gerçek ürün fotoğrafları küçük beyaz çerçevede (en çok 3).
+            Sayfa yüklemesi bittikten sonra istenir (GecGorsel) — mobil tam yükleme süresine eklenmez. */}
+        {photos.length > 0 && (
+          <div className="flex gap-2 sm:hidden" aria-hidden="true">
+            {photos.slice(0, 3).map((p) => (
+              <div key={p.url} className="h-12 w-12 overflow-hidden rounded-lg bg-white p-0.5 shadow-sm">
+                <div className="relative h-full w-full overflow-hidden rounded-md bg-neutral-100">
+                  <GecGorsel src={p.url} sizes="48px" className="object-cover" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

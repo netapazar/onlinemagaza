@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HeartIcon, CartIcon, CheckIcon, TrendUpIcon } from "@/components/icons";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
@@ -13,25 +13,7 @@ import { unitLabel } from "@/lib/units";
 import { birimEtiketi } from "@/lib/satisBirimleri";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
-
-// Ana sayfa satırları (2026-10 yoğunluk turu): ürünler ilk ekranın hemen altına çıktı; tarayıcının tembel yükleme eşiği yavaş
-// mobil bağlantıda ~2500 px olduğundan kart görselleri sayfa yüklemesine (load) ekleniyor, mobil tam yükleme sınırını (2,15 sn)
-// aşıyordu. deferImage: dar ekranda görsel load olayından SONRA istenir (yer tutucu gri kutu); geniş ekranda (≥1024 px) satır ilk
-// ekranda göründüğü için hemen.
-function useImagesReady(defer: boolean): boolean {
-  const [ready, setReady] = useState(!defer);
-  useEffect(() => {
-    if (!defer) return;
-    const hazir = () => setReady(true);
-    if (document.readyState === "complete" || window.matchMedia("(min-width: 1024px)").matches) {
-      hazir();
-      return;
-    }
-    window.addEventListener("load", hazir, { once: true });
-    return () => window.removeEventListener("load", hazir);
-  }, [defer]);
-  return ready;
-}
+import { useImagesReady } from "@/components/GecGorsel";
 
 // Kart artık interaktif (favori kalbi + hızlı sepete ekle) olduğu için
 // Server Component olamıyor — resolvePrice saf bir fonksiyon olduğundan
@@ -113,7 +95,7 @@ export default function ProductCard({
 
         <div className="p-2.5 pb-0">
           {/* Sabit satır yükseklikleri: ad 1 ya da 2 satır, açıklama/etiket olsun olmasın kartların fiyat ve buton hizası aynı kalsın */}
-          <span className="block h-4 truncate text-xs leading-4 text-neutral-400">{product.brandName ?? ""}</span>
+          <span className="block h-4 truncate text-xs leading-4 text-neutral-500">{product.brandName ?? ""}</span>
           <p className="line-clamp-2 h-10 text-sm leading-5 font-medium text-neutral-900">{product.name}</p>
           <p className="line-clamp-1 h-4 text-xs leading-4 text-neutral-500">{product.shortDescription ?? ""}</p>
           {/* Etiket satırı yalnız bilgi taşırsa dolu (DESIGN.md / Rozetler ve etiketler, 2026-10-13): paketli satışta en küçük birim

@@ -102,7 +102,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
         <ProductGallery images={product.images} name={product.name} brandName={product.brand?.name ?? null} />
 
         <div className="lg:row-span-2">
-          {product.brand && <p className="mb-1 text-sm text-neutral-400">{product.brand.name}</p>}
+          {product.brand && <p className="mb-1 text-sm text-neutral-500">{product.brand.name}</p>}
           <h1 className="mb-2 text-2xl font-bold text-neutral-900">{product.name}</h1>
           {product.shortDescription && (
             <p className="mb-2 text-sm text-neutral-600">{product.shortDescription}</p>
@@ -153,7 +153,8 @@ export default async function ProductDetail({ product }: { product: Product }) {
             />
           </div>
 
-          <div className="mb-5 space-y-2 rounded-xl border border-neutral-200 p-4 text-sm">
+          {/* Kargo bilgisi ve üyelik bölümü ayrı kutu değil, ince ayraçla ayrılan düz bölümler (DESIGN.md Yapma 4 — kart içinde kart yok). */}
+          <div className="mb-4 space-y-2 border-t border-neutral-100 pt-4 text-sm">
             <div className="flex items-center gap-2 text-neutral-700">
               <TruckIcon className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
               Tüm siparişlerde ücretsiz kargo

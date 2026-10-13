@@ -2,6 +2,8 @@ import Link from "next/link";
 import { BuildingIcon, ClockIcon, BankIcon } from "@/components/icons";
 import type { MembershipStatus } from "@/lib/membershipStatus";
 
+// Kutu değil: satın alma alanının altında ince ayraçla ayrılan düz bölüm (2026-10-13, DESIGN.md Yapma 4 — kart içinde kart yok).
+// Ürün sayfasının TEK büyük üyelik mesajı budur (DESIGN.md / Üyelik mesajı).
 // Ürün detayındaki İKİ üyelik mesajının (eski "cari hesap notu" + "Firma/işletme üyeliği başvurusu" kutusu) tek, derli toplu hâli.
 // Cari hesap YALNIZCA yetki tanımlanan firmalara açık — metin bunu açıkça söylüyor, "tüm üyelere" vaadi yok.
 //  - Onaylı üye, cari yetkisi açık : tek satır bilgi ("Cari hesabınızla ödeyebilirsiniz"), tanıtım kutusu YOK.
@@ -21,8 +23,8 @@ export default function ProductMembershipBox({ status }: { status: MembershipSta
 
   if (status.kind === "pending") {
     return (
-      <div className="flex items-start gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3.5 text-sm text-neutral-600">
-        <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+      <div className="flex items-start gap-2.5 border-t border-neutral-100 pt-4 text-sm text-neutral-600">
+        <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" aria-hidden="true" />
         <p>Kurumsal üyelik başvurunuz inceleniyor. Onaylandığında firmanıza özel fiyatlar hesabınızda aktif olur.</p>
       </div>
     );
@@ -30,7 +32,7 @@ export default function ProductMembershipBox({ status }: { status: MembershipSta
 
   const href = status.kind === "guest" ? "/uyelik/kayit" : "/hesabim/uyelik-basvurusu";
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-3.5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-2.5">
         <BuildingIcon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
         <div>
