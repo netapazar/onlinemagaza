@@ -7,9 +7,11 @@ type Spec = { label: string; value: string };
 export default function ProductTabs({
   description,
   specs,
+  className = "mt-10",
 }: {
   description: string | null;
   specs: Spec[];
+  className?: string;
 }) {
   const hasDescription = Boolean(description);
   const hasSpecs = specs.length > 0;
@@ -18,7 +20,7 @@ export default function ProductTabs({
   if (!hasDescription && !hasSpecs) return null;
 
   return (
-    <div className="mt-10">
+    <div className={className}>
       <div className="flex gap-6 border-b border-neutral-200">
         {hasDescription && (
           <button
