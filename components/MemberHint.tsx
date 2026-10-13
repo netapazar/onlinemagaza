@@ -13,36 +13,44 @@ export function MemberHintProvider({ kind, children }: { kind: MemberHintKind; c
   return <MemberHintContext.Provider value={kind}>{children}</MemberHintContext.Provider>;
 }
 
-export function corporateHintFor(kind: MemberHintKind): { text: string; href: string | null } | null {
+// kisa: dar ürün kartında (< 205 px) gösterilen kısa metin — tam metin orada tek satıra sığmıyor (globals.css, @container).
+export function corporateHintFor(kind: MemberHintKind): { text: string; kisa: string; href: string | null } | null {
   switch (kind) {
     case "approved":
       return null;
     case "guest":
-      return { text: "Kurumsal fiyat için giriş yapın", href: "/uyelik/giris" };
+      return { text: "Kurumsal fiyat için giriş yapın", kisa: "Kurumsal fiyat: giriş yapın", href: "/uyelik/giris" };
     case "pending":
-      return { text: "Kurumsal fiyat için başvurunuz inceleniyor", href: null };
+      return { text: "Kurumsal başvurunuz inceleniyor", kisa: "Başvurunuz inceleniyor", href: null };
     case "rejected":
     case "no_application":
-      return { text: "Kurumsal fiyat için üyelik başvurusu yapın", href: "/hesabim/uyelik-basvurusu" };
+      return { text: "Kurumsal fiyat için başvuru yapın", kisa: "Kurumsal fiyat: başvurun", href: "/hesabim/uyelik-basvurusu" };
   }
 }
 
 // Bu ipucu her ürün kartında tekrarlanır: işaretleme bilerek minimum (stil + kilit simgesi globals.css'teki .member-hint'te,
 // düz <a> — next/link değil). Mobil ölçümde kart başına ~700 bayt HTML'den ~100 bayta indi.
-// button: ürün kartında bağlantılı ipucu çizgili düğme olarak çizilir (stil globals.css .member-hint-btn); bağlantısız ipucu
-// (başvuru inceleniyor) düz metin kalır.
-export default function CorporatePriceHint({ className = "", button = false }: { className?: string; button?: boolean }) {
+// Kartta fiyatın altında TEK SATIRLIK küçük bağlantı; düğmeye ya da kutuya dönüştürülmez (DESIGN.md / Ürün kartı, 2026-10-13).
+// kisaltilabilir: ürün kartında iki metin birlikte yazılır, hangisinin görüneceğine kartın genişliği karar verir (CSS).
+export default function CorporatePriceHint({ className = "", kisaltilabilir = false }: { className?: string; kisaltilabilir?: boolean }) {
   const kind = useContext(MemberHintContext);
   const hint = corporateHintFor(kind);
   if (!hint) return null;
 
-  const base = button && hint.href ? "member-hint member-hint-btn" : "member-hint";
-  const cls = className ? `${base} ${className}` : base;
+  const cls = className ? `member-hint ${className}` : "member-hint";
+  const icerik = kisaltilabilir ? (
+    <>
+      <span className="mh-uzun">{hint.text}</span>
+      <span className="mh-kisa">{hint.kisa}</span>
+    </>
+  ) : (
+    hint.text
+  );
   return hint.href ? (
     <a href={hint.href} className={cls}>
-      {hint.text}
+      {icerik}
     </a>
   ) : (
-    <span className={cls}>{hint.text}</span>
+    <span className={cls}>{icerik}</span>
   );
 }

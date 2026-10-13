@@ -1,4 +1,4 @@
-import { PercentIcon, BoxesIcon } from "@/components/icons";
+import { TrendUpIcon, SparkleIcon } from "@/components/icons";
 import HeroSlider from "@/components/HeroSlider";
 import PromoBanner from "@/components/PromoBanner";
 import type { MembershipStatus } from "@/lib/membershipStatus";
@@ -10,7 +10,10 @@ function slideModeFor(status: MembershipStatus): CariHesapSlideMode {
   switch (status.kind) {
     case "guest":
       return "apply-guest";
+    // Başvurusu yarım kalan hesap üst bilgideki hatırlatma bandını zaten görüyor (MembershipReminderBanner) — aynı sayfada
+    // ikinci büyük üyelik mesajı olmasın diye hero'daki üyelik slaydı ona gösterilmez (kullanıcı kararı 2026-10-13).
     case "no_application":
+      return "hidden";
     case "rejected":
       return "apply-account";
     case "pending":
@@ -20,14 +23,24 @@ function slideModeFor(status: MembershipStatus): CariHesapSlideMode {
   }
 }
 
-// Avansas benzeri düzen: solda geniş (2/3) döngülü slider, sağda (1/3)
-// üst üste iki kampanya banner'ı. "Aynı Gün Kargo" mesajı zaten slider'da
-// ve güven çubuğunda var — üçüncü tekrarını önlemek için sağ üst banner
-// kurumsal üyelik temalı (bkz. kullanıcı geri bildirimi).
+// Solda geniş (2/3) döngülü slider, sağda (1/3) üst üste iki kısayol kartı. 2026-10-13: yan kartlar üyelik mesajını
+// tekrarlıyordu (büyük üyelik mesajı sayfada bir kez — DESIGN.md); artık Çok Satanlar ve Yeni Eklenenler listelerine
+// gidiyor, kendi listelerinden bir ürün fotoğrafıyla. Amber yalnız kampanyaya ayrıldığı için ikinci kart koyu petrol.
 //
 // Görseller: public/banners'a konan dosya (anahtarlar için bkz. lib/bannerImages.ts) HER ZAMAN önceliklidir; dosya yoksa
 // mevcut ürün fotoğraflarından kompozisyon (photos), hiç fotoğraf yoksa ikonlu ilk hâl.
-export default function HeroSection({ status, photos = [] }: { status: MembershipStatus; photos?: CollagePhoto[] }) {
+export default function HeroSection({
+  status,
+  photos = [],
+  bestPhoto = null,
+  newPhoto = null,
+}: {
+  status: MembershipStatus;
+  photos?: CollagePhoto[];
+  /** Çok Satanlar / Yeni Eklenenler kartlarının fotoğrafı (her biri kendi listesinden). */
+  bestPhoto?: string | null;
+  newPhoto?: string | null;
+}) {
   const bannerImages = {
     "hero-1": bannerImage("hero-1") ?? undefined,
     "hero-cari": bannerImage("hero-cari") ?? undefined,
@@ -36,9 +49,6 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
   };
   const promo1 = bannerImage("promo-1");
   const promo2 = bannerImage("promo-2");
-  // Fotoğraf yedeği: iki banner farklı ürünlerden (mümkünse) beslensin.
-  const photo1 = photos[0]?.url ?? null;
-  const photo2 = photos[1]?.url ?? photos[0]?.url ?? null;
 
   return (
     <div className="mb-6 grid gap-3 lg:grid-cols-3 lg:gap-4">
@@ -51,23 +61,24 @@ export default function HeroSection({ status, photos = [] }: { status: Membershi
         />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-col lg:gap-4">
+        {/* Açıklamalar veriye dayanıyor: sıralama son 90 günün sipariş belgelerinden (lib/bestSellerRanking.ts). */}
         <PromoBanner
-          icon={PercentIcon}
-          title="Firmanıza Özel Fiyatlar"
-          description="Üyelik başvurusu yapın, size özel iskontolu fiyatlarla alışveriş yapın"
-          href="/hesabim/uyelik-basvurusu"
+          icon={TrendUpIcon}
+          title="Çok Satanlar"
+          description="Son 90 günde en çok sipariş edilen ürünler"
+          href="/cok-satanlar"
           className="bg-[var(--color-brand-600)]"
-          image={promo1 ?? photo1}
-          imageIsPhoto={!promo1 && Boolean(photo1)}
+          image={promo1 ?? bestPhoto}
+          imageIsPhoto={!promo1 && Boolean(bestPhoto)}
         />
         <PromoBanner
-          icon={BoxesIcon}
-          title="Toplu Alım Avantajı"
-          description="İşletmeniz için avantajlı toplu tedarik"
-          href="/hesabim/uyelik-basvurusu"
-          className="bg-[var(--color-accent-600)]"
-          image={promo2 ?? photo2}
-          imageIsPhoto={!promo2 && Boolean(photo2)}
+          icon={SparkleIcon}
+          title="Yeni Eklenenler"
+          description="Kataloğa en son eklenen ürünler"
+          href="/urunler?sirala=yeni"
+          className="bg-[var(--color-brand-800)]"
+          image={promo2 ?? newPhoto}
+          imageIsPhoto={!promo2 && Boolean(newPhoto)}
         />
       </div>
     </div>

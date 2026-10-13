@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { GridIcon } from "@/components/icons";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { getCategoryImage, CATEGORY_SPRITE_CELLS } from "@/lib/categoryImages";
 import LateAssets from "@/components/LateAssets";
@@ -15,7 +14,7 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
   return (
     <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <SectionHeading title="Kategoriler" icon={GridIcon} />
+        <SectionHeading title="Kategoriler" />
         <span className="text-xs text-neutral-500">{categories.length} kategori</span>
       </div>
       <LateAssets />

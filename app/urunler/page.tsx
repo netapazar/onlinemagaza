@@ -17,6 +17,7 @@ import ViewToggle from "@/components/ViewToggle";
 import Pagination from "@/components/Pagination";
 import EmptyState from "@/components/EmptyState";
 import { FILTRE_PARAMETRELERI } from "@/lib/seo";
+import { KDV_NOTU } from "@/components/KdvNotu";
 
 const PAGE_SIZE = 24;
 const SORT_VALUES: StorefrontSort[] = ["onerilen", "fiyat-artan", "fiyat-azalan", "isim-az", "yeni"];
@@ -138,7 +139,9 @@ export default async function UrunlerPage({ searchParams }: { searchParams: Prom
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">{heading}</h1>
-          <p className="text-sm text-neutral-500">{total} ürün</p>
+          <p className="text-sm text-neutral-500">
+            {total} ürün <span className="text-xs">· {KDV_NOTU}</span>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <SortSelect />

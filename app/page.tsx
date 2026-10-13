@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRightIcon, SparkleIcon, TrendUpIcon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import {
   getStorefrontCategoriesWithCounts,
   getNewArrivals,
@@ -12,8 +12,7 @@ import HeroSection from "@/components/HeroSection";
 import TrustBar from "@/components/TrustBar";
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductRow from "@/components/ProductRow";
-import AudienceSection from "@/components/AudienceSection";
-import CorporateBenefits, { ApprovedStrip } from "@/components/CorporateBenefits";
+import { ApprovedStrip } from "@/components/CorporateBenefits";
 import BrandStrip, { MIN_BRANDS } from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 import Reveal from "@/components/Reveal";
@@ -36,16 +35,15 @@ export default async function Home() {
     getMembershipStatus(),
   ]);
 
-  const approved = membershipStatus.kind === "approved";
   const bestSellersRow = bestSellers.length > 0 && (
     <Reveal>
       <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
         <ProductRow
           title="Çok Satanlar"
-          icon={TrendUpIcon}
           products={bestSellers}
           memberDiscountPercent={memberDiscountPercent}
           viewAllHref="/urunler"
+          kdvNotu
         />
       </div>
     </Reveal>
@@ -62,10 +60,13 @@ export default async function Home() {
     photos.push({ url: p.coverImageUrl, name: p.name });
     if (photos.length === 3) break;
   }
+  // Yan kısayol kartları: her biri kendi listesinin ilk fotoğraflı ürünü (aynı fotoğraf iki kartta olmasın).
+  const bestPhoto = bestSellers.find((p) => p.coverImageUrl)?.coverImageUrl ?? null;
+  const newPhoto = newArrivals.find((p) => p.coverImageUrl && p.coverImageUrl !== bestPhoto)?.coverImageUrl ?? null;
 
   return (
     <div className="mx-auto w-full max-w-content px-4 py-4">
-      <HeroSection status={membershipStatus} photos={photos} />
+      <HeroSection status={membershipStatus} photos={photos} bestPhoto={bestPhoto} newPhoto={newPhoto} />
 
       {catalogIsEmpty ? (
         <EmptyState
@@ -74,10 +75,9 @@ export default async function Home() {
         />
       ) : (
         <>
-          {/* Sıra ve renk ritmi (2026-10 yoğunluk turu — ürünler yukarıda): bilgi şeridi (teal) · çok satanlar (beyaz) ·
-              kategoriler (teal) · kurumsal üyelik bandı (beyaz) · kimlere hizmet (teal) · yeni eklenenler (beyaz) · markalar (teal).
-              Ürün satırları beyaz: fotoğraflar beyazda iyi durur. Onaylı üyede kurumsal bant ve "Kimlere Hizmet" yok, üye durum
-              çubuğu bilgi şeridiyle aynı teal bandın alt satırı → bilgi şeridi · çok satanlar · kategoriler · yeni eklenenler · markalar. */}
+          {/* Sıra ve renk ritmi (herkese aynı): bilgi şeridi (teal) · çok satanlar (beyaz) · kategoriler (teal) · yeni eklenenler
+              (beyaz) · markalar (teal). Ürün satırları beyaz: fotoğraflar beyazda iyi durur. Onaylı üyede üye durum çubuğu bilgi
+              şeridiyle aynı teal bandın alt satırı. */}
           <div className="mb-6 rounded-2xl border border-[var(--color-brand-100)] bg-[var(--color-brand-50)] p-5 sm:p-6">
             <TrustBar />
             {membershipStatus.kind === "approved" && <ApprovedStrip status={membershipStatus} />}
@@ -90,27 +90,18 @@ export default async function Home() {
             </Reveal>
           )}
 
-          {/* Kurumsal üyelik: onaylı üye dışındakilere kısa bant + "Hemen Başvur" (bkz. components/CorporateBenefits.tsx) */}
-          <Reveal>
-            <CorporateBenefits status={membershipStatus} />
-          </Reveal>
-
-          {/* Kimlere Hizmet yalnız üyeliğe yönlendiriyor — onaylı üyede işlevi yok, gösterilmez. */}
-          {!approved && (
-            <Reveal>
-              <AudienceSection />
-            </Reveal>
-          )}
+          {/* 2026-10-13: "Kurumsal Üyelik Avantajları" şeridi ve "Kimlere Hizmet" (dört kartı da üyelik başvurusuna gidiyordu)
+              kaldırıldı — büyük üyelik mesajı ana sayfada yalnız hero'da (DESIGN.md / Üyelik mesajı). */}
 
           {newArrivals.length > 0 && (
             <Reveal>
               <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                 <ProductRow
                   title="Yeni Eklenenler"
-                  icon={SparkleIcon}
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"
+                  kdvNotu={!bestSellersRow}
                 />
               </div>
             </Reveal>

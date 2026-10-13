@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRightIcon, TagIcon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import ScrollRow from "@/components/ScrollRow";
 import SectionHeading from "@/components/SectionHeading";
 
@@ -15,7 +15,7 @@ export default function BrandStrip({ brands }: { brands: { id: string; name: str
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <SectionHeading title="Markalar" icon={TagIcon} />
+        <SectionHeading title="Markalar" />
         <Link
           href="/urunler"
           className="group flex items-center gap-1 text-sm font-medium text-[var(--color-brand)] hover:underline"

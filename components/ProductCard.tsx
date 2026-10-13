@@ -62,9 +62,16 @@ export default function ProductCard({
   const icerik = enKucukBirim?.adet ?? 1;
   const inStock = product.stock >= icerik;
   const favorite = isFavorite(product.id);
+  const etiket = enKucukBirim
+    ? enKucukBirim.adet > 1
+      ? `En az ${enKucukBirim.adet} adet`
+      : null
+    : product.packageInfo || product.unit !== "ADET"
+      ? (product.packageInfo ?? `${unitLabel(product.unit)} satış`)
+      : null;
 
   return (
-    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand-300)] hover:shadow-md">
+    <div className="group @container/urun-karti relative flex w-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-brand-300)] hover:shadow-md">
       <button
         type="button"
         onClick={() => toggle(product.id)}
@@ -109,29 +116,20 @@ export default function ProductCard({
           <span className="block h-4 truncate text-xs leading-4 text-neutral-400">{product.brandName ?? ""}</span>
           <p className="line-clamp-2 h-10 text-sm leading-5 font-medium text-neutral-900">{product.name}</p>
           <p className="line-clamp-1 h-4 text-xs leading-4 text-neutral-500">{product.shortDescription ?? ""}</p>
-          {/* Bilgi etiketleri tek satırda (2026-10 yoğunluk turu): satış birimi + KDV Dahil. Paket içeriği varsa o ("50'li paket");
-              yoksa birim Adet dışındaysa "Koli satış" gibi; ikisi de yoksa yalnız KDV etiketi. */}
+          {/* Etiket satırı yalnız bilgi taşırsa dolu (DESIGN.md / Rozetler ve etiketler, 2026-10-13): paketli satışta en küçük birim
+              1 adetten büyükse "En az 50 adet"; paketsiz üründe paket içeriği ya da Adet dışı birim. "KDV Dahil" her üründe aynı
+              olduğu için kartta değil, liste sayfasının başlığında bir kez yazılır. Satır boş kalsa da yüksekliği sabit (hiza). */}
           <div className="mt-1.5 flex h-[18px] items-start gap-1 overflow-hidden">
-            {enKucukBirim ? (
+            {etiket && (
               <span className="min-w-0 truncate rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-neutral-600">
-                {`En az ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}`}
+                {etiket}
               </span>
-            ) : (
-              (product.packageInfo || product.unit !== "ADET") && (
-                <span className="min-w-0 truncate rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-neutral-600">
-                  {product.packageInfo ?? `${unitLabel(product.unit)} satış`}
-                </span>
-              )
             )}
-            <span className="shrink-0 rounded bg-[var(--color-brand-50)] px-1.5 py-0.5 text-[10px] leading-[14px] font-medium text-[var(--color-brand-700)]">
-              KDV Dahil
-            </span>
           </div>
         </div>
       </Link>
 
-      {/* Alt blok: fiyat · adet + Sepete Ekle (her zaman görünür — eskiden yalnız hover'da beliriyor, kartın altında boş alan
-          bırakıyordu) · onaysız ziyaretçide kurumsal fiyat düğmesi. */}
+      {/* Alt blok: fiyat (+ onaysız ziyaretçide altında tek satırlık kurumsal fiyat bağlantısı) · adet + Sepete Ekle. */}
       <div className="flex flex-1 flex-col gap-1.5 p-2.5 pt-1.5">
         <div className="mt-auto">
           <div className="flex items-baseline gap-2">
@@ -143,11 +141,14 @@ export default function ProductCard({
               {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
             </span>
           </div>
+          <CorporatePriceHint className="mt-0.5" kisaltilabilir />
         </div>
 
         {inStock ? (
-          <div className="flex items-stretch gap-1.5">
-            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="xs" />
+          // Dar kartta (< 205 px) adet seçici üstte, "Sepete Ekle" altında tam genişlikte (globals.css .kart-satin-al) — yan yana
+          // dururken telefonda düğme yazısı kesiliyordu ("epete Ek"). Yazı kısaltılmaz.
+          <div className="kart-satin-al flex items-stretch gap-1.5">
+            <QuantityStepper value={quantity} max={Math.floor(product.stock / icerik)} onChange={setQuantity} size="xs" className="kart-adet" />
             <button
               type="button"
               title={enKucukBirim ? `${quantity} ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}` : undefined}
@@ -156,7 +157,7 @@ export default function ProductCard({
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 active:scale-95 ${
+              className={`kart-sepete-ekle flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 active:scale-95 ${
                 added ? "bg-emerald-600" : "bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)]"
               }`}
             >
@@ -171,7 +172,6 @@ export default function ProductCard({
         ) : (
           <p className="text-xs font-medium text-neutral-500">Stokta yok</p>
         )}
-        <CorporatePriceHint button />
       </div>
     </div>
   );

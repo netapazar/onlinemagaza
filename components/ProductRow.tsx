@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRightIcon, type Icon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import SectionHeading from "@/components/SectionHeading";
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
 import ScrollRow from "@/components/ScrollRow";
+import KdvNotu from "@/components/KdvNotu";
 
 // Tailwind sınıfları derlemede taranır; dinamik birleştirme yerine tam sınıf adları.
 const LG_WIDTH = { 4: "lg:w-[calc((100%-36px)/4)]", 6: "lg:w-[calc((100%-60px)/6)]" } as const;
@@ -13,19 +14,20 @@ export default function ProductRow({
   products,
   memberDiscountPercent,
   viewAllHref,
-  icon,
   perRow = 6,
   oklar = false,
+  kdvNotu = false,
 }: {
   title: string;
   products: StorefrontProductSummary[];
   memberDiscountPercent: number | null;
   viewAllHref?: string;
-  icon?: Icon;
   /** Geniş ekranda satıra sığan kart sayısı; dar kapta (ürün sayfası, max-w-5xl) 4 — 6 kartta düğme yazısı kesiliyordu. */
   perRow?: 4 | 6;
   /** Taşan satırda Markalar şeridindeki gibi sol/sağ ok düğmeleri (ScrollRow). */
   oklar?: boolean;
+  /** Ana sayfada fiyat gösteren İLK ürün satırında başlığın altında bir kez "Tüm fiyatlara KDV dahildir." (DESIGN.md / KDV kuralı). */
+  kdvNotu?: boolean;
 }) {
   if (products.length === 0) return null;
 
@@ -40,7 +42,10 @@ export default function ProductRow({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <SectionHeading title={title} icon={icon} />
+        <div>
+          <SectionHeading title={title} />
+          {kdvNotu && <KdvNotu className="mt-1" />}
+        </div>
         {viewAllHref && (
           <Link
             href={viewAllHref}

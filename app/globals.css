@@ -162,6 +162,7 @@ body {
   gap: 0.25rem;
   font-size: 11px;
   line-height: 1.25;
+  white-space: nowrap; /* tek satır — DESIGN.md / Ürün kartı */
   color: var(--color-brand-700);
 }
 .member-hint::before {
@@ -180,19 +181,47 @@ a.member-hint {
 a.member-hint:hover {
   text-decoration: underline;
 }
-a.member-hint-btn {
-  justify-content: center;
-  padding: 0.375rem 0.25rem;
-  border: 1px solid var(--color-brand);
-  border-radius: 0.5rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--color-brand);
-  transition: background-color 0.2s;
+/* Dar ürün kartı (< 205 px: telefon ızgarası, 1280'de ana sayfa satırı) — kart @container/urun-karti (ProductCard).
+   Kurumsal fiyat bağlantısı (kullanıcı kararı 2026-10-13): telefonda en az 12 px; sığmazsa İKİ satıra iner. Kartlar hizalı
+   kalsın diye yükseklik iki satıra sabit (2 × 15 px). Kilitsiz kısa metin ("Kurumsal fiyat: giriş yapın"); ölçüm: 320 px'te
+   içerik alanı 118 px, en uzun kelime grubu bir satıra sığıyor → en fazla iki satır.
+   Geniş kartta (≥ 205 px) tek satır, 11 px, kilitli tam metin (en uzunu 183 px).
+   Satın alma satırı: dar kartta adet seçici üstte, "Sepete Ekle" altında tam genişlikte. */
+.mh-kisa {
+  display: none;
 }
-a.member-hint-btn:hover {
-  text-decoration: none;
-  background: var(--color-brand-50);
+@container urun-karti (max-width: 204px) {
+  .member-hint {
+    font-size: 12px;
+    line-height: 15px;
+    height: 30px;
+    align-items: flex-start;
+    white-space: normal;
+  }
+  .member-hint::before {
+    display: none;
+  }
+  .mh-uzun {
+    display: none;
+  }
+  .mh-kisa {
+    display: inline;
+  }
+  .kart-satin-al {
+    flex-direction: column;
+  }
+  .kart-adet > div {
+    justify-content: space-between;
+  }
+  .kart-adet input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .kart-sepete-ekle {
+    flex: none;
+    width: 100%;
+    padding-block: 0.5rem;
+  }
 }
 span.member-hint {
   color: var(--color-neutral-500, #737373);
