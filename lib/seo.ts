@@ -69,7 +69,7 @@ export function sayfaMetasi({
 
 export const ANA_SAYFA_BASLIGI = "Ofis Malzemesi ve Kırtasiye Tedariği | Tedarikhane";
 export const ANA_SAYFA_ACIKLAMASI =
-  "Ofis malzemesi ve kırtasiye tek adreste: kâğıt, kalem, dosya, defter, okul malzemeleri. Firmalara kurumsal fiyat, ücretsiz kargo, 13:30'a kadar aynı gün kargo.";
+  "Ofis malzemesi ve kırtasiye tek adreste: kâğıt, kalem, dosya, defter, okul malzemeleri. Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.";
 
 // Ürün sayfası metadata'sı: canonical her zaman slug adresi (slug'ı olmayan ürün /urun/id/… adresinde kalır).
 export function urunMetasi(p: {

@@ -38,7 +38,8 @@ type SearchParams = {
 // yalnız kategori ve sayfa parametreli listeler dizinlenebilir (bkz. lib/seo.ts FILTRE_PARAMETRELERI, app/robots.ts).
 // Dizinlenen listelerde (tüm ürünler, kategori, sayfa) özel başlık + açıklama + canonical (SEO, 2026-10-13). Kategori
 // açıklaması gerçek veriden: ürün sayısı, alt kategoriler ya da en çok ürünü olan markalar.
-const HIZMET_CUMLESI = "Firmalara kurumsal fiyat, ücretsiz kargo, 13:30'a kadar aynı gün kargo.";
+// Kargo ücreti ifadesi bilerek yok (2026-10-13): 5.000 TL ücretsiz kargo eşiği ayrı iş olarak gelecek; o gün eklenecek.
+const HIZMET_CUMLESI = "Firmalara kurumsal fiyat, 13:30'a kadar aynı gün kargo.";
 const ACIKLAMA_MAX = 160;
 
 function kategoriAciklamasi(k: { ad: string; ustAd: string | null; urunSayisi: number; markalar: string[]; altKategoriler: string[] }) {
