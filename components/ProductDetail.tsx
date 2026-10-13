@@ -150,6 +150,7 @@ export default async function ProductDetail({ product }: { product: Product }) {
               name={product.name}
               satisBirimleri={satisBirimleri}
               adetFiyatiCents={price.displayCents}
+              marka={product.brand?.name ?? null}
             />
           </div>
 

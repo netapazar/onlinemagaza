@@ -106,7 +106,11 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
           <button
             type="button"
             onClick={() => {
-              addItem(product.id, qty, product.name, enKucukBirim?.birim ?? null);
+              addItem(product.id, qty, product.name, enKucukBirim?.birim ?? null, {
+                adetFiyatiCents: price.displayCents,
+                marka: product.brandName,
+                icerik: enKucukBirim?.adet ?? 1,
+              });
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}

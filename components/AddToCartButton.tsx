@@ -16,12 +16,15 @@ export default function AddToCartButton({
   name,
   satisBirimleri = null,
   adetFiyatiCents,
+  marka = null,
 }: {
   productId: string;
   stock: number;
   name: string;
   satisBirimleri?: SatisBirimi[] | null;
   adetFiyatiCents?: number;
+  /** GA4 add_to_cart için. */
+  marka?: string | null;
 }) {
   const { addItem } = useCart();
   const router = useRouter();
@@ -46,7 +49,14 @@ export default function AddToCartButton({
     );
   }
 
-  const ekle = () => addItem(productId, quantity, name, birim?.birim ?? null);
+  const ekle = () =>
+    addItem(
+      productId,
+      quantity,
+      name,
+      birim?.birim ?? null,
+      adetFiyatiCents !== undefined ? { adetFiyatiCents, marka, icerik } : undefined
+    );
 
   return (
     <div className="space-y-2">

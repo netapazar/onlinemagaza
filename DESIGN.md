@@ -212,6 +212,14 @@ Kurumsal üyelik sitenin asıl dönüşüm hedefi; bu yüzden mesaj güçlü ama
 - Metinler "siz" diliyle yazılır: "giriş yapın", "başvuru yapın".
 - Aynı ekranda büyük mesaj varken ona benzeyen ikinci bir kutu, kart ya da şerit eklenmez.
 
+### Çerez bandı (karar 2026-10-13)
+
+- Karar verilene kadar sayfanın en altında **tek şerit**: beyaz zemin, üstte 1 px `neutral-200` kenar, `shadow-lg`. Mobilde alttaki sekme çubuğunun hemen üstünde durur, sekmeleri örtmez. Modal, karartma, ortada açılan kutu, ikon ya da çerez görseli kullanılmaz.
+- Metin 14 px, tek cümle + "Çerez Politikası" bağlantısı; ne için kullanıldığını somut söyler (Google Analytics, yalnız onayla).
+- İki düğme **eşit boyutta**: "Reddet" (ikincil) ve "Kabul Et" (birincil). Reddetmek kabul etmek kadar kolaydır; "Ayarlar" katmanı, önceden işaretli kutu ya da küçük gri "reddet" bağlantısı yoktur.
+- Karar verilince bant kapanır ve bir daha çıkmaz; alt bilgideki "Çerez Tercihleri" bağlantısı bandı yeniden açar.
+- Onay olmadan Google Analytics hiç yüklenmez.
+
 ### Gezinme
 
 - **Duyuru çubuğu:** gece zemini, 12 px beyaz metin. Solda tek bir somut vaat ("Tüm siparişlerde ücretsiz kargo"), sağda telefon, Kurumsal Üyelik ve SSS.

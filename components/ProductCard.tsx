@@ -135,7 +135,11 @@ export default function ProductCard({
               type="button"
               title={enKucukBirim ? `${quantity} ${birimEtiketi(enKucukBirim.birim, enKucukBirim.adet)}` : undefined}
               onClick={() => {
-                addItem(product.id, quantity, product.name, enKucukBirim?.birim ?? null);
+                addItem(product.id, quantity, product.name, enKucukBirim?.birim ?? null, {
+                  adetFiyatiCents: price.displayCents,
+                  marka: product.brandName,
+                  icerik,
+                });
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}

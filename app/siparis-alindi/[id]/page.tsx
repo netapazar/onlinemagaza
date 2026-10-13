@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { centsToTl } from "@/lib/pricing";
 import ClearCartOnMount from "@/components/ClearCartOnMount";
+import SatinAlmaOlayi from "@/components/SatinAlmaOlayi";
 
 const PAYMENT_LABELS: Record<string, string> = {
   KART: "Kredi/Banka Kartı",
@@ -28,6 +29,13 @@ export default async function SiparisAlindiPage({
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10">
       <ClearCartOnMount />
+      <SatinAlmaOlayi
+        id={order.id}
+        toplamCents={order.totalCents}
+        kargoCents={order.shippingCents}
+        odeme={order.paymentMethod}
+        urunler={order.items.map((i) => ({ id: i.productId, ad: i.name, adetFiyatiCents: i.unitPriceCents, adet: i.quantity }))}
+      />
 
       <div className="mb-6 text-center">
         <p className="mb-2 text-3xl">✓</p>

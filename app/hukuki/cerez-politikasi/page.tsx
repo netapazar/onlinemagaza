@@ -39,9 +39,14 @@ export default function CerezPolitikasiPage() {
               <td className={td}>Evet</td>
             </tr>
             <tr>
+              <td className={td}>Çerez tercihi (tarayıcı yerel depolama)</td>
+              <td className={td}>Analitik çerezlere onay verip vermediğinizin hatırlanması</td>
+              <td className={td}>Evet</td>
+            </tr>
+            <tr>
               <td className={td}>Analitik çerezler</td>
-              <td className={td}>Site kullanımının ölçülmesi, iyileştirilmesi (Google Analytics vb.)</td>
-              <td className={td}>Hayır</td>
+              <td className={td}>Site kullanımının ölçülmesi ve iyileştirilmesi (Google Analytics 4). Yalnız onay verirseniz yüklenir.</td>
+              <td className={td}>Hayır (onayınıza bağlı)</td>
             </tr>
             <tr>
               <td className={td}>Pazarlama/reklam çerezleri</td>
@@ -54,7 +59,10 @@ export default function CerezPolitikasiPage() {
 
       <h2 className={h2}>Çerezleri Nasıl Yönetebilirsiniz?</h2>
       <p>
-        Tarayıcınızın ayarlarından çerezleri silebilir veya tarayıcınızı çerezlere izin vermeyecek şekilde
+        Analitik çerezler için onayınızı sitenin altında çıkan bantta &quot;Kabul Et&quot; ya da &quot;Reddet&quot; ile verirsiniz;
+        onay vermediğiniz sürece Google Analytics yüklenmez. Kararınızı istediğiniz zaman sayfanın en altındaki
+        &quot;Çerez Tercihleri&quot; bağlantısından değiştirebilirsiniz; onayı geri aldığınızda Google Analytics çerezleri silinir.
+        Ayrıca tarayıcınızın ayarlarından çerezleri silebilir veya tarayıcınızı çerezlere izin vermeyecek şekilde
         yapılandırabilirsiniz. Zorunlu çerezleri engellemeniz halinde sitenin bazı bölümleri (üyelik girişi,
         sepet) düzgün çalışmayabilir.
       </p>

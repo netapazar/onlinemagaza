@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { sepeteEklendi } from "@/lib/analitik";
 
 // birim: paketli satış ürününde seçilen birim ("KUTU"); quantity o birimden KAÇ TANE (adet değil). Normal üründe birim yok
 // ve quantity adettir. Aynı ürünün farklı birimleri ayrı satırdır (bkz. lib/satisBirimleri.ts).
@@ -11,10 +12,14 @@ function sameLine(i: CartItem, productId: string, birim?: string | null) {
 }
 export type CartToast = { id: number; message: string };
 
+
+// GA4 add_to_cart verisi: adet fiyatı (KDV dahil, ekranda görünen), marka ve paketli satışta birim içeriği.
+export type SepetAnalitigi = { adetFiyatiCents: number; marka?: string | null; icerik?: number };
 type CartContextValue = {
   items: CartItem[];
   itemCount: number;
-  addItem: (productId: string, quantity: number, productName?: string, birim?: string | null) => void;
+  /** analitik: GA4 add_to_cart için adet fiyatı, marka ve birim içeriği (yalnız çerez onayı varsa gönderilir). */
+  addItem: (productId: string, quantity: number, productName?: string, birim?: string | null, analitik?: SepetAnalitigi) => void;
   updateQuantity: (productId: string, quantity: number, birim?: string | null) => void;
   removeItem: (productId: string, birim?: string | null) => void;
   clear: () => void;
@@ -60,7 +65,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, hydrated]);
 
-  const addItem = useCallback((productId: string, quantity: number, productName?: string, birim?: string | null) => {
+  const addItem = useCallback((productId: string, quantity: number, productName?: string, birim?: string | null, analitik?: SepetAnalitigi) => {
     setItems((prev) => {
       const existing = prev.find((i) => sameLine(i, productId, birim));
       if (existing) {
@@ -75,6 +80,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setDrawerOpen(true);
     setAddTick((t) => t + 1);
     setToast({ id: Date.now(), message: productName ? `${productName} sepete eklendi` : "Ürün sepete eklendi" });
+    if (analitik) {
+      sepeteEklendi({
+        id: productId,
+        ad: productName ?? productId,
+        marka: analitik.marka,
+        adetFiyatiCents: analitik.adetFiyatiCents,
+        adet: quantity * (analitik.icerik ?? 1),
+      });
+    }
   }, []);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);

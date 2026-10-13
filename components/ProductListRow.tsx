@@ -88,7 +88,11 @@ export default function ProductListRow({
           <button
             type="button"
             onClick={() => {
-              addItem(product.id, 1, product.name, enKucukBirim?.birim ?? null);
+              addItem(product.id, 1, product.name, enKucukBirim?.birim ?? null, {
+                adetFiyatiCents: price.displayCents,
+                marka: product.brandName,
+                icerik: enKucukBirim?.adet ?? 1,
+              });
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}

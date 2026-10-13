@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ClockIcon, MailIcon, MapPinIcon, ChatIcon, PhoneIcon } from "@/components/icons";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
 import { getSiteInfo } from "@/lib/siteInfo";
+import { CerezTercihleriBaglantisi } from "@/components/CerezOnayi";
 import { SIRKET } from "@/lib/sirket";
 import SocialIcon from "@/components/SocialIcons";
 
@@ -151,6 +152,9 @@ export default async function Footer() {
               <Link href="/hukuki/cerez-politikasi" className="hover:text-[var(--color-brand)]">
                 Çerez Politikası
               </Link>
+            </li>
+            <li>
+              <CerezTercihleriBaglantisi className="text-left hover:text-[var(--color-brand)]" />
             </li>
           </ul>
         </div>

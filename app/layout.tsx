@@ -6,6 +6,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import CartDrawer from "@/components/CartDrawer";
 import CartToast from "@/components/CartToast";
+import CerezOnayi from "@/components/CerezOnayi";
 import { CartProvider } from "@/components/CartProvider";
 import { FavoritesProvider } from "@/components/FavoritesProvider";
 import { getWebSession } from "@/lib/webSession";
@@ -73,6 +74,7 @@ export default async function RootLayout({
               <MobileBottomNav loggedIn={Boolean(session)} categories={categories} />
               <CartDrawer />
               <CartToast />
+              <CerezOnayi />
             </MemberHintProvider>
           </FavoritesProvider>
         </CartProvider>
