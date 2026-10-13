@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { ArrowRightIcon, type Icon } from "@/components/icons";
-import StoreImage from "@/components/StoreImage";
+import { ArrowRightIcon } from "@/components/icons";
+import GecGorsel from "@/components/GecGorsel";
 
-// Sağdaki kampanya banner'ı. Görsel önceliği: (1) public/banners dosyası ya da (2) ürün fotoğrafı (küçük, hafif eğimli,
-// beyaz çerçeveli kart), (3) hiçbiri yoksa ilk hâldeki ikonlu daire. Mobilde (dar banner) yalnız ikonlu daire.
+// Hero'nun yanındaki kısayol kartı. Görsel önceliği: (1) public/banners dosyası ya da (2) ürün fotoğrafı (küçük, hafif eğimli,
+// beyaz çerçeveli kart); hiçbiri yoksa görsel yok.
 export default function PromoBanner({
-  icon: Icon,
   title,
   description,
   href,
@@ -13,7 +12,6 @@ export default function PromoBanner({
   image = null,
   imageIsPhoto = false,
 }: {
-  icon: Icon;
   title: string;
   description: string;
   href: string;
@@ -27,7 +25,7 @@ export default function PromoBanner({
       href={href}
       className={`group relative flex flex-1 items-center justify-between gap-3 overflow-hidden rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${className}`}
     >
-      <div className="relative z-10 max-w-[78%] sm:max-w-[62%]">
+      <div className="relative z-10 max-w-[58%] sm:max-w-[62%]">
         <h3 className="mb-1 text-base leading-tight font-bold text-white">{title}</h3>
         {/* Dar mobil sütununda açıklama 6 satıra taşıyordu — mobilde yalnız başlık + "İncele" */}
         <p className="mb-2 hidden text-xs leading-snug text-white/85 sm:block">{description}</p>
@@ -37,27 +35,26 @@ export default function PromoBanner({
         </span>
       </div>
 
-      {image ? (
-        <div className="pointer-events-none absolute top-1/2 right-4 hidden h-[6.5rem] w-[6.5rem] -translate-y-1/2 sm:block" aria-hidden="true">
+      {/* Gerçek ürün fotoğrafı her ekranda (2026-10-13, DESIGN.md Yapma 3 — eskiden mobilde ikonlu süs dairesi vardı): mobilde sağ
+          altta küçük, geniş ekranda sağda ortalı. Dar ekranda sayfa yüklemesinden sonra istenir (GecGorsel). Görsel yoksa boş. */}
+      {image && (
+        <div
+          className="pointer-events-none absolute right-3 bottom-3 h-14 w-14 sm:top-1/2 sm:right-4 sm:bottom-auto sm:h-[6.5rem] sm:w-[6.5rem] sm:-translate-y-1/2"
+          aria-hidden="true"
+        >
           {imageIsPhoto ? (
-            <div className="animate-float h-full w-full rotate-[6deg] overflow-hidden rounded-xl bg-white p-1 shadow-lg shadow-black/25 transition-transform duration-300 group-hover:rotate-[3deg] group-hover:scale-105">
-              <div className="relative h-full w-full">
-                <StoreImage src={image} alt="" sizes="104px" className="rounded-lg object-cover" />
+            <div className="h-full w-full rotate-[6deg] overflow-hidden rounded-xl bg-white p-1 shadow-lg shadow-black/25 transition-transform duration-300 group-hover:rotate-[3deg] group-hover:scale-105">
+              <div className="relative h-full w-full overflow-hidden rounded-lg bg-neutral-100">
+                <GecGorsel src={image} sizes="(min-width: 640px) 104px, 56px" className="rounded-lg object-cover" />
               </div>
             </div>
           ) : (
             // Banner dosyası (public/banners) yerel statik dosya: olduğu gibi (saydam PNG/WebP olabilir)
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt="" loading="lazy" decoding="async" className="animate-float h-full w-full object-contain" />
+            <img src={image} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
           )}
         </div>
-      ) : null}
-
-      <div className={`pointer-events-none absolute -right-6 -bottom-6 flex h-32 w-32 items-center justify-center rounded-full bg-white/10 ${image ? "sm:hidden" : ""}`}>
-        <div className="animate-float flex h-[88px] w-[88px] items-center justify-center rounded-full bg-white/15">
-          <Icon className="h-10 w-10 text-white" aria-hidden="true" />
-        </div>
-      </div>
+      )}
     </Link>
   );
 }

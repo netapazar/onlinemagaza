@@ -109,10 +109,6 @@ body {
   70% { transform: scale(0.94); }
   100% { transform: scale(1); }
 }
-@keyframes float-soft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
 @keyframes shimmer {
   100% { transform: translateX(100%); }
 }
@@ -123,7 +119,6 @@ body {
 
 .animate-fade-slide { animation: fade-slide-in 400ms ease-out both; }
 .animate-cart-bump { animation: cart-bump 350ms ease-out; }
-.animate-float { animation: float-soft 7s ease-in-out infinite; }
 .animate-pop { animation: pop-in 200ms ease-out both; }
 
 /* Bölüm girişi: JS yoksa/ilk ekrandaysa HİÇ gizlenmez (bkz. components/Reveal.tsx); yalnız ekran dışındaki bölümler
@@ -186,7 +181,7 @@ a.member-hint:hover {
    kalsın diye yükseklik iki satıra sabit (2 × 15 px). Kilitsiz kısa metin ("Kurumsal fiyat: giriş yapın"); ölçüm: 320 px'te
    içerik alanı 118 px, en uzun kelime grubu bir satıra sığıyor → en fazla iki satır.
    Geniş kartta (≥ 205 px) tek satır, 11 px, kilitli tam metin (en uzunu 183 px).
-   Satın alma satırı: dar kartta adet seçici üstte, "Sepete Ekle" altında tam genişlikte. */
+   Satın alma satırı: dar kartta adet seçici üstte, "Sepete Ekle" altında tam genişlikte; ikisi de en az 40 px yüksek. */
 .mh-kisa {
   display: none;
 }
@@ -217,10 +212,17 @@ a.member-hint:hover {
     flex: 1 1 auto;
     min-width: 0;
   }
+  /* Dokunma hedefi en az 40 × 40 px (DESIGN.md / Duyarlı davranış, 2026-10-13): − / + ve "Sepete Ekle". Kuralı bütün dar
+     kartlar aynı aldığı için kart hizası bozulmaz. */
+  .kart-adet button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 16px;
+  }
   .kart-sepete-ekle {
     flex: none;
     width: 100%;
-    padding-block: 0.5rem;
+    min-height: 40px;
   }
 }
 span.member-hint {

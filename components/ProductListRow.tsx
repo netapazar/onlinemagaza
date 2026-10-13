@@ -42,7 +42,7 @@ export default function ProductListRow({
 
       <div className="min-w-0 flex-1">
         <Link href={href}>
-          {product.brandName && <span className="text-xs text-neutral-400">{product.brandName}</span>}
+          {product.brandName && <span className="text-xs text-neutral-500">{product.brandName}</span>}
           <p className="truncate text-sm font-medium text-neutral-900">{product.name}</p>
         </Link>
         {product.shortDescription && (

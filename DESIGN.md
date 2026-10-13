@@ -306,7 +306,7 @@ Köşe yarıçapları: etiket 4 px · düğme / giriş alanı 8 px · kart 12 px
 | `sm` | ≥ 640 px | Kategori satırı ve duyuru çubuğunun sağ tarafı görünür; ürün sayfası iki sütun |
 | `lg` | ≥ 1024 px | Ürün satırında 6 / 4 kart; ürün sayfasında sekmeler görselin altında; sepette yan özet |
 
-- **Dokunma hedefi** en az 40 × 40 px. Kart içindeki küçük adet düğmeleri bu kurala uymuyor (bkz. Mevcut Sapmalar).
+- **Dokunma hedefi** en az 40 × 40 px. Ürün kartında telefonda (dar kart) "−", "+" ve "Sepete Ekle" 40 px; geniş kartta (masaüstü, fare) küçük adet seçici kalır.
 - Mobilde hiçbir sayfa yatay kaydırma üretmez (`scrollWidth = innerWidth`).
 - Mobilde uzun satırlar iki kata bölünür, metin kesilmez (bkz. sepet satırı).
 - **Hız sınırı:** mobil tam yükleme 2,15 sn'yi geçmez. Yeni görsel ya da yazı tipi ağırlığı eklerken ölçülür.
@@ -332,14 +332,14 @@ Kod bu dosyanın gerisinde kalan yerler. Tasarım turunda sırayla ele alınacak
 | # | Yer | Sapma | Kural |
 |---|---|---|---|
 | 1 | `SectionHeading.tsx` | Petrol çubuk + ikon (7 Ekim kararı 2026-10-13'te geçersiz sayıldı) — **düzeltildi** (dal `tasarim-sapmalari`) | 7.1 |
-| 2 | `HeroSlider.tsx` | "• B2B Tedarik Platformu" noktalı hap | 7.2 |
-| 3 | `HeroSlider.tsx`, `PromoBanner.tsx`, `ProductCollage.tsx` | Mobilde fotoğraf yerine yarı saydam daireler + genel ikonlar; sürekli yüzen `animate-float` | 7.3, 6 |
+| 2 | `HeroSlider.tsx` | "• B2B Tedarik Platformu" noktalı hap — **kaldırıldı** (dal `son-sapmalar`) | 7.2 |
+| 3 | `HeroSlider.tsx`, `PromoBanner.tsx`, `ProductCollage.tsx` | Mobilde fotoğraf yerine yarı saydam daireler + genel ikonlar; sürekli yüzen `animate-float` — **düzeltildi**: mobil hero altında 3 ürün fotoğrafı, yan kartlarda ürün fotoğrafı, `animate-float` silindi (dal `son-sapmalar`) | 7.3, 6 |
 | 4 | `HeroSection.tsx` → `PromoBanner` | "Toplu Alım" kartı amber-600 zemin üstünde beyaz yazı (2,8:1) — **giderildi**: kart artık koyu petrol "Yeni Eklenenler" kısayolu (dal `tasarim-sapmalari`) | 2, 7.8 |
 | 5 | `ProductCard.tsx`, liste sayfaları | "En az Adet" (sayısız) ve her kartta "KDV Dahil" etiketi; liste sayfasında tek KDV notu yok — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Rozetler, 7.7 |
 | 6 | `ProductCard.tsx` + `MemberHint` | Her kartta kenarlıklı "Kurumsal fiyat için giriş yapın" düğmesi (tek satırlık bağlantı olmalı) — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Ürün kartı, 7.5 |
 | 7 | Ana sayfa | Büyük üyelik mesajı hero + yan kart + avantaj şeridinde tekrar — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Üyelik mesajı, 7.5 |
 | 8 | `AudienceSection.tsx` ("Kimlere Hizmet Veriyoruz") | Bilgi vermeyen ikon + tek satır kartlar — **bölüm kaldırıldı** (dört kartı da üyelik başvurusuna gidiyordu) | 7.6 |
-| 9 | `ProductDetail.tsx`, ürün sayfası | Beyaz blok içinde kenarlı kargo kutusu ve üyelik kutusu (kart içinde kart) | 7.4 |
-| 10 | Kart, marka adı | Marka adı `neutral-400` (2,5:1) | 2 / Kontrast |
-| 11 | `QuantityStepper` `xs` | Kart içi adet düğmeleri 40 px'in altında | 8 |
+| 9 | `ProductDetail.tsx`, ürün sayfası | Beyaz blok içinde kenarlı kargo kutusu ve üyelik kutusu (kart içinde kart) — **düzeltildi**: ince ayraçla ayrılan düz bölümler (dal `son-sapmalar`) | 7.4 |
+| 10 | Kart, marka adı | Marka adı `neutral-400` (2,5:1) — **düzeltildi**: `neutral-500` (4,7:1) kart, liste satırı, ürün sayfası, arama önerisi, Sık Aldıklarım (dal `son-sapmalar`) | 2 / Kontrast |
+| 11 | `QuantityStepper` `xs` | Kart içi adet düğmeleri 40 px'in altında — **düzeltildi**: dar kartta 40 × 40 px (dal `son-sapmalar`) | 8 |
 | 12 | Kategori satırı | 1280 px'te yine taşıyor, "Kurumsal Üyelik" ok düğmesinin arkasında (1440'ta sığıyor) — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Gezinme, 7.10 |

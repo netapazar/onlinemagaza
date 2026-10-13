@@ -116,7 +116,7 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
                         )}
                       </div>
                       <div className="min-w-0">
-                        {s.brandName && <p className="truncate text-xs text-neutral-400">{s.brandName}</p>}
+                        {s.brandName && <p className="truncate text-xs text-neutral-500">{s.brandName}</p>}
                         <p className="truncate text-sm text-neutral-800">{s.name}</p>
                       </div>
                     </Link>
