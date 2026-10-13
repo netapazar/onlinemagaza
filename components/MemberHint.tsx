@@ -13,18 +13,18 @@ export function MemberHintProvider({ kind, children }: { kind: MemberHintKind; c
   return <MemberHintContext.Provider value={kind}>{children}</MemberHintContext.Provider>;
 }
 
-// kisa: dar ürün kartında (< 200 px) gösterilen kısa metin — tam metin orada tek satıra sığmıyor (globals.css, @container).
+// kisa: dar ürün kartında (< 205 px) gösterilen kısa metin — tam metin orada tek satıra sığmıyor (globals.css, @container).
 export function corporateHintFor(kind: MemberHintKind): { text: string; kisa: string; href: string | null } | null {
   switch (kind) {
     case "approved":
       return null;
     case "guest":
-      return { text: "Kurumsal fiyat için giriş yap", kisa: "Kurumsal fiyat: giriş yap", href: "/uyelik/giris" };
+      return { text: "Kurumsal fiyat için giriş yapın", kisa: "Kurumsal fiyat: giriş yapın", href: "/uyelik/giris" };
     case "pending":
       return { text: "Kurumsal başvurunuz inceleniyor", kisa: "Başvurunuz inceleniyor", href: null };
     case "rejected":
     case "no_application":
-      return { text: "Kurumsal fiyat için başvuru yap", kisa: "Kurumsal fiyat: başvur", href: "/hesabim/uyelik-basvurusu" };
+      return { text: "Kurumsal fiyat için başvuru yapın", kisa: "Kurumsal fiyat: başvurun", href: "/hesabim/uyelik-basvurusu" };
   }
 }
 

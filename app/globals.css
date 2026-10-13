@@ -181,12 +181,13 @@ a.member-hint {
 a.member-hint:hover {
   text-decoration: underline;
 }
-/* Ürün kartında tek satır kuralı: kart 200 px'ten darsa (mobil ızgara, 1280'de ana sayfa satırı) tam metin sığmıyor →
-   kilitsiz, 10,5 px kısa metin. Kart @container/urun-karti (ProductCard). 320 px telefonda bile tek satır. */
+/* Ürün kartında tek satır kuralı (ölçüm 2026-10-13, Plus Jakarta Sans): en uzun tam metin 11 px + kilit = 183 px → kart en az
+   205 px olmalı. Daha dar kartta (mobil ızgara, 1280'de ana sayfa satırı) kilitsiz 10,5 px kısa metin (en uzunu 122 px);
+   145 px'ten dar kartta (320 px telefon) 10 px (116 px; içerik alanı 118 px). Kart @container/urun-karti (ProductCard). */
 .mh-kisa {
   display: none;
 }
-@container urun-karti (max-width: 199px) {
+@container urun-karti (max-width: 204px) {
   .member-hint {
     font-size: 10.5px;
   }
@@ -198,6 +199,11 @@ a.member-hint:hover {
   }
   .mh-kisa {
     display: inline;
+  }
+}
+@container urun-karti (max-width: 144px) {
+  .member-hint {
+    font-size: 10px;
   }
 }
 span.member-hint {

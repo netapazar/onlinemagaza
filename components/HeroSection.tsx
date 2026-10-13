@@ -10,7 +10,10 @@ function slideModeFor(status: MembershipStatus): CariHesapSlideMode {
   switch (status.kind) {
     case "guest":
       return "apply-guest";
+    // Başvurusu yarım kalan hesap üst bilgideki hatırlatma bandını zaten görüyor (MembershipReminderBanner) — aynı sayfada
+    // ikinci büyük üyelik mesajı olmasın diye hero'daki üyelik slaydı ona gösterilmez (kullanıcı kararı 2026-10-13).
     case "no_application":
+      return "hidden";
     case "rejected":
       return "apply-account";
     case "pending":

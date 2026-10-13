@@ -4,6 +4,7 @@ import SectionHeading from "@/components/SectionHeading";
 import type { StorefrontProductSummary } from "@/lib/search";
 import ProductCard from "@/components/ProductCard";
 import ScrollRow from "@/components/ScrollRow";
+import KdvNotu from "@/components/KdvNotu";
 
 // Tailwind sınıfları derlemede taranır; dinamik birleştirme yerine tam sınıf adları.
 const LG_WIDTH = { 4: "lg:w-[calc((100%-36px)/4)]", 6: "lg:w-[calc((100%-60px)/6)]" } as const;
@@ -15,6 +16,7 @@ export default function ProductRow({
   viewAllHref,
   perRow = 6,
   oklar = false,
+  kdvNotu = false,
 }: {
   title: string;
   products: StorefrontProductSummary[];
@@ -24,6 +26,8 @@ export default function ProductRow({
   perRow?: 4 | 6;
   /** Taşan satırda Markalar şeridindeki gibi sol/sağ ok düğmeleri (ScrollRow). */
   oklar?: boolean;
+  /** Ana sayfada fiyat gösteren İLK ürün satırında başlığın altında bir kez "Tüm fiyatlara KDV dahildir." (DESIGN.md / KDV kuralı). */
+  kdvNotu?: boolean;
 }) {
   if (products.length === 0) return null;
 
@@ -38,7 +42,10 @@ export default function ProductRow({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <SectionHeading title={title} />
+        <div>
+          <SectionHeading title={title} />
+          {kdvNotu && <KdvNotu className="mt-1" />}
+        </div>
         {viewAllHref && (
           <Link
             href={viewAllHref}

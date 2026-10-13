@@ -43,6 +43,7 @@ export default async function Home() {
           products={bestSellers}
           memberDiscountPercent={memberDiscountPercent}
           viewAllHref="/urunler"
+          kdvNotu
         />
       </div>
     </Reveal>
@@ -100,6 +101,7 @@ export default async function Home() {
                   products={newArrivals}
                   memberDiscountPercent={memberDiscountPercent}
                   viewAllHref="/urunler?sirala=yeni"
+                  kdvNotu={!bestSellersRow}
                 />
               </div>
             </Reveal>

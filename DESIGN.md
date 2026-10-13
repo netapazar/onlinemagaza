@@ -157,7 +157,8 @@ Sitenin en çok tekrar eden parçası. Amaç, yan yana kartlarda **her satırın
 - **İç boşluk:** 10 px (`p-2.5`).
 - **Favori:** sağ üstte yuvarlak beyaz düğme; masaüstünde yalnız üzerine gelince, mobilde her zaman görünür.
 - **Stok yoksa:** düğme yerine düz metin "Stokta yok". Rozet kullanılmaz.
-- **Kurumsal fiyat bağlantısı (karar 2026-10-13):** Onaylı üye olmayan ziyaretçide fiyatın hemen altında **tek satırlık küçük bir bağlantı** durur: "Kurumsal fiyat için giriş yap". 12 px, petrol metin, düğme değil, kenarlığı ya da zemini yok. Giriş yapmış ama onaysız kullanıcıda aynı yerde durumuna uygun tek satır yazılır. Onaylı üyede hiç görünmez.
+- **Kurumsal fiyat bağlantısı (karar 2026-10-13):** Onaylı üye olmayan ziyaretçide fiyatın hemen altında **tek satırlık küçük bir bağlantı** durur: "Kurumsal fiyat için giriş yapın". 11 px, petrol metin, kilit ikonu; düğme değil, kenarlığı ya da zemini yok. Giriş yapmış ama onaysız kullanıcıda aynı yerde durumuna uygun tek satır yazılır ("Kurumsal fiyat için başvuru yapın", "Kurumsal başvurunuz inceleniyor"). Onaylı üyede hiç görünmez.
+  - **Tek satır her genişlikte korunur:** Kart 205 px'ten darsa ikonsuz 10,5 px kısa metin ("Kurumsal fiyat: giriş yapın", "Kurumsal fiyat: başvurun", "Başvurunuz inceleniyor"); 145 px'ten darsa (320 px telefon) 10 px. Metin değişirse genişlik yeniden ölçülür (`app/globals.css` içindeki ölçüm notu).
 - **Büyük üyelik mesajı** (başlıklı, açıklamalı, düğmeli üyelik çağrısı) kartta yer almaz; **bir sayfada yalnız bir kez** görünür (bkz. 4 / Üyelik mesajı).
 
 ### Bölüm başlığı
@@ -184,7 +185,7 @@ Kurallar:
 - Kampanya rozeti gelirse amber zemin + **koyu metin** olur ve sayfadaki 2 amber hakkından sayılır.
 - Etiket **bilgi taşımıyorsa gösterilmez.** "En az Adet" gibi sayısı olmayan etiket yazılmaz; "En az 50 adet" yazılır ya da hiç yazılmaz.
 - Her üründe aynı olan bilgi kartta etiket olmaz.
-- **KDV kuralı (karar 2026-10-13):** "KDV Dahil" ürün kartlarında yazılmaz. Liste sayfalarında (kategori, arama, Çok Satanlar, Yeni Ürünler, Favoriler) başlığın yanında **bir kez** küçük metin olarak yazılır: "Tüm fiyatlara KDV dahildir." Ürün sayfasında fiyatın altında yazmaya devam eder.
+- **KDV kuralı (karar 2026-10-13):** "KDV Dahil" ürün kartlarında yazılmaz. Liste sayfalarında (kategori, arama, Çok Satanlar, Yeni Ürünler, Favoriler) başlığın yanında **bir kez** küçük metin olarak yazılır: "Tüm fiyatlara KDV dahildir." Ana sayfada fiyat gösteren **ilk** ürün satırının başlığı altında bir kez yazılır. Ürün sayfasında fiyatın altında yazmaya devam eder.
 - Hap biçimi yalnız rozet ve filtre çipinde kullanılır. Başında nokta (•) olan hap etiket kullanılmaz.
 
 ### Form ve adet seçici
@@ -206,6 +207,8 @@ Kurumsal üyelik sitenin asıl dönüşüm hedefi; bu yüzden mesaj güçlü ama
 
 - Duyuru çubuğundaki "Kurumsal Üyelik" bağlantısı ve menüdeki bağlantı **gezinme** öğesidir, mesaj sayılmaz.
 - Onaylı üyeye hiçbir üyelik mesajı gösterilmez; başvurusu bekleyene yalnız durum bilgisi gösterilir.
+- Başvurusu yarım kalan hesap (üye olmuş, kurumsal başvuruyu tamamlamamış) her sayfada üst bilginin altındaki hatırlatma bandını görür; bu yüzden ona hero'daki üyelik slaydı gösterilmez — bant o kullanıcı için sayfadaki tek büyük mesajdır.
+- Metinler "siz" diliyle yazılır: "giriş yapın", "başvuru yapın".
 - Aynı ekranda büyük mesaj varken ona benzeyen ikinci bir kutu, kart ya da şerit eklenmez.
 
 ### Gezinme
@@ -327,15 +330,15 @@ Kod bu dosyanın gerisinde kalan yerler. Tasarım turunda sırayla ele alınacak
 
 | # | Yer | Sapma | Kural |
 |---|---|---|---|
-| 1 | `SectionHeading.tsx` | Petrol çubuk + ikon (7 Ekim kararı 2026-10-13'te geçersiz sayıldı) | 7.1 |
+| 1 | `SectionHeading.tsx` | Petrol çubuk + ikon (7 Ekim kararı 2026-10-13'te geçersiz sayıldı) — **düzeltildi** (dal `tasarim-sapmalari`) | 7.1 |
 | 2 | `HeroSlider.tsx` | "• B2B Tedarik Platformu" noktalı hap | 7.2 |
 | 3 | `HeroSlider.tsx`, `PromoBanner.tsx`, `ProductCollage.tsx` | Mobilde fotoğraf yerine yarı saydam daireler + genel ikonlar; sürekli yüzen `animate-float` | 7.3, 6 |
-| 4 | `HeroSection.tsx` → `PromoBanner` | "Toplu Alım" kartı amber-600 zemin üstünde beyaz yazı (2,8:1) | 2, 7.8 |
-| 5 | `ProductCard.tsx`, liste sayfaları | "En az Adet" (sayısız) ve her kartta "KDV Dahil" etiketi; liste sayfasında tek KDV notu yok | 4 / Rozetler, 7.7 |
-| 6 | `ProductCard.tsx` + `MemberHint` | Her kartta kenarlıklı "Kurumsal fiyat için giriş yapın" düğmesi (tek satırlık bağlantı olmalı) | 4 / Ürün kartı, 7.5 |
-| 7 | Ana sayfa | Büyük üyelik mesajı hero + yan kart + avantaj şeridinde tekrar | 4 / Üyelik mesajı, 7.5 |
-| 8 | `AudienceSection.tsx` ("Kimlere Hizmet Veriyoruz") | Bilgi vermeyen ikon + tek satır kartlar | 7.6 |
+| 4 | `HeroSection.tsx` → `PromoBanner` | "Toplu Alım" kartı amber-600 zemin üstünde beyaz yazı (2,8:1) — **giderildi**: kart artık koyu petrol "Yeni Eklenenler" kısayolu (dal `tasarim-sapmalari`) | 2, 7.8 |
+| 5 | `ProductCard.tsx`, liste sayfaları | "En az Adet" (sayısız) ve her kartta "KDV Dahil" etiketi; liste sayfasında tek KDV notu yok — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Rozetler, 7.7 |
+| 6 | `ProductCard.tsx` + `MemberHint` | Her kartta kenarlıklı "Kurumsal fiyat için giriş yapın" düğmesi (tek satırlık bağlantı olmalı) — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Ürün kartı, 7.5 |
+| 7 | Ana sayfa | Büyük üyelik mesajı hero + yan kart + avantaj şeridinde tekrar — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Üyelik mesajı, 7.5 |
+| 8 | `AudienceSection.tsx` ("Kimlere Hizmet Veriyoruz") | Bilgi vermeyen ikon + tek satır kartlar — **bölüm kaldırıldı** (dört kartı da üyelik başvurusuna gidiyordu) | 7.6 |
 | 9 | `ProductDetail.tsx`, ürün sayfası | Beyaz blok içinde kenarlı kargo kutusu ve üyelik kutusu (kart içinde kart) | 7.4 |
 | 10 | Kart, marka adı | Marka adı `neutral-400` (2,5:1) | 2 / Kontrast |
 | 11 | `QuantityStepper` `xs` | Kart içi adet düğmeleri 40 px'in altında | 8 |
-| 12 | Kategori satırı | 1280 px'te yine taşıyor, "Kurumsal Üyelik" ok düğmesinin arkasında (1440'ta sığıyor) | 4 / Gezinme, 7.10 |
+| 12 | Kategori satırı | 1280 px'te yine taşıyor, "Kurumsal Üyelik" ok düğmesinin arkasında (1440'ta sığıyor) — **düzeltildi** (dal `tasarim-sapmalari`) | 4 / Gezinme, 7.10 |
