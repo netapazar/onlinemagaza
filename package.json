@@ -9,6 +9,7 @@
     "check:schema-sync": "node scripts/check-schema-sync.mjs",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test lib/*.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
