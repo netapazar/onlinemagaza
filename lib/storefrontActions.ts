@@ -17,6 +17,7 @@ import {
   type SearchSuggestion,
 } from "@/lib/search";
 import { isDemoMode, demoProductsByIds } from "@/lib/demoData";
+import { grupBaglantilariniUygula } from "@/lib/urunGrubu";
 
 const SUGGESTION_LIMIT = 6;
 
@@ -31,6 +32,8 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
   return products.slice(0, SUGGESTION_LIMIT).map((p) => ({
     id: p.id,
     slug: p.slug,
+    // Varyant (2026-10): liste grubu tek kartta birleştirdiği için öneri de grup adını ve adresini (bulunan üyenin seçimiyle) taşır.
+    href: p.href,
     name: p.name,
     brandName: p.brandName,
     coverImageUrl: p.coverImageUrl,
@@ -54,7 +57,10 @@ export async function getStorefrontProductsByIds(ids: string[]): Promise<Storefr
   );
   const byId = new Map(products.map((p) => [p.id, p]));
   // Not: eskiden `.map(toSummary)` idi — map'in sıra numarası fiyat artış oranı yerine geçiyordu; oran açıkça veriliyor.
-  return ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent));
+  // Favori üye bazlı kalır (varyant, 2026-10); grup üyesinin kartı grup adresine (+ seçim) gider.
+  return grupBaglantilariniUygula(
+    ids.map((id) => byId.get(id)).filter((p) => p !== undefined).map((p) => toSummary(p, markupPercent))
+  );
 }
 
 export async function getMemberDiscountPercentAction(): Promise<number | null> {

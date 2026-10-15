@@ -5,6 +5,7 @@ import { useState } from "react";
 import { HeartIcon, CartIcon, CheckIcon, TrendUpIcon } from "@/components/icons";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
+import { urunHref } from "@/lib/seo";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 import { QuantityStepper } from "@/components/QuantityStepper";
@@ -34,7 +35,7 @@ export default function ProductCard({
 }) {
   const imagesReady = useImagesReady(deferImage);
   const price = resolvePrice(product, memberDiscountPercent);
-  const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
+  const href = urunHref(product);
   const { addItem } = useCart();
   const { isFavorite, toggle } = useFavorites();
   const [quantity, setQuantity] = useState(1);
@@ -42,9 +43,14 @@ export default function ProductCard({
   // Paketli satış: karttan hızlı eklemede en küçük açık birim kullanılır (diğer birimler ürün sayfasında).
   const enKucukBirim = product.satisBirimleri?.[0] ?? null;
   const icerik = enKucukBirim?.adet ?? 1;
-  const inStock = product.stock >= icerik;
+  // Grup kartı (varyant, 2026-10): stok = grubun herhangi bir görünür üyesi satılabilir mi.
+  const grup = product.grup;
+  const inStock = grup ? grup.stoktaVar : product.stock >= icerik;
   const favorite = isFavorite(product.id);
-  const etiket = enKucukBirim
+  // Grup kartında etiket satırı seçenek sayısı ("11 renk").
+  const etiket = grup
+    ? grup.secenekEtiketi
+    : enKucukBirim
     ? enKucukBirim.adet > 1
       ? `En az ${enKucukBirim.adet} adet`
       : null
@@ -113,20 +119,30 @@ export default function ProductCard({
 
       {/* Alt blok: fiyat (+ onaysız ziyaretçide altında tek satırlık kurumsal fiyat bağlantısı) · adet + Sepete Ekle. */}
       <div className="flex flex-1 flex-col gap-1.5 p-2.5 pt-1.5">
-        <div className="mt-auto">
-          <div className="flex items-baseline gap-2">
+        {/* Grup kartında boşluk fiyatın değil bağlantının üstünde toplanır: düğme alanı kısa olduğu halde fiyat ve düğme
+            alt kenarı yandaki kartlarla aynı hizada kalır. */}
+        <div className={grup ? undefined : "mt-auto"}>
+          <div className="flex flex-wrap items-baseline gap-x-2">
             {price.discounted && (
               <span className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</span>
             )}
             <span className="text-base font-extrabold text-[var(--color-brand)]">
-              {centsToTl(price.displayCents)} ₺
+              {centsToTl(price.displayCents)} ₺{grup?.fiyatFarkli && "'den"}
               {enKucukBirim && <span className="ml-0.5 text-[11px] font-normal text-neutral-500">/ adet</span>}
             </span>
           </div>
           <CorporatePriceHint className="mt-0.5" kisaltilabilir />
         </div>
 
-        {inStock ? (
+        {grup && inStock ? (
+          // Grup kartı: hangi renk/ebatın ekleneceği seçilmeden sepete eklenmez — seçenekler grup sayfasında.
+          <Link
+            href={href}
+            className="mt-auto flex min-h-10 items-center justify-center rounded-lg bg-[var(--color-brand)] px-1.5 py-1.5 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 hover:bg-[var(--color-brand-hover)] active:scale-95 @[205px]/urun-karti:min-h-0"
+          >
+            Seçenekleri Gör
+          </Link>
+        ) : inStock ? (
           // Dar kartta (< 205 px) adet seçici üstte, "Sepete Ekle" altında tam genişlikte (globals.css .kart-satin-al) — yan yana
           // dururken telefonda düğme yazısı kesiliyordu ("epete Ek"). Yazı kısaltılmaz.
           <div className="kart-satin-al flex items-stretch gap-1.5">

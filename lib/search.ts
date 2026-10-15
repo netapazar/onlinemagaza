@@ -8,6 +8,8 @@ import { getBestSellerRanking } from "@/lib/bestSellerRanking";
 import { expandTurkishIVariants } from "@/lib/turkishSearch";
 import { trTitle } from "@/lib/text";
 import { eticaretStokuUygula } from "@/lib/depoStok";
+import { GORUNUR_GRUP, grupBaglantilariniUygula } from "@/lib/urunGrubu";
+import { grupYolu, secenekEtiketi, secimSorgusu, varsayilanIndeks } from "@/lib/urunGrubuCore";
 import {
   isDemoMode,
   demoListStorefrontProducts,
@@ -24,6 +26,8 @@ export type StorefrontProductSummary = {
   id: string;
   slug: string | null;
   name: string;
+  // Barkod: Ana Depo stoğu ve Ürün Grubu üyeliği barkodla eşleşir (varyant, 2026-10).
+  barcode: string;
   salePriceCents: number;
   onlinePriceCents: number | null;
   // Artış oranı uygulanmış, 50 kuruşa yuvarlanmış nihai liste fiyatı (KDV dahil,
@@ -45,6 +49,13 @@ export type StorefrontProductSummary = {
   categoryId: string | null;
   // Kart rozeti (tasarım turu 2026-10, kullanıcı kararı: kartta yalnız "Çok Satan" rozeti): sıralamada yayındaki ilk 10 ürün.
   cokSatan?: boolean;
+  // Varyant (Ürün Grubu, 2026-10): ürün görünür bir grubun üyesiyse kartın bağlantısı grup adresi (+ seçim parametreleri).
+  // Boşsa kart ürünün kendi adresine gider (bkz. lib/seo.ts urunHref).
+  href?: string;
+  // Liste kartı bir GRUBU temsil ediyorsa (ürün listesi/kategori/arama — üyeler tek kart): ad/kapak/fiyat gruptan, fiyat en
+  // düşük üyenin fiyatı (fiyatFarkli ise "… ₺'den"), kartta sepete ekleme yerine seçenekleri gösteren bağlantı. id/favori
+  // temsil eden üyeninkidir (aramada bulunan üye, yoksa grubun varsayılan üyesi).
+  grup?: { secenekEtiketi: string | null; fiyatFarkli: boolean; stoktaVar: boolean };
 };
 
 export const BASE_SELECT = {
@@ -72,6 +83,7 @@ export function toSummary(
     id: string;
     slug: string | null;
     name: string;
+    barcode: string;
     salePriceCents: number;
     onlinePriceCents: number | null;
     shortDescription: string | null;
@@ -91,6 +103,7 @@ export function toSummary(
     id: p.id,
     slug: p.slug,
     name: p.name,
+    barcode: p.barcode,
     salePriceCents: p.salePriceCents,
     onlinePriceCents: p.onlinePriceCents,
     listPriceCents: computeListPriceCents(p, markupPercent),
@@ -144,6 +157,18 @@ function sortSummaries(products: StorefrontProductSummary[], sort?: StorefrontSo
 // `word_similarity(kelime, ad)` ise kelimenin ad içindeki EN İYİ eşleşen alt
 // dizeyle kıyaslanmasını sağlıyor, kısa kelime/uzun metin senaryosu için
 // doğru araç bu. Sonuç, en iyi benzerlik skoruna göre sıralanıyor.
+// Ürünün görünür Ürün Grubu (varyant, 2026-10) — barkod UrunGrubuUyesi'nde tekil olduğu için satır çoğalmaz.
+const GRUP_JOIN = Prisma.sql`
+    LEFT JOIN "UrunGrubuUyesi" gu ON gu.barcode = p.barcode
+    LEFT JOIN "UrunGrubu" g ON g.id = gu."grupId" AND g."showOnStorefront" = true AND g."archivedAt" IS NULL`;
+
+// Kategori süzgeci: ürünün kendi kategorisi ya da (görünür grubun üyesiyse) grubun site kategorisi.
+function kategoriKosulu(categoryIds?: string[]) {
+  return categoryIds
+    ? Prisma.sql`AND (p."categoryId" IN (${Prisma.join(categoryIds)}) OR g."categoryId" IN (${Prisma.join(categoryIds)}))`
+    : Prisma.empty;
+}
+
 async function fuzzyMatchProductIds(
   storeId: string,
   query: string,
@@ -165,6 +190,11 @@ async function fuzzyMatchProductIds(
       Prisma.sql`p."searchKeywords" ILIKE ${"%" + v + "%"}`,
       Prisma.sql`p.features::text ILIKE ${"%" + v + "%"}`,
       Prisma.sql`word_similarity(${v}, p.name) > 0.4`,
+      // Varyant (2026-10): görünür Ürün Grubu üyesinde grubun adı/arama kelimeleri ve üyenin eksen değeri de aranır
+      // ("matara mor" → mor matara üyesi). g yalnız görünür grupta dolu (LEFT JOIN koşulu).
+      Prisma.sql`g.ad ILIKE ${"%" + v + "%"}`,
+      Prisma.sql`g."searchKeywords" ILIKE ${"%" + v + "%"}`,
+      Prisma.sql`(g.id IS NOT NULL AND (gu."eksen1Deger" ILIKE ${"%" + v + "%"} OR gu."eksen2Deger" ILIKE ${"%" + v + "%"}))`,
     ]);
     return Prisma.sql`(${Prisma.join(fragments, " OR ")})`;
   });
@@ -174,15 +204,17 @@ async function fuzzyMatchProductIds(
       GREATEST(
         word_similarity(${query}, p.name),
         word_similarity(${query}, coalesce(b.name, '')),
+        word_similarity(${query}, coalesce(g.ad, '')),
         0
       ) AS rank
     FROM "Product" p
     LEFT JOIN "Brand" b ON b.id = p."brandId"
     LEFT JOIN "Category" c ON c.id = p."categoryId"
+    ${GRUP_JOIN}
     WHERE p."storeId" = ${storeId}
       AND p."showOnStorefront" = true
       AND p."archivedAt" IS NULL
-      ${categoryIds ? Prisma.sql`AND p."categoryId" IN (${Prisma.join(categoryIds)})` : Prisma.empty}
+      ${kategoriKosulu(categoryIds)}
       AND (${Prisma.join(keywordConditions, " AND ")})
     ORDER BY rank DESC
     LIMIT 50
@@ -205,10 +237,11 @@ async function exactCodeMatchProductIds(storeId: string, query: string, category
   const rows = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
     SELECT p.id
     FROM "Product" p
+    ${GRUP_JOIN}
     WHERE p."storeId" = ${storeId}
       AND p."showOnStorefront" = true
       AND p."archivedAt" IS NULL
-      ${categoryIds ? Prisma.sql`AND p."categoryId" IN (${Prisma.join(categoryIds)})` : Prisma.empty}
+      ${kategoriKosulu(categoryIds)}
       AND (
         ltrim(p.barcode, '0') = ${sifirsiz}
         OR lower(translate(coalesce(p."productCode", ''), 'İIı', 'iii')) = lower(translate(${q}, 'İIı', 'iii'))
@@ -279,6 +312,16 @@ export async function listStorefrontProducts(options: {
     summaries = products.map((p) => toSummary(p, markupPercent));
   }
 
+  // Varyant (2026-10): görünür grubun üyeleri TEK kart olur — sayfalama/toplam sayı grubu bir ürün sayar. Marka/fiyat
+  // süzgeci ve sıralama bu yüzden daraltmadan SONRA, kartın (grubun) değerleriyle çalışır: fiyat = en düşük üye fiyatı.
+  summaries = await gruplariDaralt(await cokSatanIsaretle(summaries), {
+    storeId,
+    markupPercent,
+    categoryIds,
+    arama: Boolean(options.query),
+    sort: options.sort,
+  });
+
   // Marka/fiyat aralığı filtreleri — küçük katalog boyutunda DB'den sonra
   // JS'te filtrelemek raw SQL'e gerek bırakmıyor, ölçek büyürse burası
   // doğrudan sorguya taşınabilir.
@@ -297,7 +340,134 @@ export async function listStorefrontProducts(options: {
     summaries = sortSummaries(summaries, options.sort);
   }
 
-  return cokSatanIsaretle(summaries);
+  return summaries;
+}
+
+// Varsayılan liste sırası (DB'deki orderBy ile aynı anlam): storefrontSortOrder artan (boşlar sonda), sonra ad.
+function varsayilanSiraKarsilastir(a: StorefrontProductSummary, b: StorefrontProductSummary): number {
+  const sa = a.storefrontSortOrder ?? Number.POSITIVE_INFINITY;
+  const sb = b.storefrontSortOrder ?? Number.POSITIVE_INFINITY;
+  if (sa !== sb) return sa < sb ? -1 : 1;
+  return a.name.localeCompare(b.name, "tr");
+}
+
+// Ürün listesinde görünür Ürün Grubu üyelerini tek grup kartında birleştirir (varyant, 2026-10). Ek sorgu: grup bilgisi
+// (barkodla, tek sorgu) + listede olmayan görünür üyeler (aramada/kategoride yalnız bir kısmı bulunduysa; fiyat aralığı,
+// stok ve seçenek sayısı grubun TÜM görünür üyeleriyle hesaplanır) + onların Ana Depo stoğu. Grup yoksa tek sorgu.
+// Kart sırası: üyelerden listede ilk görüneninin yeri (aramada en iyi eşleşme, varsayılan sırada en öndeki üye).
+// Kategori: grubun site kategorisi doluysa o geçerli — üye başka kategorideyse de kart grubun kategorisinde görünür,
+// grubun kategorisi süzgeç dışındaysa üye bu listeden çıkar. Arama bir üyeyi bulduysa kart o üyenin seçimiyle açılır.
+async function gruplariDaralt(
+  liste: StorefrontProductSummary[],
+  o: { storeId: string; markupPercent: number; categoryIds?: string[]; arama: boolean; sort?: StorefrontSort }
+): Promise<StorefrontProductSummary[]> {
+  const kategoriyleEkle = o.categoryIds && !o.arama;
+  if (liste.length === 0 && !kategoriyleEkle) return liste;
+  const gruplar = await prisma.urunGrubu.findMany({
+    where: {
+      ...GORUNUR_GRUP,
+      OR: [
+        { uyeler: { some: { barcode: { in: liste.map((p) => p.barcode) } } } },
+        ...(kategoriyleEkle ? [{ categoryId: { in: o.categoryIds! } }] : []),
+      ],
+    },
+    select: {
+      id: true,
+      ad: true,
+      slug: true,
+      eksen1Ad: true,
+      eksen2Ad: true,
+      shortDescription: true,
+      categoryId: true,
+      storefrontSortOrder: true,
+      brand: { select: { id: true, name: true } },
+      gorseller: { orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }], take: 1, select: { url: true } },
+      uyeler: {
+        orderBy: [{ sira: "asc" }, { createdAt: "asc" }],
+        select: { barcode: true, eksen1Deger: true, eksen2Deger: true, varsayilan: true },
+      },
+    },
+  });
+  if (gruplar.length === 0) return liste;
+
+  const byBarcode = new Map(liste.map((p) => [p.barcode, p]));
+  const eksik = gruplar.flatMap((g) => g.uyeler.map((u) => u.barcode)).filter((b) => !byBarcode.has(b));
+  if (eksik.length > 0) {
+    const ek = await eticaretStokuUygula(
+      prisma,
+      await prisma.product.findMany({
+        where: { storeId: o.storeId, showOnStorefront: true, archivedAt: null, barcode: { in: [...new Set(eksik)] } },
+        select: BASE_SELECT,
+      })
+    );
+    for (const p of await cokSatanIsaretle(ek.map((r) => toSummary(r, o.markupPercent)))) byBarcode.set(p.barcode, p);
+  }
+
+  type Grup = (typeof gruplar)[number];
+  const grupByBarcode = new Map<string, Grup>();
+  for (const g of gruplar) for (const u of g.uyeler) grupByBarcode.set(u.barcode, g);
+  const kategoriDisi = (g: Grup) => Boolean(o.categoryIds && g.categoryId && !o.categoryIds.includes(g.categoryId));
+
+  const kart = (g: Grup, bulunanBarkod: string | null): StorefrontProductSummary | null => {
+    const eksenler = { eksen1Ad: g.eksen1Ad, eksen2Ad: g.eksen2Ad?.trim() || null };
+    const uyeler = g.uyeler.flatMap((u) => {
+      const p = byBarcode.get(u.barcode);
+      return p ? [{ u: { ...u, eksen2Deger: u.eksen2Deger?.trim() || null }, p, satilabilir: satilabilir(p) }] : [];
+    });
+    if (uyeler.length === 0) return null;
+    const varsayilan = uyeler[varsayilanIndeks(uyeler.map((x) => ({ ...x.u, satilabilir: x.satilabilir })))];
+    const temsil = (bulunanBarkod && uyeler.find((x) => x.u.barcode === bulunanBarkod)) || varsayilan;
+    const enUcuz = uyeler.reduce((a, b) => (b.p.listPriceCents < a.p.listPriceCents ? b : a));
+    const r = temsil.p;
+    return {
+      ...r,
+      slug: g.slug,
+      name: g.ad,
+      salePriceCents: enUcuz.p.salePriceCents,
+      onlinePriceCents: enUcuz.p.onlinePriceCents,
+      listPriceCents: enUcuz.p.listPriceCents,
+      shortDescription: g.shortDescription?.trim() || r.shortDescription,
+      coverImageUrl: g.gorseller[0]?.url ?? varsayilan.p.coverImageUrl ?? r.coverImageUrl,
+      brandId: g.brand?.id ?? r.brandId,
+      brandName: g.brand?.name ?? r.brandName,
+      categoryId: g.categoryId ?? r.categoryId,
+      storefrontSortOrder: g.storefrontSortOrder ?? r.storefrontSortOrder,
+      cokSatan: uyeler.some((x) => x.p.cokSatan) || undefined,
+      href: grupYolu(g.slug, bulunanBarkod ? secimSorgusu(eksenler, temsil.u) : undefined),
+      grup: {
+        secenekEtiketi: secenekEtiketi(eksenler, uyeler.map((x) => x.u)),
+        fiyatFarkli: uyeler.some((x) => x.p.listPriceCents !== enUcuz.p.listPriceCents),
+        stoktaVar: uyeler.some((x) => x.satilabilir),
+      },
+    };
+  };
+
+  const islenen = new Set<string>();
+  const sonuc: StorefrontProductSummary[] = [];
+  for (const p of liste) {
+    const g = grupByBarcode.get(p.barcode);
+    if (!g) {
+      sonuc.push(p);
+      continue;
+    }
+    if (islenen.has(g.id) || kategoriDisi(g)) continue;
+    islenen.add(g.id);
+    const k = kart(g, o.arama ? p.barcode : null);
+    if (k) sonuc.push(k);
+  }
+  // Kategoriye grubun kendi kategorisiyle giren (üyeleri listede olmayan) gruplar: varsayılan sırada yerine, "yeni"de sona.
+  if (kategoriyleEkle) {
+    for (const g of gruplar) {
+      if (islenen.has(g.id) || kategoriDisi(g) || !g.categoryId) continue;
+      islenen.add(g.id);
+      const k = kart(g, null);
+      if (!k) continue;
+      const yer = o.sort === "yeni" ? -1 : sonuc.findIndex((x) => varsayilanSiraKarsilastir(k, x) < 0);
+      if (yer < 0) sonuc.push(k);
+      else sonuc.splice(yer, 0, k);
+    }
+  }
+  return sonuc;
 }
 
 // Kategori ağacı iki seviyeli (ana kategori > alt kategori, 2026-10-07 sanaldepom ağacı). Vitrinde ana kategoriler
@@ -398,29 +568,40 @@ export async function getNewArrivals(limit: number, { yalnizSatilabilir = false 
     secilen.push(...(yalnizSatilabilir ? ozet.filter(satilabilir) : ozet));
     if (products.length < sayfa) break;
   }
-  return cokSatanIsaretle(secilen.slice(0, limit));
+  // Üye bazlı liste (varyant, 2026-10): grup üyesi kendi kartıyla kalır, bağlantısı grup adresine (+ seçim) gider.
+  return grupBaglantilariniUygula(await cokSatanIsaretle(secilen.slice(0, limit)));
 }
 
 // Ürün detay sayfasındaki "Benzer Ürünler" bölümü — aynı kategoriden,
-// mevcut ürün hariç.
+// mevcut ürün hariç. Ürün grubu sayfasında grubun kendi üyeleri de hariç (excludeBarcodes).
 export async function getRelatedProducts(
   categoryId: string | null,
   excludeId: string,
-  limit: number
+  limit: number,
+  excludeBarcodes: string[] = []
 ): Promise<StorefrontProductSummary[]> {
   if (!categoryId) return [];
   if (isDemoMode()) return demoRelatedProducts(categoryId, excludeId, limit);
   const [storeId, markupPercent] = await Promise.all([getOnlineStoreId(), getOnlineFiyatArtisOrani()]);
   // Görselli ürünler önce; görselsiz (yer tutuculu) ürünler yalnız liste dolmazsa ve EN SONDA gösterilir —
   // gerçek fotoğrafların yanında yer tutucu göze batıyordu (tasarım turu 2026-10).
-  const where = { storeId, archivedAt: null, showOnStorefront: true, categoryId, id: { not: excludeId } };
+  const where = {
+    storeId,
+    archivedAt: null,
+    showOnStorefront: true,
+    categoryId,
+    id: { not: excludeId },
+    ...(excludeBarcodes.length > 0 ? { barcode: { notIn: excludeBarcodes } } : {}),
+  };
   const orderBy = [{ storefrontSortOrder: "asc" as const }, { name: "asc" as const }];
   const gorselli = await prisma.product.findMany({ where: { ...where, images: { some: {} } }, select: BASE_SELECT, orderBy, take: limit });
   const gorselsiz =
     gorselli.length < limit
       ? await prisma.product.findMany({ where: { ...where, images: { none: {} } }, select: BASE_SELECT, orderBy, take: limit - gorselli.length })
       : [];
-  return cokSatanIsaretle((await eticaretStokuUygula(prisma, [...gorselli, ...gorselsiz])).map((p) => toSummary(p, markupPercent)));
+  return grupBaglantilariniUygula(
+    await cokSatanIsaretle((await eticaretStokuUygula(prisma, [...gorselli, ...gorselsiz])).map((p) => toSummary(p, markupPercent)))
+  );
 }
 
 // Header'daki yazarken-öneri kutusu için — KASITLI OLARAK fiyat alanı
@@ -431,6 +612,8 @@ export async function getRelatedProducts(
 export type SearchSuggestion = {
   id: string;
   slug: string | null;
+  // Grup kartı ya da grup üyesi: grup adresi (+ bulunan üyenin seçimi). Boşsa ürün adresi.
+  href?: string;
   name: string;
   brandName: string | null;
   coverImageUrl: string | null;
@@ -488,12 +671,15 @@ export async function getBestSellers(limit: number, { yalnizSatilabilir = false 
   );
   const byBarcode = new Map(products.map((p) => [p.barcode, p]));
   // Bu listede rozet işaretlenmez: "Çok Satanlar" başlığı aynı bilgiyi zaten veriyor (her kartta rozet gürültü olurdu).
-  return ranking
-    .map((r) => byBarcode.get(r.barcode))
-    .filter((p) => p !== undefined)
-    .map((p) => toSummary(p, markupPercent))
-    .filter((p) => !yalnizSatilabilir || satilabilir(p))
-    .slice(0, limit);
+  // Üye bazlı liste (varyant, 2026-10): grup üyesi kendi kartıyla kalır, bağlantısı grup adresine (+ seçim) gider.
+  return grupBaglantilariniUygula(
+    ranking
+      .map((r) => byBarcode.get(r.barcode))
+      .filter((p) => p !== undefined)
+      .map((p) => toSummary(p, markupPercent))
+      .filter((p) => !yalnizSatilabilir || satilabilir(p))
+      .slice(0, limit)
+  );
 }
 
 // Anasayfa marka şeridi (kullanıcı kararı 2026-10-07): ELLE tanımlı, tanınırlığa göre sabit 20 markalık sıra — üstte ofis

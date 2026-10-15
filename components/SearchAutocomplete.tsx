@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SearchIcon, SpinnerIcon } from "@/components/icons";
 import { getSearchSuggestions } from "@/lib/storefrontActions";
 import type { SearchSuggestion } from "@/lib/search";
+import { urunHref } from "@/lib/seo";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 
@@ -104,7 +105,7 @@ export default function SearchAutocomplete({ className = "" }: { className?: str
                 {suggestions.map((s) => (
                   <li key={s.id}>
                     <Link
-                      href={s.slug ? `/urun/${s.slug}` : `/urun/id/${s.id}`}
+                      href={urunHref(s)}
                       onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-neutral-50"
                     >

@@ -8,6 +8,7 @@ import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 import type { StorefrontProductSummary } from "@/lib/search";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
+import { urunHref } from "@/lib/seo";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
 
@@ -21,13 +22,15 @@ export default function ProductListRow({
   memberDiscountPercent: number | null;
 }) {
   const price = resolvePrice(product, memberDiscountPercent);
-  const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
+  const href = urunHref(product);
   const { addItem } = useCart();
   const { isFavorite, toggle } = useFavorites();
   const [added, setAdded] = useState(false);
   // Paketli satış: hızlı eklemede en küçük açık birim (1 tane).
   const enKucukBirim = product.satisBirimleri?.[0] ?? null;
-  const inStock = product.stock >= (enKucukBirim?.adet ?? 1);
+  // Grup satırı (varyant, 2026-10): stok = herhangi bir görünür üye satılabilir mi; sepete ekleme yerine seçeneklere bağlantı.
+  const grup = product.grup;
+  const inStock = grup ? grup.stoktaVar : product.stock >= (enKucukBirim?.adet ?? 1);
   const favorite = isFavorite(product.id);
 
   return (
@@ -48,7 +51,9 @@ export default function ProductListRow({
         {product.shortDescription && (
           <p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">{product.shortDescription}</p>
         )}
-        {enKucukBirim ? (
+        {grup ? (
+          grup.secenekEtiketi && <p className="mt-0.5 text-xs text-neutral-500">{grup.secenekEtiketi}</p>
+        ) : enKucukBirim ? (
           enKucukBirim.adet > 1 && <p className="mt-0.5 text-xs text-neutral-500">En az {enKucukBirim.adet} adet</p>
         ) : (
           product.packageInfo && <p className="mt-0.5 text-xs text-neutral-500">{product.packageInfo}</p>
@@ -66,7 +71,8 @@ export default function ProductListRow({
       <div className="shrink-0 text-right">
         {price.discounted && <p className="text-xs text-neutral-400 line-through">{centsToTl(price.listCents)} ₺</p>}
         <p className="text-base font-extrabold text-[var(--color-brand)]">
-          {centsToTl(price.displayCents)} ₺{enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
+          {centsToTl(price.displayCents)} ₺{grup?.fiyatFarkli && "'den"}
+          {enKucukBirim && <span className="text-[11px] font-normal text-neutral-500"> / adet</span>}
         </p>
         <CorporatePriceHint className="mt-0.5 justify-end" />
       </div>
@@ -84,7 +90,14 @@ export default function ProductListRow({
             aria-hidden="true"
           />
         </button>
-        {inStock && (
+        {grup && inStock ? (
+          <Link
+            href={href}
+            className="flex items-center rounded-lg bg-[var(--color-brand)] px-3 py-2 text-xs font-medium whitespace-nowrap text-white transition-all duration-200 hover:bg-[var(--color-brand-hover)] active:scale-95"
+          >
+            Seçenekleri Gör
+          </Link>
+        ) : inStock && (
           <button
             type="button"
             onClick={() => {
