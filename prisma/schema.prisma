@@ -123,6 +123,12 @@ model Store {
   // tüm ürünler otomatik yeni fiyatı yansıtır (sepete eklenen/sipariş edilen kalemler
   // o ANKİ hesaplanan değeri donduruyor, geçmiş siparişler etkilenmez).
   onlineFiyatArtisOrani        Int      @default(0)
+  // Online kargo (2026-10-13, yalnız isOnlineStore satırında anlamlı): KDV dahil kargo ücreti ve ücretsiz kargo eşiği.
+  // kargoUcretiCents NULL = kargo kuralı KAPALI (tüm siparişler ücretsiz; vitrin "tüm siparişlerde ücretsiz" yazar). Ücret
+  // girilince kural açılır: ürün toplamı (KDV dahil, kurumsal indirimli) eşiğe ULAŞAN (>=) sipariş ücretsiz, altı ücretli.
+  // Firma.kargoUcretsiz işaretli firmadan hiç alınmaz. Kural vitrinde tek yerde: magaza-online lib/shipping.ts.
+  kargoUcretiCents             Int?
+  ucretsizKargoEsigiCents      Int      @default(500000)
   createdAt                    DateTime @default(now())
 
   users    User[]
@@ -1301,6 +1307,8 @@ model Firma {
   // firmalarda onlineErisimAktif değerini kopyaladı, davranış değişmedi.
   // Storefront checkout'u ve processCariHesapOrder her ikisini de arıyor.
   onlineCariHesapAktif Boolean @default(false)
+  // Online siparişlerde kargo ücreti alınmaz (2026-10-13; yalnız ADMIN değiştirir). Bkz. Store.kargoUcretiCents.
+  kargoUcretsiz        Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

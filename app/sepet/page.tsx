@@ -10,6 +10,7 @@ import CartCariHesapBox from "@/components/CartCariHesapBox";
 import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
+import UcretsizKargoNotu from "@/components/UcretsizKargoNotu";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> = {
   STOCK: "Stokta yok",
@@ -20,7 +21,7 @@ const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> =
 export default function SepetPage() {
   const { items, updateQuantity, removeItem } = useCart();
   const [lines, setLines] = useState<CartLine[] | null>(null);
-  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0 });
+  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0, ucretsizKargoKalanCents: 0 });
   const [membershipKind, setMembershipKind] = useState<MembershipKind | null>(null);
 
   useEffect(() => {
@@ -157,6 +158,7 @@ export default function SepetPage() {
               <span>Toplam</span>
               <span>{centsToTl(totals.totalCents)} ₺</span>
             </div>
+            <UcretsizKargoNotu kalanCents={totals.ucretsizKargoKalanCents} className="pt-2" />
           </div>
           {checkoutButton}
         </div>

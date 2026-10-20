@@ -5,12 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { eticaretStokuUygula, StokYetersizError } from "@/lib/depoStok";
 import { siparisStokunuDusTx } from "@/lib/siparisStok";
-import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
-import { getMemberDiscountPercent } from "@/lib/memberPricing";
+import { getOnlineStoreId, getOnlineFiyatArtisOrani, getKargoAyari } from "@/lib/onlineStore";
+import { getMemberDiscountPercent, getFirmaKargoUcretsiz } from "@/lib/memberPricing";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { getWebSession } from "@/lib/webSession";
 import { resolvePrice, computeListPriceCents } from "@/lib/pricing";
-import { SHIPPING_COST_CENTS, isBeforeShippingCutoff } from "@/lib/shipping";
+import { kargoHesapla, isBeforeShippingCutoff } from "@/lib/shipping";
 import { notifyOrderPlaced, runAfterResponse } from "@/lib/email/notifications";
 import { consumeIpRateLimit, RATE_LIMIT_MESSAGE, RULES } from "@/lib/rateLimit";
 import { formatAddress, parseAddress } from "@/lib/addressCore";
@@ -69,6 +69,7 @@ export async function getCartDetails(items: CartItemInput[]) {
       subtotalCents: 0,
       shippingCents: 0,
       totalCents: 0,
+      ucretsizKargoKalanCents: 0,
       membershipKind: null as MembershipKind | null,
     };
   }
@@ -76,11 +77,13 @@ export async function getCartDetails(items: CartItemInput[]) {
   // Birbirinden bağımsız iki sorgu ayrı ayrı await ediliyordu (sıralı, toplam
   // gecikme ikisinin toplamıydı) — paralel çalıştırılınca sepet sayfasının/
   // çekmecesinin "Yükleniyor..." süresi gözle görülür şekilde kısalıyor.
-  const [storeId, memberDiscountPercent, membershipStatus, markupPercent] = await Promise.all([
+  const [storeId, memberDiscountPercent, membershipStatus, markupPercent, kargoAyari, firmaKargoUcretsiz] = await Promise.all([
     getOnlineStoreId(),
     getMemberDiscountPercent(),
     getMembershipStatus(),
     getOnlineFiyatArtisOrani(),
+    getKargoAyari(),
+    getFirmaKargoUcretsiz(),
   ]);
 
   // Kasıtlı olarak showOnStorefront/archivedAt'e göre FİLTRELENMİYOR — bir
@@ -137,7 +140,9 @@ export async function getCartDetails(items: CartItemInput[]) {
   // Sadece satın alınabilir satırlar toplama giriyor — satın alınamayan bir
   // satırın fiyatı bilgi amaçlı gösteriliyor ama Ara Toplam'a eklenmiyor.
   const subtotalCents = lines.filter((l) => l.available).reduce((sum, l) => sum + l.lineTotalCents, 0);
-  const shippingCents = lines.some((l) => l.available) ? SHIPPING_COST_CENTS : 0;
+  // Kargo: ürün toplamına (KDV dahil, kurumsal indirimli) göre — sipariş oluştururken aynı fonksiyon (bkz. lib/shipping.ts).
+  const kargo = kargoHesapla(subtotalCents, kargoAyari, firmaKargoUcretsiz);
+  const shippingCents = kargo.kargoCents;
   // membershipKind: sepet sayfasındaki cari hesap tanıtım kutusu için (Grup 4) — yalnız durum türü,
   // firma bilgisi istemciye gitmez.
   return {
@@ -145,6 +150,8 @@ export async function getCartDetails(items: CartItemInput[]) {
     subtotalCents,
     shippingCents,
     totalCents: subtotalCents + shippingCents,
+    /** "Ücretsiz kargo için ___ TL daha ekleyin." — 0 ise mesaj gösterilmez. */
+    ucretsizKargoKalanCents: kargo.kalanCents,
     membershipKind: membershipStatus.kind as MembershipKind | null,
   };
 }
@@ -373,7 +380,10 @@ export async function createOrder(
     return { error: RATE_LIMIT_MESSAGE };
   }
 
-  const shippingCents = SHIPPING_COST_CENTS;
+  // Kargo (2026-10-13): ürün toplamı eşiğe ulaşmadıysa CRM'de girilen kargo ücreti; firma muafsa 0 (bkz. lib/shipping.ts).
+  // Ayar sipariş anında okunur ve siparişe yazılır — sonradan ayar değişse de verilmiş siparişin kargosu değişmez.
+  const kargo = kargoHesapla(subtotalCents, await getKargoAyari(), Boolean(webCustomer?.firma?.onlineErisimAktif && webCustomer.firma.kargoUcretsiz));
+  const shippingCents = kargo.kargoCents;
   const totalCents = subtotalCents + shippingCents;
 
   const orderData = {

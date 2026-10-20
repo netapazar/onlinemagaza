@@ -1,6 +1,8 @@
 import LegalPage from "@/components/LegalPage";
 import { SIRKET } from "@/lib/sirket";
 import { sayfaMetasi } from "@/lib/seo";
+import { getKargoAyari } from "@/lib/onlineStore";
+import { kargoUcretiCumlesi } from "@/lib/shipping";
 
 export const metadata = sayfaMetasi({
   baslik: "Teslimat ve İade Şartları | Tedarikhane",
@@ -11,7 +13,8 @@ export const metadata = sayfaMetasi({
 const h2 = "mt-6 mb-2 text-base font-semibold text-neutral-900";
 const ul = "list-disc space-y-1 pl-5";
 
-export default function TeslimatVeIadePage() {
+export default async function TeslimatVeIadePage() {
+  const kargoAyari = await getKargoAyari();
   return (
     <LegalPage title="Teslimat ve İade Şartları">
       <h2 className={h2}>Teslimat</h2>
@@ -28,7 +31,7 @@ export default function TeslimatVeIadePage() {
           Kargoya teslim edilen siparişler, teslimat adresine bağlı olarak genellikle 1-3 iş günü içinde ulaştırılır.
           Teslimat süresi hiçbir durumda yasal 30 günlük süreyi aşmaz.
         </li>
-        <li>Şu anda tüm siparişlerde kargo ücretsizdir.</li>
+        <li>{kargoUcretiCumlesi(kargoAyari)}</li>
         <li>
           Siparişiniz kargoya verildiğinde kargo takip bilgisi &quot;Hesabım › Siparişlerim&quot; sayfasında
           görüntülenir.

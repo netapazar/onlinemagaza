@@ -16,7 +16,8 @@ import { ApprovedStrip } from "@/components/CorporateBenefits";
 import BrandStrip, { MIN_BRANDS } from "@/components/BrandStrip";
 import EmptyState from "@/components/EmptyState";
 import Reveal from "@/components/Reveal";
-import { ANA_SAYFA_ACIKLAMASI, ANA_SAYFA_BASLIGI, sayfaMetasi } from "@/lib/seo";
+import { ANA_SAYFA_BASLIGI, anaSayfaAciklamasi, sayfaMetasi } from "@/lib/seo";
+import { getKargoAyari } from "@/lib/onlineStore";
 
 const ROW_LIMIT = 12;
 
@@ -26,7 +27,9 @@ const ROW_LIMIT = 12;
 // renkli bantlar (Avansas esintili, daha "dolu" bir görünüm için).
 // Tasarım turu: "Neden Tedarikhane?" bandı kaldırıldı (içeriği TrustBar/CorporateBenefits ile tekrarlıyordu); bölümler
 // ekrana girerken bir kez yumuşakça belirir (Reveal); az markayla "Markalar" bölümü gizlenir (MIN_BRANDS).
-export const metadata = sayfaMetasi({ baslik: ANA_SAYFA_BASLIGI, aciklama: ANA_SAYFA_ACIKLAMASI, yol: "/" });
+export async function generateMetadata() {
+  return sayfaMetasi({ baslik: ANA_SAYFA_BASLIGI, aciklama: anaSayfaAciklamasi(await getKargoAyari()), yol: "/" });
+}
 
 export default async function Home() {
   const [categories, newArrivals, bestSellers, brands, memberDiscountPercent, membershipStatus] = await Promise.all([

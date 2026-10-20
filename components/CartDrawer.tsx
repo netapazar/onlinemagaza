@@ -10,6 +10,7 @@ import { QuantityStepper } from "@/components/QuantityStepper";
 import Skeleton from "@/components/Skeleton";
 import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
+import UcretsizKargoNotu from "@/components/UcretsizKargoNotu";
 
 const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> = {
   STOCK: "Stokta yok",
@@ -24,7 +25,7 @@ const UNAVAILABLE_MESSAGES: Record<"STOCK" | "NOT_FOR_SALE" | "BIRIM", string> =
 export default function CartDrawer() {
   const { items, drawerOpen, closeDrawer, updateQuantity, removeItem } = useCart();
   const [lines, setLines] = useState<CartLine[] | null>(null);
-  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0 });
+  const [totals, setTotals] = useState({ subtotalCents: 0, shippingCents: 0, totalCents: 0, ucretsizKargoKalanCents: 0 });
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -135,6 +136,7 @@ export default function CartDrawer() {
               <span className="text-neutral-500">Ara Toplam</span>
               <span className="font-semibold text-neutral-900">{centsToTl(totals.subtotalCents)} ₺</span>
             </div>
+            <UcretsizKargoNotu kalanCents={totals.ucretsizKargoKalanCents} className="-mt-1 mb-3" />
             <Link
               href="/sepet"
               onClick={closeDrawer}

@@ -13,7 +13,7 @@ import { getWebSession } from "@/lib/webSession";
 import { getMembershipStatus } from "@/lib/membershipStatus";
 import { MemberHintProvider } from "@/components/MemberHint";
 import { getStorefrontCategoriesWithCounts } from "@/lib/search";
-import { ANA_SAYFA_ACIKLAMASI, SITE_URL } from "@/lib/seo";
+import { ANA_SAYFA_ACIKLAMASI_GIRIS, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 // Logo harfleri zaten vektöre çevrilmiş olduğundan font kurulumu logonun
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   // Kendi metadata'sı olmayan sayfalar için (sepet, hesap vb. — çoğu robots.txt ile zaten taranmaz).
   title: "Tedarikhane",
-  description: ANA_SAYFA_ACIKLAMASI,
+  description: ANA_SAYFA_ACIKLAMASI_GIRIS,
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

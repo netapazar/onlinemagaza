@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { TruckIcon, PhoneIcon, BriefcaseIcon, HelpIcon } from "@/components/icons";
+import { getKargoAyari } from "@/lib/onlineStore";
+import { ucretsizKargoMetni } from "@/lib/shipping";
 
 // wa.me numarasıyla aynı hat (bkz. WhatsAppButton) — ayrı bir sabit hat
 // numarası tanımlı değil, tek irtibat noktası bu.
 const PHONE_DISPLAY = "0551 487 21 74";
 const PHONE_HREF = "tel:+905514872174";
 
-export default function AnnouncementBar() {
+export default async function AnnouncementBar() {
+  // Kargo vaadi CRM'deki kargo ayarından (bkz. lib/shipping.ts): "Tüm siparişlerde…" ya da "5.000 TL ve üzeri…".
+  const kargoMetni = ucretsizKargoMetni(await getKargoAyari());
   return (
     <div className="bg-[var(--color-night)] text-white">
       <div className="mx-auto flex max-w-content items-center justify-center gap-2 px-4 py-1.5 text-xs sm:justify-between">
         <div className="flex items-center gap-1.5">
           <TruckIcon className="h-3.5 w-3.5 shrink-0 text-[var(--color-brand-light)]" aria-hidden="true" />
-          <span>Tüm siparişlerde ücretsiz kargo</span>
+          <span>{kargoMetni}</span>
         </div>
         <div className="hidden items-center gap-4 sm:flex">
           <a href={PHONE_HREF} className="flex items-center gap-1.5 hover:text-[var(--color-brand-light)]">
