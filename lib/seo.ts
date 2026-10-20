@@ -102,3 +102,32 @@ export function urunMetasi(p: {
 }
 
 export const urunYolu = (p: { id: string; slug: string | null }) => (p.slug ? `/urun/${p.slug}` : `/urun/id/${p.id}`);
+
+// Kart/satır bağlantısı: ürün görünür bir Ürün Grubu'ndaysa (varyant, 2026-10) grup adresi + seçim (href), değilse ürün adresi.
+export const urunHref = (p: { id: string; slug: string | null; href?: string }) => p.href ?? urunYolu(p);
+
+// Ürün grubu (varyant, 2026-10) sayfası metadata'sı: başlık/açıklama grubun SEO alanlarından (boşsa grup adı / kısa açıklama /
+// açıklama; o da boşsa ilk görünür üyenin açıklaması), canonical PARAMETRESİZ grup adresi — seçim parametreli adresler
+// (?renk=…) aynı sayfanın kopyası sayılır. Paylaşım görseli: grup kapağı, yoksa varsayılan üyenin kapağı.
+export function grupMetasi(g: {
+  ad: string;
+  slug: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  shortDescription: string | null;
+  description: string | null;
+  gorsel: { url: string; altText: string | null } | null;
+  yedekAciklama?: string | null;
+}): Metadata {
+  return sayfaMetasi({
+    baslik: resolveSeoTitle({ name: g.ad, seoTitle: g.seoTitle }),
+    aciklama: resolveSeoDescription({
+      seoDescription: g.seoDescription,
+      shortDescription: g.shortDescription,
+      description: g.description || g.yedekAciklama,
+    }),
+    yol: `/urun/${g.slug}`,
+    gorseller: g.gorsel ? [{ url: g.gorsel.url, alt: g.gorsel.altText ?? g.ad }] : undefined,
+    paylasimBasligi: g.ad,
+  });
+}

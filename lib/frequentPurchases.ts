@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getOnlineStoreId, getOnlineFiyatArtisOrani } from "@/lib/onlineStore";
 import { BASE_SELECT, toSummary, type StorefrontProductSummary } from "@/lib/search";
 import { eticaretStokuUygula } from "@/lib/depoStok";
+import { grupBaglantilariniUygula } from "@/lib/urunGrubu";
 import { aggregatePurchases, type FrequentItem, type PurchaseLine } from "@/lib/frequentPurchasesCore";
 
 export type FrequentPurchase = FrequentItem & { product: StorefrontProductSummary };
@@ -66,7 +67,9 @@ export async function getFrequentPurchases(webCustomerId: string): Promise<Frequ
       select: BASE_SELECT,
     })
   );
-  const byBarcode = new Map(products.map((p) => [p.barcode, toSummary(p, markupPercent)]));
+  // Üye bazlı kalır (varyant, 2026-10); grup üyesinin bağlantısı grup adresine (+ seçim) gider.
+  const ozetler = await grupBaglantilariniUygula(products.map((p) => toSummary(p, markupPercent)));
+  const byBarcode = new Map(ozetler.map((p) => [p.barcode, p]));
 
   return items
     .filter((i) => byBarcode.has(i.barcode))

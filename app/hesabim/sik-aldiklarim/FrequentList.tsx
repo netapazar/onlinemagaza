@@ -7,6 +7,7 @@ import StoreImage from "@/components/StoreImage";
 import ProductPlaceholder from "@/components/ProductPlaceholder";
 import { useCart } from "@/components/CartProvider";
 import { resolvePrice, centsToTl } from "@/lib/pricing";
+import { urunHref } from "@/lib/seo";
 import { unitLabel } from "@/lib/units";
 import { birimEtiketi } from "@/lib/satisBirimleri";
 import type { StorefrontProductSummary } from "@/lib/search";
@@ -27,7 +28,7 @@ function Row({ row, memberDiscountPercent }: { row: FrequentRow; memberDiscountP
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const price = resolvePrice(product, memberDiscountPercent);
-  const href = product.slug ? `/urun/${product.slug}` : `/urun/id/${product.id}`;
+  const href = urunHref(product);
   // Paketli satış: miktar en küçük açık birimden kaç tane (ör. 2 Kutu); fiyat adet fiyatı.
   const enKucukBirim = product.satisBirimleri?.[0] ?? null;
   const inStock = product.stock >= (enKucukBirim?.adet ?? 1);

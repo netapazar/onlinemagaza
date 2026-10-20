@@ -159,7 +159,8 @@ model Brand {
   name      String   @unique
   createdAt DateTime @default(now())
 
-  products Product[]
+  products     Product[]
+  urunGruplari UrunGrubu[]
 }
 
 model Category {
@@ -175,7 +176,8 @@ model Category {
 
   createdAt DateTime @default(now())
 
-  products Product[]
+  products     Product[]
+  urunGruplari UrunGrubu[]
 
   @@unique([parentId, name])
   @@index([parentId])
@@ -317,6 +319,86 @@ model Product {
 // Storefront product photo — order + a cover flag drive the gallery UI
 // (cover shown first everywhere; the rest in sortOrder). Only meaningful on
 // an isOnlineStore Product row.
+// Varyant sistemi (2026-10): "Ürün Grubu" — stoksuz, yalnız vitrinde kullanılan üst kayıt. Renk/ebat kartları
+// (Product) OLDUĞU GİBİ kalır: stok, fiyat, barkod, satış/sayım/pazarlama hep kartta. Grup yalnız içerik taşır
+// (ad, marka, site kategorisi, açıklama, özellikler, SEO, ortak görseller); üyenin kendi online satırında boş
+// olan içerik alanı gruptan okunur. Fiyat ASLA gruptan miras alınmaz (her renk kendi fiyatıyla) — gruptaki
+// "fiyatı tüm renklere uygula" / "% zam uygula" kartların fiyatını yazan toplu işlemlerdir.
+// En çok iki eksen; eksen adlarını grup belirler ("Renk", "Ebat", "Hacim", "Uç"...). eksen2Ad boşsa tek eksen.
+// Vitrin adresi /urun/<slug> — Product.slug ile aynı ad alanı: çakışmayı uygulama katmanı engeller.
+model UrunGrubu {
+  id         String    @id @default(cuid())
+  ad         String
+  slug       String    @unique
+  brandId    String?
+  brand      Brand?    @relation(fields: [brandId], references: [id])
+  // Sitedeki kategori (depo kartının kategorisinden bağımsız).
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  shortDescription String?
+  description      String?
+  // Product.features ile aynı biçim: [{ad, deger}]
+  features         Json?
+  seoTitle         String?
+  seoDescription   String?
+  searchKeywords   String?
+
+  eksen1Ad String
+  eksen2Ad String?
+
+  showOnStorefront    Boolean @default(false)
+  storefrontSortOrder Int?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
+
+  uyeler    UrunGrubuUyesi[]
+  gorseller UrunGrubuGorseli[]
+
+  @@index([categoryId])
+  @@index([brandId])
+}
+
+// Gruba bağlı renk/ebat. Bağ BARKODLA kurulur (Product mağaza başına satır olduğundan tek bir productId yok;
+// sistemin geri kalanı da barkodla birleşir). Bir barkod en çok bir grupta. Barkod değişirse
+// (barkoduHerYerdeDegistir) bu satır da aynı işlemde güncellenmeli.
+// Ek kısıtlar migration'da elle: (grupId, eksen1Deger, eksen2Deger boşsa '') tekil; grupta en çok bir varsayılan;
+// renkHex '#RRGGBB'; eksen1Deger boş olamaz.
+model UrunGrubuUyesi {
+  id      String    @id @default(cuid())
+  grupId  String
+  grup    UrunGrubu @relation(fields: [grupId], references: [id], onDelete: Cascade)
+  barcode String    @unique
+
+  eksen1Deger String
+  eksen2Deger String?
+  // Seçicideki renk örneği; boşsa üyenin kapak görseli kullanılır.
+  renkHex     String?
+  sira        Int     @default(0)
+  // Grup sayfası parametresiz açıldığında seçili gelen üye (stokta değilse ilk stoklu üye).
+  varsayilan  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([grupId, sira])
+}
+
+// Grubun ortak görselleri (renge özel görsel üyenin kendi online satırında, ProductImage'da kalır).
+model UrunGrubuGorseli {
+  id        String    @id @default(cuid())
+  grupId    String
+  grup      UrunGrubu @relation(fields: [grupId], references: [id], onDelete: Cascade)
+  url       String
+  sortOrder Int       @default(0)
+  isCover   Boolean   @default(false)
+  altText   String?
+  createdAt DateTime  @default(now())
+
+  @@index([grupId])
+}
+
 model ProductImage {
   id        String  @id @default(cuid())
   productId String

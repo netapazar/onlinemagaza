@@ -15,11 +15,20 @@ export type CartToast = { id: number; message: string };
 
 // GA4 add_to_cart verisi: adet fiyatı (KDV dahil, ekranda görünen), marka ve paketli satışta birim içeriği.
 export type SepetAnalitigi = { adetFiyatiCents: number; marka?: string | null; icerik?: number };
+export type TopluSepetSatiri = {
+  productId: string;
+  quantity: number;
+  productName?: string;
+  birim?: string | null;
+  analitik?: SepetAnalitigi;
+};
 type CartContextValue = {
   items: CartItem[];
   itemCount: number;
   /** analitik: GA4 add_to_cart için adet fiyatı, marka ve birim içeriği (yalnız çerez onayı varsa gönderilir). */
   addItem: (productId: string, quantity: number, productName?: string, birim?: string | null, analitik?: SepetAnalitigi) => void;
+  /** Toplu ekleme (ürün grubu sayfasındaki toplu adet tablosu): tek durum güncellemesi, tek çekmece/bildirim. */
+  addItems: (lines: TopluSepetSatiri[]) => void;
   updateQuantity: (productId: string, quantity: number, birim?: string | null) => void;
   removeItem: (productId: string, birim?: string | null) => void;
   clear: () => void;
@@ -91,6 +100,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const addItems = useCallback((lines: TopluSepetSatiri[]) => {
+    const gecerli = lines.filter((l) => l.quantity > 0);
+    if (gecerli.length === 0) return;
+    setItems((prev) => {
+      let next = prev;
+      for (const l of gecerli) {
+        const existing = next.find((i) => sameLine(i, l.productId, l.birim));
+        next = existing
+          ? next.map((i) => (sameLine(i, l.productId, l.birim) ? { ...i, quantity: i.quantity + l.quantity } : i))
+          : [...next, l.birim ? { productId: l.productId, quantity: l.quantity, birim: l.birim } : { productId: l.productId, quantity: l.quantity }];
+      }
+      return next;
+    });
+    setDrawerOpen(true);
+    setAddTick((t) => t + 1);
+    setToast({
+      id: Date.now(),
+      message:
+        gecerli.length === 1 && gecerli[0].productName
+          ? `${gecerli[0].productName} sepete eklendi`
+          : `${gecerli.length} ürün sepete eklendi`,
+    });
+    for (const l of gecerli) {
+      if (!l.analitik) continue;
+      sepeteEklendi({
+        id: l.productId,
+        ad: l.productName ?? l.productId,
+        marka: l.analitik.marka,
+        adetFiyatiCents: l.analitik.adetFiyatiCents,
+        adet: l.quantity * (l.analitik.icerik ?? 1),
+      });
+    }
+  }, []);
+
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const updateQuantity = useCallback((productId: string, quantity: number, birim?: string | null) => {
@@ -111,7 +154,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, itemCount, addItem, updateQuantity, removeItem, clear, drawerOpen, closeDrawer, toast, addTick }}
+      value={{ items, itemCount, addItem, addItems, updateQuantity, removeItem, clear, drawerOpen, closeDrawer, toast, addTick }}
     >
       {children}
     </CartContext.Provider>
